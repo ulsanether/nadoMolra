@@ -1,6 +1,12 @@
-﻿namespace TestNadoMolra {
+﻿using Moq;
+
+
+namespace TestMvvm {
    [TestClass]
    public sealed class Test1 {
+     
+
+    
       [TestMethod]
       public void TestMethod1() {
          }
