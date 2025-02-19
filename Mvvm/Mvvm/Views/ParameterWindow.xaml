@@ -1,8 +1,63 @@
-﻿<UserControl x:Class="Mvvm.Views.ParameterWindow"
+﻿<UserControl
+    x:Class="Mvvm.Views.ParameterWindow"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="clr-namespace:Mvvm.Views"
+    xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
     xmlns:prism="http://prismlibrary.com/">
+
+    <UserControl.Resources>
+        <ResourceDictionary Source="../Dictionaries/Styles.xaml" />
+    </UserControl.Resources>
+
     <Grid>
-        <TextBlock Text="Parameter Window" FontSize="20" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <!--  설정 영역  -->
+        <StackPanel
+            Grid.Row="0"
+            Margin="10"
+            Orientation="Horizontal">
+            <TextBox Width="100" Text="{Binding ParameterCount, UpdateSourceTrigger=PropertyChanged}" />
+            <Button
+                Width="100"
+                Margin="10,0,0,0"
+                Command="{Binding ApplyCommand}"
+                Content="Apply Changes" />
+
+            <!--  카드 형식 체크박스  -->
+            <CheckBox
+                Margin="10,0,0,0"
+                Content="카드 형식"
+                IsChecked="{Binding IsCardView, Mode=TwoWay}" />
+
+            <!--  템플릿 갱신 버튼  -->
+            <Button
+                Width="100"
+                Margin="10,0,0,0"
+                Command="{Binding UpdateTemplateCommand}"
+                Content="Update Template" />
+        </StackPanel>
+
+        <!--  리스트 or 카드 형식 선택  -->
+        <ScrollViewer
+            Grid.Row="1"
+            Margin="10"
+            HorizontalScrollBarVisibility="Auto"
+            VerticalScrollBarVisibility="Visible">
+            <ItemsControl
+                x:Name="ParameterItemsControl"
+                ItemTemplateSelector="{StaticResource ParameterTemplateSelector}"
+                ItemsSource="{Binding Parameters}">
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <UniformGrid Columns="{Binding Columns}" />
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+            </ItemsControl>
+        </ScrollViewer>
     </Grid>
 </UserControl>

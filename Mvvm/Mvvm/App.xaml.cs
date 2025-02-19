@@ -28,6 +28,9 @@ namespace Mvvm
             // 네비게이션 등록
             containerRegistry.RegisterForNavigation<HomePage>();
             containerRegistry.RegisterForNavigation<ParameterWindow>();
+            containerRegistry.RegisterForNavigation<SettingPage>();
+
+
         }
     }
 }

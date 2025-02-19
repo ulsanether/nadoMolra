@@ -2,13 +2,18 @@
 using Prism.Mvvm;
 using Prism.Regions;
 using System.Windows;
-
+using Mvvm.Model;
+using System.IO.Ports;
+using System.Windows.Controls;
+using System;
 namespace Mvvm.ViewModels
 {
     public class MainWindowViewModel : BindableBase
     {
         private readonly IRegionManager _regionManager;
         private string _title = "애플리케이션";
+
+        PortConnect portConnector = new PortConnect();
 
         public string Title
         {
@@ -17,6 +22,8 @@ namespace Mvvm.ViewModels
         }
 
         public DelegateCommand NavigateToParameterWindowCommand { get; }
+        public DelegateCommand NavigateToSettingWindowCommand { get; }
+
         public DelegateCommand ShowMessageCommand { get; }
 
         public MainWindowViewModel(IRegionManager regionManager)
@@ -25,13 +32,20 @@ namespace Mvvm.ViewModels
 
             // 기본 페이지 로드
 
-            HomePageLoad();
+
             NavigateToParameterWindowCommand = new DelegateCommand(NavigateToParameterWindow);
             ShowMessageCommand = new DelegateCommand(ShowMessage);
-       
 
+            NavigateToSettingWindowCommand = new DelegateCommand(NavigateToSettingWindow);
         }
 
+        private void NavigateToSettingWindow() => _regionManager.RequestNavigate("ContentRegion", "SettingPage");
+
+        public void LoadAvailablePorts(ComboBox portComBox)
+        {
+            var ports = SerialPort.GetPortNames();
+            portComBox.ItemsSource = ports;
+        }
 
         private void HomePageLoad()
         {

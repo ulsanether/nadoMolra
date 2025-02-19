@@ -10,11 +10,15 @@ public class ParameterModel  :BindableBase
 
     public string Label{ get; set; }
 
+    public string ButtonContent { get; set; }   
+
     public double DefaultActual
     {
         get { return _defaultActual; }
-        set { SetProperty(ref _defaultActual, value); }
+        set { SetProperty(ref _defaultActual, value);   }
     }
+
+
 
 
 }

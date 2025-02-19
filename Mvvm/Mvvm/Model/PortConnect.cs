@@ -15,12 +15,6 @@ namespace Mvvm.Model
 
         private SerialPort port = null;
 
-        int baudRate;
-
-
-
-
-
 
         public async Task ConnectToPort(string portName)
         {
