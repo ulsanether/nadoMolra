@@ -1,4 +1,5 @@
-﻿using System.Windows;
+﻿using Prism.Regions;
+using System.Windows;
 
 namespace Mvvm.Views
 {
@@ -7,11 +8,13 @@ namespace Mvvm.Views
     /// </summary>
     public partial class MainWindow : Window
     {
-
+     
 
         public MainWindow()
         {
             InitializeComponent();
+         
+
         }
     }
 }
