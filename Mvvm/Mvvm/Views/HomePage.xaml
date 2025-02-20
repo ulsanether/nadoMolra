@@ -10,6 +10,8 @@
             VerticalAlignment="Center"
             FontSize="24"
             Text="홈 페이지" />
+
+
     </Grid>
 </UserControl>
 

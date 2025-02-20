@@ -12,6 +12,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using Mvvm.ViewModels;
 
 namespace Mvvm.Views;
 /// <summary>
@@ -19,8 +20,10 @@ namespace Mvvm.Views;
 /// </summary>
 public partial class SettingPage : UserControl
 {
-    public SettingPage()
+    public SettingPage(MainWindowViewModel mainWindowViewModel)
     {
         InitializeComponent();
+        //DataContext = new SettingPageViewModel();
+        DataContext = new SettingPageViewModel(mainWindowViewModel);
     }
 }

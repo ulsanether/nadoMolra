@@ -90,7 +90,6 @@ internal class ModbusConnect
                 }
                 else
                 {
-
                     return;
                 }
                 port.Dispose();

@@ -8,7 +8,201 @@
     d:DesignHeight="450"
     d:DesignWidth="800"
     mc:Ignorable="d">
-    <Grid >
-        <TextBox HorizontalAlignment="Left" Margin="230,157,0,0" TextWrapping="Wrap" Text="TextBox" VerticalAlignment="Top" Width="391" Height="147" Background="Red"/>
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="20" />
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="20" />
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="20" />
+            <RowDefinition Height="1*" />
+            <RowDefinition Height="1*" />
+            <RowDefinition Height="20" />
+        </Grid.RowDefinitions>
+
+        <Grid Grid.Row="1" Grid.Column="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*" />
+                <RowDefinition Height="*" />
+                <RowDefinition Height="*" />
+                <RowDefinition Height="*" />
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
+            <TextBlock
+                Grid.Row="0"
+                Grid.Column="0"
+                HorizontalAlignment="Left"
+                VerticalAlignment="Center"
+                Text="Connection" />
+            <ComboBox
+                x:Name="ConnectionComboBox"
+                Grid.Column="1"
+                Width="126"
+                HorizontalAlignment="Center"
+                ItemsSource="{Binding ConnectionOptions}"
+                SelectedItem="{Binding SelectedConnection}" />
+            <TextBlock
+                Grid.Row="1"
+                Grid.Column="0"
+                HorizontalAlignment="Left"
+                VerticalAlignment="Center"
+                Text="Baud" />
+            <ComboBox
+                x:Name="BaudComboBox"
+                Grid.Row="1"
+                Grid.Column="1"
+                Width="126"
+                HorizontalAlignment="Center"
+                ItemsSource="{Binding BaudOptions}"
+                SelectedItem="{Binding SelectedBaud}" />
+            <TextBlock
+                Grid.Row="2"
+                Grid.Column="0"
+                HorizontalAlignment="Left"
+                VerticalAlignment="Center"
+                Text="DataBit" />
+            <ComboBox
+                x:Name="DataBitComboBox"
+                Grid.Row="2"
+                Grid.Column="1"
+                Width="126"
+                HorizontalAlignment="Center"
+                ItemsSource="{Binding DataBitOptions}"
+                SelectedItem="{Binding SelectedDataBit}" />
+            <TextBlock
+                Grid.Row="3"
+                Grid.Column="0"
+                HorizontalAlignment="Left"
+                VerticalAlignment="Center"
+                Text="Parity" />
+            <ComboBox
+                x:Name="ParityComboBox"
+                Grid.Row="3"
+                Grid.Column="1"
+                Width="126"
+                HorizontalAlignment="Center"
+                ItemsSource="{Binding ParityOptions}"
+                SelectedItem="{Binding SelectedParity}" />
+            <TextBlock
+                Grid.Row="4"
+                Grid.Column="0"
+                HorizontalAlignment="Left"
+                VerticalAlignment="Center"
+                Text="Stop Bit" />
+            <ComboBox
+                x:Name="StopBitComboBox"
+                Grid.Row="4"
+                Grid.Column="1"
+                Width="126"
+                HorizontalAlignment="Center"
+                ItemsSource="{Binding StopBitOptions}"
+                SelectedItem="{Binding SelectedStopBit}" />
+        </Grid>
+
+        <Grid
+            Grid.Row="1"
+            Grid.Column="2"
+            VerticalAlignment="Top">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="68*" />
+                <RowDefinition Height="1*" />
+                <RowDefinition Height="100" />
+                <RowDefinition Height="30" />
+            </Grid.RowDefinitions>
+
+            <TextBlock
+                Grid.Column="0"
+                Width="32"
+                Height="16"
+                HorizontalAlignment="Left"
+                VerticalAlignment="Center"
+                Text="Mode" />
+            <StackPanel
+                Grid.Column="1"
+                Grid.ColumnSpan="2"
+                Orientation="Horizontal">
+                <RadioButton
+                    Height="68"
+                    Content="RTU"
+                    IsChecked="True" />
+                <RadioButton Height="68" Content="ASCII" />
+                <RadioButton Height="68" Content="TCP" />
+            </StackPanel>
+            <Border
+                Grid.Row="1"
+                Grid.Column="0"
+                Grid.ColumnSpan="3"
+                Margin="0,1,0,0"
+                BorderBrush="Red"
+                BorderThickness="1" />
+
+            <TextBlock
+                Grid.Row="1"
+                Grid.RowSpan="2"
+                Grid.Column="0"
+                Width="106"
+                Height="16"
+                Margin="0,1,0,0"
+                HorizontalAlignment="Left"
+                VerticalAlignment="Top"
+                Text="Response Timeout" />
+            <TextBox
+                Grid.Row="2"
+                Grid.Column="1"
+                Grid.ColumnSpan="2"
+                Width="120"
+                Margin="0,0,0,0"
+                HorizontalAlignment="Left"
+                VerticalAlignment="Top"
+                Text="1000"
+                TextWrapping="Wrap" />
+            <TextBlock
+                Grid.Row="2"
+                Grid.Column="3"
+                Width="32"
+                Height="16"
+                HorizontalAlignment="Center"
+                VerticalAlignment="Top"
+                Text="[ms]" />
+
+            <TextBlock
+                Grid.Row="2"
+                Grid.Column="0"
+                Width="118"
+                Height="16"
+                HorizontalAlignment="Left"
+                VerticalAlignment="Center"
+                Text="Delay Between Polls" />
+            <TextBox
+                Grid.Row="2"
+                Grid.Column="1"
+                Grid.ColumnSpan="2"
+                Width="120"
+                Margin="0,0,0,0"
+                HorizontalAlignment="Left"
+                VerticalAlignment="Center"
+                Text="20"
+                TextWrapping="Wrap" />
+            <TextBlock
+                Grid.Row="2"
+                Grid.Column="3"
+                Width="32"
+                Height="16"
+                HorizontalAlignment="Center"
+                VerticalAlignment="Center"
+                Text="[ms]" />
+        </Grid>
     </Grid>
 </UserControl>

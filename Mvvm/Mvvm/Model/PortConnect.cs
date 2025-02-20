@@ -7,13 +7,20 @@ using System.Text;
 using System.Threading.Tasks;
 using NModbus;
 using System.Windows;
+using Mvvm.Model.ComPort;
 
 namespace Mvvm.Model
 {
-    class PortConnect
+    public class PortConnect 
     {
 
+
+
+
         private SerialPort port = null;
+
+        public SerialPortConfig serialPortConfig { get; set; }
+
 
 
         public async Task ConnectToPort(string portName)
@@ -27,12 +34,12 @@ namespace Mvvm.Model
 
                 port = new SerialPort(portName)
                 {
-                    BaudRate = 9600,
-                    DataBits = 8,
-                    Parity = Parity.None,
-                    StopBits = StopBits.One,
-                    ReadTimeout = 2000,
-                    WriteTimeout = 2000
+                    BaudRate = serialPortConfig.BaudRate,
+                    DataBits = serialPortConfig.DataBits,
+                    Parity = serialPortConfig.Parity,
+                    StopBits = serialPortConfig.StopBits,
+                    ReadTimeout = serialPortConfig.ReadTimeout,
+                    WriteTimeout = serialPortConfig.WriteTimeout
                 };
 
 
