@@ -16,7 +16,11 @@ namespace Mvvm.ViewModels
         private readonly IRegionManager _regionManager;
         private string _title = "애플리케이션";
 
+
+
         PortConnect portConnector = new PortConnect();
+
+        private ComboBox _portComBox;
 
         private SerialPortConfig _serialPortConfig;
 
@@ -53,7 +57,11 @@ namespace Mvvm.ViewModels
             MessageBox.Show("버튼 클릭!", "알림", MessageBoxButton.OK, MessageBoxImage.Information);
         }
 
-
+        public ComboBox PortComBox
+        {
+            get => _portComBox;
+            set => SetProperty(ref _portComBox, value);
+        }
         #endregion
 
 
@@ -67,7 +75,6 @@ namespace Mvvm.ViewModels
         {
             _regionManager = regionManager;
             SerialPortConfig = new SerialPortConfig();
-            // 기본 페이지 로드
 
             NavigateToParameterWindowCommand = new DelegateCommand(NavigateToParameterWindow);
             ShowMessageCommand = new DelegateCommand(ShowMessage);
@@ -77,13 +84,20 @@ namespace Mvvm.ViewModels
 
         }
 
-        private void ConnectPorts() {
-
-            portConnector = new PortConnect();
-            portConnector.ConnectToPort("COM3");
-
-
+      private void ConnectPorts()
+        {
+            if (PortComBox?.SelectedItem != null)
+            {
+                string selectedPort = PortComBox.SelectedItem.ToString();
+                portConnector = new PortConnect();
+                portConnector.ConnectToPort(selectedPort);
+            }
+            else
+            {
+                MessageBox.Show("포트를 선택하세요.", "경고", MessageBoxButton.OK, MessageBoxImage.Warning);
+            }
         }
+
 
 
         private void NavigateToSettingWindow() => _regionManager.RequestNavigate("ContentRegion", "SettingPage");

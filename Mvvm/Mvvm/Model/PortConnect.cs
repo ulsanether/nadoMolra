@@ -8,20 +8,18 @@ using System.Threading.Tasks;
 using NModbus;
 using System.Windows;
 using Mvvm.Model.ComPort;
+using NModbus.Serial;
 
 namespace Mvvm.Model
 {
-    public class PortConnect 
+    public class PortConnect
     {
 
-
-
-
         private SerialPort port = null;
-
         public SerialPortConfig serialPortConfig { get; set; }
 
 
+        private IModbusMaster master = null;
 
         public async Task ConnectToPort(string portName)
         {
@@ -34,14 +32,13 @@ namespace Mvvm.Model
 
                 port = new SerialPort(portName)
                 {
-                    BaudRate = serialPortConfig.BaudRate,
-                    DataBits = serialPortConfig.DataBits,
+                    BaudRate = Properties.Settings.Default.BaudRate,
+                    DataBits = Properties.Settings.Default.DataBits,
                     Parity = serialPortConfig.Parity,
                     StopBits = serialPortConfig.StopBits,
-                    ReadTimeout = serialPortConfig.ReadTimeout,
-                    WriteTimeout = serialPortConfig.WriteTimeout
+                    ReadTimeout = Properties.Settings.Default.ReadTimeout,
+                    WriteTimeout = Properties.Settings.Default.WriteTimeout
                 };
-
 
 
                 await Task.Run(() =>
@@ -61,9 +58,9 @@ namespace Mvvm.Model
                 });
 
                 var factory = new ModbusFactory();
-               // master = factory.CreateRtuMaster(port);
-               // master.Transport.ReadTimeout = 2000;
-              //  master.Transport.WriteTimeout = 2000;
+                 master = factory.CreateRtuMaster(port);
+                 master.Transport.ReadTimeout = 2000;
+                  master.Transport.WriteTimeout = 2000;
 
                 MessageBox.Show("연결에 성공했습니다.", "정보", MessageBoxButton.OK, MessageBoxImage.Information);
             }
@@ -72,9 +69,5 @@ namespace Mvvm.Model
                 MessageBox.Show($"포트 연결 실패: {ex.Message}", "오류", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
-
-
-
-
     }
 }

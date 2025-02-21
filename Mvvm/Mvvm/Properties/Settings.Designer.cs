@@ -46,5 +46,77 @@ namespace Mvvm.Properties {
                 this["ModbusUnit"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("9600")]
+        public int BaudRate {
+            get {
+                return ((int)(this["BaudRate"]));
+            }
+            set {
+                this["BaudRate"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("8")]
+        public int DataBits {
+            get {
+                return ((int)(this["DataBits"]));
+            }
+            set {
+                this["DataBits"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("0")]
+        public string Parity {
+            get {
+                return ((string)(this["Parity"]));
+            }
+            set {
+                this["Parity"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("1")]
+        public string StopBits {
+            get {
+                return ((string)(this["StopBits"]));
+            }
+            set {
+                this["StopBits"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("1000")]
+        public int ReadTimeout {
+            get {
+                return ((int)(this["ReadTimeout"]));
+            }
+            set {
+                this["ReadTimeout"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("20")]
+        public int WriteTimeout {
+            get {
+                return ((int)(this["WriteTimeout"]));
+            }
+            set {
+                this["WriteTimeout"] = value;
+            }
+        }
     }
 }

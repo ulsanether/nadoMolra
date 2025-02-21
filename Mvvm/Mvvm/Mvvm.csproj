@@ -3,6 +3,7 @@
     <OutputType>WinExe</OutputType>
     <TargetFramework>net7.0-windows7.0</TargetFramework>
     <UseWPF>true</UseWPF>
+    <LangVersion>preview</LangVersion>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="devexpress.wpf.core" Version="24.1.6-pre-24252" />
@@ -28,5 +29,8 @@
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
     </None>
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Enum\" />
   </ItemGroup>
 </Project>

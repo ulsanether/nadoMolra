@@ -26,7 +26,6 @@ namespace Mvvm.ViewModels
 
 
 
-
         public string SelectedConnection
         {
             get => _selectedConnection;
@@ -80,8 +79,6 @@ namespace Mvvm.ViewModels
                 UpdateSerialPortConfig();
             }
         }
-
-
 
 
         public SettingPageViewModel(MainWindowViewModel mainWindowViewModel)
