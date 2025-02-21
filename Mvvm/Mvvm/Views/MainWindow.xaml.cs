@@ -9,7 +9,7 @@ namespace Mvvm.Views
     /// </summary>
     public partial class MainWindow : Window
     {
-        private MainWindowViewModel _MainWindowViewModel;
+        private readonly MainWindowViewModel _MainWindowViewModel;
 
         public MainWindow(IRegionManager regionManager)
         {

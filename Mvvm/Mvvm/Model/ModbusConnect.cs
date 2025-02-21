@@ -99,8 +99,6 @@ internal class ModbusConnect
         }
     }
 
-
-
     public void PortReset_Click()
     {
         try
@@ -144,10 +142,25 @@ internal class ModbusConnect
             return;
         }
 
-        byte slaveId = 2;
-        ushort startAddress = 0x0000;
-        ushort numberOfPoints = 0x000E;
-        var registers = await Task.Run(() => master.ReadHoldingRegisters(slaveId, startAddress, numberOfPoints));
+        byte slaveId = serialPortConfig.slaveId;
+        ushort startAddress = serialPortConfig.startAddress;
+        ushort numberOfPoints = serialPortConfig.numberOfPoints;
+
+
+        switch(serialPortConfig.FunctionCode)
+        {
+            case 3:
+                var registers = await Task.Run(() => master.ReadHoldingRegisters(slaveId, startAddress, numberOfPoints));
+                break;
+            case 4:
+                 registers = await Task.Run(() => master.ReadInputRegisters(slaveId, startAddress, numberOfPoints));
+                break;
+            default:
+                MessageBox.Show("잘못된 기능 코드입니다.", "오류", MessageBoxButton.OK, MessageBoxImage.Error);
+                return;
+        }
+
+
         await Task.Delay(100);
     }
 

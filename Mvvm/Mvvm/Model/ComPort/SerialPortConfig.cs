@@ -11,24 +11,22 @@ using Google.Protobuf.WellKnownTypes;
 
 
 namespace Mvvm.Model.ComPort
-{      
+{
     public class SerialPortConfig
     {
-      
+
         public int BaudRate
         {
             get;
             set;
-     
+
         }
 
         public int DataBits
         {
             get;
-            set
-            {
-        
-            }
+            set;
+
         }
 
         public Parity Parity
@@ -36,41 +34,38 @@ namespace Mvvm.Model.ComPort
             get;
 
 
-            set
-            {
-                Properties.Settings.Default.Parity = value.ToString();
-                Properties.Settings.Default.Save();
-            }
+            set;
+
         }
 
         public StopBits StopBits
         {
             get;
-            set
-            {
-                Properties.Settings.Default.StopBits = value.ToString();
-                Properties.Settings.Default.Save();
-            }
+            set;
+
         }
 
         public int ReadTimeout
         {
-            get; set
-            {
-                Properties.Settings.Default.ReadTimeout = value;
-                Properties.Settings.Default.Save();
-            }
+            get; set;
+
         }
         public int WriteTimeout
         {
             get;
 
-            set
-            {
-                Properties.Settings.Default.WriteTimeout = value;
-                Properties.Settings.Default.Save();
-            }
+            set;
+
         }
+
+
+
+        //임시 
+        public byte slaveId = 1;
+        public ushort startAddress = 0x0000;
+        public ushort numberOfPoints = 0x0064;
+        public int FunctionCode = 3;
+        //
 
 
 

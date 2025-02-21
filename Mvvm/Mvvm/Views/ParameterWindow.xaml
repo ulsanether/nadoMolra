@@ -38,20 +38,14 @@
                 Margin="10,0,0,0"
                 Content="카드 형식"
                 IsChecked="{Binding IsCardView, Mode=TwoWay}" />
-
-
-
             <!--  템플릿 갱신 버튼  -->
-            <Button
-                Width="100"
-                Margin="10,0,0,0"
-                Command="{Binding UpdateTemplateCommand}"
-                Content="Update Template" />
+
         </StackPanel>
 
         <!--  리스트 or 카드 형식 선택  -->
         <ScrollViewer
             Grid.Row="1"
+            Grid.ColumnSpan="2"
             Margin="10"
             HorizontalScrollBarVisibility="Auto"
             VerticalScrollBarVisibility="Visible">
