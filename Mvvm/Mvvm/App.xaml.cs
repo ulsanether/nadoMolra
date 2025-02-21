@@ -14,8 +14,6 @@ namespace Mvvm
         {
             var mainWindow = Container.Resolve<MainWindow>();
             _regionManager = Container.Resolve<IRegionManager>();
-            _regionManager.RequestNavigate("ContentRegion", "HomePage");
-
             return mainWindow;
         }
         protected override void RegisterTypes(IContainerRegistry containerRegistry)

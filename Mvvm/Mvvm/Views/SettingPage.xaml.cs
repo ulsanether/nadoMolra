@@ -23,7 +23,6 @@ public partial class SettingPage : UserControl
     public SettingPage(MainWindowViewModel mainWindowViewModel)
     {
         InitializeComponent();
-        //DataContext = new SettingPageViewModel();
         DataContext = new SettingPageViewModel(mainWindowViewModel);
     }
 }

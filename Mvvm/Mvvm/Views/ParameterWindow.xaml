@@ -8,7 +8,6 @@
 
     <UserControl.Resources>
         <ResourceDictionary Source="../Dictionaries/Styles.xaml" />
-
     </UserControl.Resources>
 
     <Grid>
@@ -40,6 +39,8 @@
                 Content="카드 형식"
                 IsChecked="{Binding IsCardView, Mode=TwoWay}" />
 
+
+
             <!--  템플릿 갱신 버튼  -->
             <Button
                 Width="100"
@@ -54,10 +55,10 @@
             Margin="10"
             HorizontalScrollBarVisibility="Auto"
             VerticalScrollBarVisibility="Visible">
-            <ItemsControl
-                x:Name="ParameterItemsControl"
-                ItemTemplateSelector="{StaticResource ParameterTemplateSelector}"
-                ItemsSource="{Binding Parameters}">
+            <ItemsControl x:Name="ParameterItemsControl" ItemsSource="{Binding Parameters}">
+                <ItemsControl.ItemTemplateSelector>
+                    <local:ParameterTemplateSelector CardTemplate="{StaticResource CardTemplate}" ListTemplate="{StaticResource ListTemplate}" />
+                </ItemsControl.ItemTemplateSelector>
                 <ItemsControl.ItemsPanel>
                     <ItemsPanelTemplate>
                         <UniformGrid Columns="{Binding Columns}" />

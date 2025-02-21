@@ -31,7 +31,6 @@
             HorizontalAlignment="Right"
             Command="{Binding NavigateToParameterWindowCommand}"
             Content="Data"
-            IsEnabled="{Binding DataContext.ControlsEnabled, RelativeSource={RelativeSource AncestorType={x:Type Window}, Mode=FindAncestor}}"
             Style="{StaticResource MaterialDesignRaisedLightButton}"
             ToolTip="데이터 확인" />
 
@@ -42,7 +41,6 @@
             HorizontalAlignment="Right"
             Command="{Binding NavigateToSettingWindowCommand}"
             Content="Setting"
-            IsEnabled="{Binding DataContext.ControlsEnabled, RelativeSource={RelativeSource AncestorType={x:Type Window}, Mode=FindAncestor}}"
             Style="{StaticResource MaterialDesignRaisedLightButton}"
             ToolTip="데이터 확인" />
 
@@ -52,7 +50,6 @@
             Margin="170,0,0,0"
             HorizontalAlignment="Left"
             Command="{Binding PortConnectButton}"
-            IsEnabled="{Binding DataContext.ControlsEnabled, RelativeSource={RelativeSource AncestorType={x:Type Window}, Mode=FindAncestor}}"
             Style="{StaticResource MaterialDesignFloatingActionLightButton}"
             ToolTip="MaterialDesignFloatingActionLightButton">
             <materialDesign:PackIcon

@@ -1,28 +1,28 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
+using Mvvm.ViewModels;
 
 namespace Mvvm.Views
 {
-    /// <summary>
-    /// ParameterWindow.xaml에 대한 상호 작용 논리
-    /// </summary>
     public partial class ParameterWindow : UserControl
     {
         public ParameterWindow()
         {
             InitializeComponent();
+            var viewModel = new ParameterWindowViewModel();
+            DataContext = viewModel;
+            viewModel.RefreshTemplateAction = RefreshTemplate;
+        }
+
+        private void RefreshTemplate()
+        {
+            var itemsControl = this.FindName("ParameterItemsControl") as ItemsControl;
+            if (itemsControl != null)
+            {
+                var itemsSource = itemsControl.ItemsSource;
+                itemsControl.ItemsSource = null;
+                itemsControl.ItemsSource = itemsSource;
+            }
         }
     }
 }

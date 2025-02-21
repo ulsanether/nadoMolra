@@ -3,7 +3,6 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:local="clr-namespace:Mvvm.Views"
     xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes">
-
     <!--  리스트 형식 템플릿  -->
     <DataTemplate x:Key="ListTemplate">
         <StackPanel
@@ -21,10 +20,6 @@
                 Content="Apply" />
         </StackPanel>
     </DataTemplate>
-
-
-
-
 
     <!--  카드 형식 템플릿  -->
     <DataTemplate x:Key="CardTemplate">

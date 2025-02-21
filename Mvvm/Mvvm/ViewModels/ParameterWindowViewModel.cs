@@ -1,9 +1,10 @@
 ﻿using Mvvm.Views;
-using Org.BouncyCastle.Asn1.Crmf;
 using Prism.Commands;
 using Prism.Mvvm;
+using System;
 using System.Collections.ObjectModel;
 using System.Windows;
+using System.Windows.Controls;
 
 namespace Mvvm.ViewModels
 {
@@ -12,11 +13,10 @@ namespace Mvvm.ViewModels
         private bool _isCardView;
         public bool IsCardView
         {
-            get =>_isCardView;
+            get => _isCardView;
             set
             {
                 SetProperty(ref _isCardView, value);
-
                 UpdateTemplate();
             }
         }
@@ -45,6 +45,8 @@ namespace Mvvm.ViewModels
 
         public DelegateCommand UpdateTemplateCommand { get; }
 
+        public Action RefreshTemplateAction { get; set; }
+
         public ParameterWindowViewModel()
         {
             ApplyCommand = new DelegateCommand(UpdateParameters);
@@ -67,15 +69,8 @@ namespace Mvvm.ViewModels
 
         private void UpdateTemplate()
         {
-
-            var selector = Application.Current.Resources["ParameterTemplateSelector"] as ParameterTemplateSelector;
-           
-            if (selector != null)
-            {
-                selector.RefreshTemplate();
-            }
+            Columns = IsCardView ? 3 : 1;
+            RefreshTemplateAction?.Invoke();
         }
-
-
     }
 }
