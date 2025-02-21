@@ -4,21 +4,22 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.IO.Ports;
+using System.Configuration;
+using System.ServiceModel.Channels;
+using System.Windows;
+using Google.Protobuf.WellKnownTypes;
 
 
 namespace Mvvm.Model.ComPort
-{
+{      
     public class SerialPortConfig
     {
-
+      
         public int BaudRate
         {
             get;
-            set
-            {
-                Properties.Settings.Default.BaudRate = value;
-                Properties.Settings.Default.Save();
-            }
+            set;
+     
         }
 
         public int DataBits
@@ -26,8 +27,7 @@ namespace Mvvm.Model.ComPort
             get;
             set
             {
-                Properties.Settings.Default.DataBits = value;
-                Properties.Settings.Default.Save();
+        
             }
         }
 
@@ -63,7 +63,9 @@ namespace Mvvm.Model.ComPort
         }
         public int WriteTimeout
         {
-            get; set
+            get;
+
+            set
             {
                 Properties.Settings.Default.WriteTimeout = value;
                 Properties.Settings.Default.Save();
@@ -71,6 +73,30 @@ namespace Mvvm.Model.ComPort
         }
 
 
+
+        public void SaveSerialPortconfig()
+        {
+
+            Properties.Settings.Default.BaudRate = BaudRate;
+            Properties.Settings.Default.DataBits = DataBits;
+            Properties.Settings.Default.Parity = Parity.ToString();
+            Properties.Settings.Default.StopBits = StopBits.ToString();
+            Properties.Settings.Default.ReadTimeout = ReadTimeout;
+            Properties.Settings.Default.WriteTimeout = WriteTimeout;
+            Properties.Settings.Default.Save();
+
+        }
+
+
+        public void LoadSerialPortConfig()
+        {
+            BaudRate = Properties.Settings.Default.BaudRate;
+            DataBits = Properties.Settings.Default.DataBits;
+            Parity = (Parity)System.Enum.Parse(typeof(Parity), Properties.Settings.Default.Parity);
+            StopBits = (StopBits)System.Enum.Parse(typeof(StopBits), Properties.Settings.Default.StopBits);
+            ReadTimeout = Properties.Settings.Default.ReadTimeout;
+            WriteTimeout = Properties.Settings.Default.WriteTimeout;
+        }
 
 
         //      public static readonly Dictionary<baudEnum, (string Name, string Hex)> Colors = new()
@@ -85,23 +111,6 @@ namespace Mvvm.Model.ComPort
         //};
 
 
-
-        public SerialPortConfig()
-        {
-
-
-
-        }
-
-        public SerialPortConfig(int baudRate, int dataBits, Parity parity, StopBits stopBits, int readTimeout, int writeTimeout)
-        {
-            BaudRate = baudRate;
-            DataBits = dataBits;
-            Parity = parity;
-            StopBits = stopBits;
-            ReadTimeout = readTimeout;
-            WriteTimeout = writeTimeout;
-        }
     }
 }
 

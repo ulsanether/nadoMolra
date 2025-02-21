@@ -1,4 +1,5 @@
 ﻿using Mvvm.Views;
+using Org.BouncyCastle.Asn1.Crmf;
 using Prism.Commands;
 using Prism.Mvvm;
 using System.Collections.ObjectModel;
@@ -11,10 +12,11 @@ namespace Mvvm.ViewModels
         private bool _isCardView;
         public bool IsCardView
         {
-            get => _isCardView;
+            get =>_isCardView;
             set
             {
                 SetProperty(ref _isCardView, value);
+
                 UpdateTemplate();
             }
         }
@@ -39,10 +41,8 @@ namespace Mvvm.ViewModels
 
         public ObservableCollection<ParameterModel> Parameters { get; set; } = new();
 
-        // ApplyCommand: 데이터 갱신
         public DelegateCommand ApplyCommand { get; }
 
-        // UpdateTemplateCommand: 템플릿 변경 버튼 동작
         public DelegateCommand UpdateTemplateCommand { get; }
 
         public ParameterWindowViewModel()
@@ -67,15 +67,15 @@ namespace Mvvm.ViewModels
 
         private void UpdateTemplate()
         {
-            // 템플릿 변경 메시지 (테스트용)
-            MessageBox.Show($"템플릿 변경됨: {(IsCardView ? "카드" : "리스트")}", "Template Update");
 
-            // 템플릿 업데이트 로직
             var selector = Application.Current.Resources["ParameterTemplateSelector"] as ParameterTemplateSelector;
+           
             if (selector != null)
             {
                 selector.RefreshTemplate();
             }
         }
+
+
     }
 }

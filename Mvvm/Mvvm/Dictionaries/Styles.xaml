@@ -6,7 +6,10 @@
 
     <!--  리스트 형식 템플릿  -->
     <DataTemplate x:Key="ListTemplate">
-        <StackPanel Margin="5" Orientation="Horizontal">
+        <StackPanel
+            Margin="5,5,5,5"
+            HorizontalAlignment="Center"
+            Orientation="Horizontal">
             <TextBlock
                 Width="100"
                 VerticalAlignment="Center"
@@ -20,7 +23,6 @@
     </DataTemplate>
 
 
- 
 
 
 

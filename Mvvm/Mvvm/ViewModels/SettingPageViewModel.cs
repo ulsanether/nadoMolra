@@ -81,7 +81,7 @@ namespace Mvvm.ViewModels
         }
 
 
-        public SettingPageViewModel(MainWindowViewModel mainWindowViewModel)
+    public SettingPageViewModel(MainWindowViewModel mainWindowViewModel)
         {
             ConnectionOptions = new ObservableCollection<string> { "SerialPort", "TCP/IP", "Option3" };
             BaudOptions = new ObservableCollection<string> { "9600", "19200", "38400", "57600", "115200", "128000" };

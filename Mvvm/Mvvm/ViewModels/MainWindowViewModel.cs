@@ -9,30 +9,27 @@ using System;
 using Mvvm.Model.ComPort;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
+using System.Timers;
+
 namespace Mvvm.ViewModels
 {
     public class MainWindowViewModel : BindableBase
     {
         private readonly IRegionManager _regionManager;
         private string _title = "애플리케이션";
+        private readonly Timer _timer;
 
-
-
-        PortConnect portConnector = new PortConnect();
+        private ModbusConnect _modbusConnect;
+        
+      
 
         private ComboBox _portComBox;
+        private string _selectPort;
 
-        private SerialPortConfig _serialPortConfig;
-
-        public SerialPortConfig SerialPortConfig
+        public string SelectPort
         {
-            get => _serialPortConfig;
-
-            set {
-                _serialPortConfig = value;
-                OnPropertyChanged();
-
-            }
+            get => _selectPort;
+            set => SetProperty(ref _selectPort, value);
         }
 
         public string Title
@@ -41,9 +38,7 @@ namespace Mvvm.ViewModels
             set => SetProperty(ref _title, value);
         }
 
-
-
-        public event PropertyChangedEventHandler PropertyChanged;
+        public new event PropertyChangedEventHandler PropertyChanged;
 
         public DelegateCommand NavigateToParameterWindowCommand { get; }
         public DelegateCommand NavigateToSettingWindowCommand { get; }
@@ -64,17 +59,12 @@ namespace Mvvm.ViewModels
         }
         #endregion
 
-
         public DelegateCommand LoadAvailablePortsCommand { get; }
-        public MainWindowViewModel()
-        {
 
-
-        }
         public MainWindowViewModel(IRegionManager regionManager)
         {
             _regionManager = regionManager;
-            SerialPortConfig = new SerialPortConfig();
+            _modbusConnect = new ModbusConnect();
 
             NavigateToParameterWindowCommand = new DelegateCommand(NavigateToParameterWindow);
             ShowMessageCommand = new DelegateCommand(ShowMessage);
@@ -82,39 +72,39 @@ namespace Mvvm.ViewModels
 
             PortConnectButton = new DelegateCommand(ConnectPorts);
 
+     
+            _timer = new Timer(1000); 
+            _timer.Elapsed += (sender, e) => LoadAvailablePorts(PortComBox);
+            _timer.Start();
         }
 
-      private void ConnectPorts()
+        private async void ConnectPorts()
         {
-            if (PortComBox?.SelectedItem != null)
-            {
-                string selectedPort = PortComBox.SelectedItem.ToString();
-                portConnector = new PortConnect();
-                portConnector.ConnectToPort(selectedPort);
-            }
-            else
-            {
-                MessageBox.Show("포트를 선택하세요.", "경고", MessageBoxButton.OK, MessageBoxImage.Warning);
-            }
+            await _modbusConnect.ConnectToPort(SelectPort);
         }
-
-
 
         private void NavigateToSettingWindow() => _regionManager.RequestNavigate("ContentRegion", "SettingPage");
 
-
         public void LoadAvailablePorts(ComboBox portComBox)
         {
-            var ports = SerialPort.GetPortNames();
-            portComBox.ItemsSource = ports;
+            if (portComBox == null) return;
 
+            var ports = SerialPort.GetPortNames();
+            portComBox.Dispatcher.Invoke(() =>
+            {
+                portComBox.ItemsSource = ports;
+                PortComBox = portComBox;
+            });
+        }
+
+        public int plus(int n, int z)
+        {
+            return n + z;
         }
 
         private void HomePageLoad()
         {
             _regionManager.RequestNavigate("ContentRegion", "HomePage");
-
-           // MessageBox.Show("애플리케이션 시작", "알림", MessageBoxButton.OK, MessageBoxImage.Information);
         }
 
         private void NavigateToParameterWindow()
@@ -126,7 +116,5 @@ namespace Mvvm.ViewModels
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
-
-    
     }
 }

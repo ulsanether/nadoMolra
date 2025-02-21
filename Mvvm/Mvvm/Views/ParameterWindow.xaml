@@ -8,9 +8,14 @@
 
     <UserControl.Resources>
         <ResourceDictionary Source="../Dictionaries/Styles.xaml" />
+
     </UserControl.Resources>
 
     <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="100" />
+        </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
@@ -21,7 +26,7 @@
             Grid.Row="0"
             Margin="10"
             Orientation="Horizontal">
-            <TextBox Width="100" Text="{Binding ParameterCount, UpdateSourceTrigger=PropertyChanged}" />
+            <TextBox Width="100" Text="{Binding ParameterCount}" />
             <Button
                 Width="100"
                 Margin="10,0,0,0"
@@ -30,6 +35,7 @@
 
             <!--  카드 형식 체크박스  -->
             <CheckBox
+                x:Name="isCardView"
                 Margin="10,0,0,0"
                 Content="카드 형식"
                 IsChecked="{Binding IsCardView, Mode=TwoWay}" />

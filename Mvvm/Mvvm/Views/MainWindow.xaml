@@ -65,6 +65,7 @@
             Width="120"
             Margin="20,24,0,0"
             HorizontalAlignment="Left"
-            VerticalAlignment="Top" />
+            VerticalAlignment="Top"
+            SelectedItem="{Binding SelectPort}" />
     </Grid>
 </Window>

@@ -15,18 +15,22 @@ namespace Mvvm.Views
             return viewModel?.IsCardView == true ? CardTemplate : ListTemplate;
         }
 
+
+
+
         public void RefreshTemplate()
         {
-            // 템플릿 갱신을 트리거하기 위해 UI 강제 갱신
-            Application.Current.Dispatcher.Invoke(() =>
+            var viewModel = Application.Current.MainWindow.DataContext as ParameterWindowViewModel;
+            if (viewModel != null)
             {
-                var mainWindow = Application.Current.MainWindow;
-                if (mainWindow != null)
+                var itemsControl = Application.Current.MainWindow.FindName("ParameterItemsControl") as ItemsControl;
+                if (itemsControl != null)
                 {
-                    mainWindow.DataContext = null;
-                    mainWindow.DataContext = new ParameterWindowViewModel();
+                    var itemsSource = itemsControl.ItemsSource;
+                    itemsControl.ItemsSource = null;
+                    itemsControl.ItemsSource = itemsSource;
                 }
-            });
+            }
         }
     }
 }

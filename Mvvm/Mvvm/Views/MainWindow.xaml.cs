@@ -9,27 +9,20 @@ namespace Mvvm.Views
     /// </summary>
     public partial class MainWindow : Window
     {
+        private MainWindowViewModel _MainWindowViewModel;
 
-
-    private MainWindowViewModel _MainWindowViewModel;
-
-
-        public MainWindow()
+        public MainWindow(IRegionManager regionManager)
         {
             InitializeComponent();
-            _MainWindowViewModel = new MainWindowViewModel();
+            _MainWindowViewModel = new MainWindowViewModel(regionManager);
             var settingPage = new SettingPage(_MainWindowViewModel);
-          //  this.Content = settingPage;
+            // this.Content = settingPage;
             Loaded += MainWindow_Loaded;
-
         }
-
 
         private void MainWindow_Loaded(object sender, RoutedEventArgs e)
         {
             _MainWindowViewModel.LoadAvailablePorts(PortComboBox);
         }
-
-
     }
 }

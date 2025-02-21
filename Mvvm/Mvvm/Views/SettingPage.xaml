@@ -204,5 +204,67 @@
                 VerticalAlignment="Center"
                 Text="[ms]" />
         </Grid>
+        <Grid Grid.Row="2" Grid.Column="1">
+            <TextBlock
+                Grid.Column="0"
+                Width="106"
+                Height="16"
+                Margin="0,69,0,0"
+                HorizontalAlignment="Left"
+                VerticalAlignment="Top"
+                Text="Slave ID" />
+            <TextBox
+                Width="120"
+                Margin="127,69,0,0"
+                HorizontalAlignment="Left"
+                VerticalAlignment="Top"
+                Text="100"
+                TextWrapping="Wrap" />
+            <TextBlock
+                Width="32"
+                Height="16"
+                Margin="301,69,0,0"
+                HorizontalAlignment="Left"
+                VerticalAlignment="Top"
+                Text="[ms]" />
+
+            <TextBlock
+                Grid.Column="0"
+                Width="118"
+                Height="16"
+                Margin="0,111,0,0"
+                HorizontalAlignment="Left"
+                VerticalAlignment="Top"
+                Text="Start Address" />
+            <TextBlock
+                Grid.Row="1"
+                Width="32"
+                Height="16"
+                Margin="301,69,0,0"
+                HorizontalAlignment="Left"
+                VerticalAlignment="Center"
+                Text="[ms]" />
+            <TextBox
+                Width="120"
+                Margin="127,69,0,0"
+                HorizontalAlignment="Left"
+                VerticalAlignment="Center"
+                Text="100"
+                TextWrapping="Wrap" />
+        </Grid>
+        <Button
+            Grid.Row="2"
+            Grid.Column="2"
+            Margin="101,94,0,0"
+            HorizontalAlignment="Left"
+            VerticalAlignment="Top"
+            Content="저장" />
+        <Button
+            Grid.Row="2"
+            Grid.Column="2"
+            Margin="221,94,0,0"
+            HorizontalAlignment="Left"
+            VerticalAlignment="Top"
+            Content="취소" />
     </Grid>
 </UserControl>

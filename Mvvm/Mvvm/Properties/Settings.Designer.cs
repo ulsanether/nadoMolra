@@ -25,10 +25,9 @@ namespace Mvvm.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("")]
-        public string ModbusName {
+        public global::System.Collections.Specialized.StringCollection ModbusName {
             get {
-                return ((string)(this["ModbusName"]));
+                return ((global::System.Collections.Specialized.StringCollection)(this["ModbusName"]));
             }
             set {
                 this["ModbusName"] = value;
@@ -37,10 +36,9 @@ namespace Mvvm.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("")]
-        public string ModbusUnit {
+        public global::System.Collections.Specialized.StringCollection ModbusUnit {
             get {
-                return ((string)(this["ModbusUnit"]));
+                return ((global::System.Collections.Specialized.StringCollection)(this["ModbusUnit"]));
             }
             set {
                 this["ModbusUnit"] = value;
@@ -73,30 +71,6 @@ namespace Mvvm.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("0")]
-        public string Parity {
-            get {
-                return ((string)(this["Parity"]));
-            }
-            set {
-                this["Parity"] = value;
-            }
-        }
-        
-        [global::System.Configuration.UserScopedSettingAttribute()]
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("1")]
-        public string StopBits {
-            get {
-                return ((string)(this["StopBits"]));
-            }
-            set {
-                this["StopBits"] = value;
-            }
-        }
-        
-        [global::System.Configuration.UserScopedSettingAttribute()]
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("1000")]
         public int ReadTimeout {
             get {
@@ -116,6 +90,30 @@ namespace Mvvm.Properties {
             }
             set {
                 this["WriteTimeout"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("None")]
+        public string Parity {
+            get {
+                return ((string)(this["Parity"]));
+            }
+            set {
+                this["Parity"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("One")]
+        public string StopBits {
+            get {
+                return ((string)(this["StopBits"]));
+            }
+            set {
+                this["StopBits"] = value;
             }
         }
     }
