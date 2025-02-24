@@ -1,4 +1,6 @@
-﻿using Mvvm.Views;
+﻿using Mvvm.Model;
+using Mvvm.Model.ComPort;
+using Mvvm.Views;
 using Prism.Commands;
 using Prism.Mvvm;
 using System;
@@ -39,7 +41,34 @@ namespace Mvvm.ViewModels
             }
         }
 
+        private int _startAddress;
+        public int StartAddress
+        {
+            get => _startAddress;
+            set
+            {
+                SetProperty(ref _startAddress, value);
+                UpdateAddressCount();
+
+            }
+
+        }
+
+        private int _endAddress;
+        public int EndAddress {
+            get => _endAddress;
+            set
+            {
+                SetProperty(ref _startAddress, value);
+                UpdateAddressCount();
+
+            }
+        }
+
+
         public ObservableCollection<ParameterModel> Parameters { get; set; } = new();
+
+
 
         public DelegateCommand ApplyCommand { get; }
 
@@ -47,13 +76,18 @@ namespace Mvvm.ViewModels
 
         public Action RefreshTemplateAction { get; set; }
 
+
+        private readonly ModbusConnect _modbusConnect;
+
         public ParameterWindowViewModel()
         {
+
+          _modbusConnect = new ModbusConnect();
             ApplyCommand = new DelegateCommand(UpdateParameters);
             UpdateTemplateCommand = new DelegateCommand(UpdateTemplate);
         }
 
-        private void UpdateParameters()
+        private void UpdateParameters()   // 모드 버스 데이터 
         {
             Parameters.Clear();
             for (int i = 0; i < ParameterCount; i++)
@@ -65,6 +99,30 @@ namespace Mvvm.ViewModels
                     DefaultActual = v
                 });
             }
+        }
+
+
+        private void UpdateAddressCount() {
+
+
+         //   byte slaveId = serialPortConfig.slaveId;
+          //  ushort startAddress = serialPortConfig.startAddress;
+          //  ushort numberOfPoints = serialPortConfig.numberOfPoints;
+
+
+            var address = EndAddress - StartAddress;
+
+            for (int i = 0; i < address; i++)
+            {
+                double v = i + 1;
+                Parameters.Add(new ParameterModel
+                {
+                    Label = $"Parameter {i + 1}",
+                    DefaultActual = v
+                });
+            }
+
+
         }
 
         private void UpdateTemplate()

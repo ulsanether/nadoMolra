@@ -6,10 +6,13 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Timers;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
+using System.Windows.Threading;
 using Mvvm.Model.ComPort;
+using Mvvm.ViewModels;
 using NModbus;
 using NModbus.Serial;
 
@@ -19,6 +22,9 @@ internal class ModbusConnect
     private SerialPort port = null;
     private IModbusMaster master = null;
     public SerialPortConfig serialPortConfig { get; set; }
+
+    private DispatcherTimer blinkTimer;
+    private System.Timers.Timer timer;
 
 
     public ModbusConnect()
@@ -32,70 +38,59 @@ internal class ModbusConnect
         serialPortConfig.ReadTimeout = 1000;
         serialPortConfig.WriteTimeout = 1000;
 
+
+
+
+        //blinkTimer = new DispatcherTimer();
+        //blinkTimer.Interval = TimeSpan.FromMilliseconds(1000);
+       // blinkTimer.Tick += BlinkTimer_Tick;
+
+        timer = new System.Timers.Timer(500);
+        timer.Elapsed += Timer_Elapsed;
+
+
+
     }
 
-
+    public void StartTimer() => timer.Start();
+    public void StopTimer()=> timer.Stop();
     //포트 이름 로드
-    public void LoadAvailablePorts(ComboBox portComBox)
-    {
-        var ports = SerialPort.GetPortNames();
-        portComBox.ItemsSource = ports;
-    }
+    public void LoadAvailablePorts(ComboBox portComBox) =>        portComBox.ItemsSource = SerialPort.GetPortNames();
 
     public async Task ConnectToPort(string portName)
     {
-
-      int baudrate = 9600;
-        int databits = 8;
-        Parity parity = Parity.None;
-        StopBits stopbits = StopBits.One;
-        int readTimeout = 1000;
-        int writeTimeout = 1000;
-
         try
         {
             if (port != null && port.IsOpen)
             {
                 port.Close();
+                Thread.Sleep(100);
             }
 
             port = new SerialPort(portName)
             {
-                BaudRate = baudrate,
-                DataBits = databits,
-                Parity = Parity.None,
-                StopBits = StopBits.One,
-                ReadTimeout = 1000,
-                WriteTimeout = 1000
+                BaudRate = serialPortConfig.BaudRate,
+                DataBits = serialPortConfig.DataBits,
+                Parity = serialPortConfig.Parity,
+                StopBits = serialPortConfig.StopBits,
+                ReadTimeout = serialPortConfig.ReadTimeout,
+                WriteTimeout = serialPortConfig.WriteTimeout
             };
 
-         
-            await Task.Run(() =>
-            {
-                try
-                {
-                    port.Open();
-                }
-                catch (UnauthorizedAccessException ex)
-                {
-                    throw new Exception($"포트 {portName}에 접근할 수 없습니다. (다른 프로그램에서 사용 중일 가능성 있음)\n{ex.Message}");
-                }
-                catch (IOException ex)
-                {
-                    throw new Exception($"포트 {portName}를 열 수 없습니다. (존재하지 않거나 응답 없음)\n{ex.Message}");
-                }
-            });
+            await Task.Run(() => port.Open());
 
             var factory = new ModbusFactory();
             master = factory.CreateRtuMaster(port);
             master.Transport.ReadTimeout = 2000;
             master.Transport.WriteTimeout = 2000;
 
-            MessageBox.Show("연결에 성공했습니다.", "정보", MessageBoxButton.OK, MessageBoxImage.Information);
+            Application.Current.Dispatcher.Invoke(() =>
+                MessageBox.Show("연결에 성공했습니다.", "정보", MessageBoxButton.OK, MessageBoxImage.Information));
         }
         catch (Exception ex)
         {
-            MessageBox.Show($"포트 연결 실패: {ex.Message}", "오류", MessageBoxButton.OK, MessageBoxImage.Error);
+            Application.Current.Dispatcher.Invoke(() =>
+                MessageBox.Show($"포트 연결 실패: {ex.Message}", "오류", MessageBoxButton.OK, MessageBoxImage.Error));
         }
     }
 
@@ -134,34 +129,78 @@ internal class ModbusConnect
         }
     }
 
+
+    private async void Timer_Elapsed(object sender, ElapsedEventArgs e)
+    {
+        timer.Stop();
+        await ReadRegistersAsync();
+        timer.Start();
+    }
+
+
     public async Task ReadRegistersAsync()
     {
-        if (master == null)
+        if (master == null || port == null || !port.IsOpen)
         {
-            MessageBox.Show("모드버스 읽기관련", "오류", MessageBoxButton.OK, MessageBoxImage.Error);
+            Application.Current.Dispatcher.Invoke(() =>
+                MessageBox.Show("Modbus 마스터가 초기화되지 않았거나 포트가 열려 있지 않습니다.", "오류", MessageBoxButton.OK, MessageBoxImage.Error));
             return;
         }
 
-        byte slaveId = serialPortConfig.slaveId;
-        ushort startAddress = serialPortConfig.startAddress;
-        ushort numberOfPoints = serialPortConfig.numberOfPoints;
 
-
-        switch(serialPortConfig.FunctionCode)
+        try
         {
-            case 3:
-                var registers = await Task.Run(() => master.ReadHoldingRegisters(slaveId, startAddress, numberOfPoints));
-                break;
-            case 4:
-                 registers = await Task.Run(() => master.ReadInputRegisters(slaveId, startAddress, numberOfPoints));
-                break;
-            default:
-                MessageBox.Show("잘못된 기능 코드입니다.", "오류", MessageBoxButton.OK, MessageBoxImage.Error);
-                return;
+            byte slaveId = serialPortConfig.slaveId;
+            ushort startAddress = serialPortConfig.startAddress;
+            ushort numberOfPoints = serialPortConfig.numberOfPoints;
+            ushort[] registers;
+
+            switch (serialPortConfig.FunctionCode)
+            {
+                case 3:
+                    registers = master.ReadHoldingRegisters(slaveId, startAddress, numberOfPoints);
+                    var status = registers[1];  //일정 숫자 부터 숫자 까지; 
+                    Console.WriteLine($"status: {status}");
+                    break;
+
+                case 4:
+                    registers = master.ReadInputRegisters(slaveId, startAddress, numberOfPoints);
+                    break;
+                default:
+                    Application.Current.Dispatcher.Invoke(() =>
+                             MessageBox.Show("잘못된 기능 코드입니다.", "오류", MessageBoxButton.OK, MessageBoxImage.Error));
+                    return;
+            }
+
+            foreach (var reg in registers)
+            {
+                Console.WriteLine($"Register: {reg}");
+            }
         }
 
-
-        await Task.Delay(100);
+        catch (Exception ex)
+        {
+            Application.Current.Dispatcher.Invoke(() =>
+                MessageBox.Show($"레지스터 읽기 실패: {ex.Message}", "오류", MessageBoxButton.OK, MessageBoxImage.Error));
+        }
     }
+
+    public List<ViewModels.ParameterModel> ReadModbusData(int startAddress, int numberOfPoints) {
+
+        var parameters = new List<ParameterModel>();
+        for(int i = 0; i < numberOfPoints; i++)
+        {
+            double v = i + 1;
+            parameters.Add(new ParameterModel
+            {
+                Label = $"Parameter {i + 1}",
+                DefaultActual = v
+            });
+        }
+
+        return parameters;
+
+    }
+
 
 }

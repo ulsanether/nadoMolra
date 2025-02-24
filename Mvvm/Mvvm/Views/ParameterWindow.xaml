@@ -25,19 +25,33 @@
             Grid.Row="0"
             Margin="10"
             Orientation="Horizontal">
-            <TextBox Width="100" Text="{Binding ParameterCount}" />
-            <Button
+            <Label VerticalAlignment="Center" Content="Count" />
+            <TextBox
+                x:Name="Parametercount"
                 Width="100"
+                Text="{Binding ParameterCount}" />
+            <Label VerticalAlignment="Center" Content="Start" />
+            <TextBox
+                x:Name="StartAddressTextBox"
+                Width="100"
+                Text="{Binding StartAddress, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+            <Label VerticalAlignment="Center" Content="End" />
+            <TextBox
+                x:Name="EndAddressTextBox"
+                Width="100"
+                Text="{Binding EndAddress, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+            <Button
+                Width="80"
                 Margin="10,0,0,0"
                 Command="{Binding ApplyCommand}"
-                Content="Apply Changes" />
-
+                Content="Apply" />
             <!--  카드 형식 체크박스  -->
             <CheckBox
                 x:Name="isCardView"
                 Margin="10,0,0,0"
-                Content="카드 형식"
-                IsChecked="{Binding IsCardView, Mode=TwoWay}" />
+                Content="형식"
+                IsChecked="{Binding IsCardView, Mode=TwoWay}"
+                Style="{StaticResource MaterialDesignCheckBox}" />
             <!--  템플릿 갱신 버튼  -->
 
         </StackPanel>

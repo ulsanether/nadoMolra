@@ -38,6 +38,8 @@ namespace Mvvm.ViewModels
             set => SetProperty(ref _title, value);
         }
 
+
+
         public new event PropertyChangedEventHandler PropertyChanged;
 
         public DelegateCommand NavigateToParameterWindowCommand { get; }
