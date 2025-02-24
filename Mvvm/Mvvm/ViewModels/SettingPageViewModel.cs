@@ -15,6 +15,8 @@ namespace Mvvm.ViewModels
         private string _selectedDataBit;
         private string _selectedParity;
         private string _selectedStopBit;
+        private ushort _startAddress;
+        private ushort _endAddress;
 
         private readonly SerialPortConfig serialDataConfig = new SerialPortConfig();
 
@@ -23,8 +25,6 @@ namespace Mvvm.ViewModels
         public ObservableCollection<string> DataBitOptions { get; set; }
         public ObservableCollection<string> ParityOptions { get; set; }
         public ObservableCollection<string> StopBitOptions { get; set; }
-
-
 
         public string SelectedConnection
         {
@@ -80,8 +80,29 @@ namespace Mvvm.ViewModels
             }
         }
 
+        public ushort StartAddress
+        {
+            get => _startAddress;
+            set
+            {
+                _startAddress = value;
+                OnPropertyChanged();
+                UpdateSerialPortConfig();
+            }
+        }
 
-    public SettingPageViewModel(MainWindowViewModel mainWindowViewModel)
+        public ushort EndAddress
+        {
+            get => _endAddress;
+            set
+            {
+                _endAddress = value;
+                OnPropertyChanged();
+                UpdateSerialPortConfig();
+            }
+        }
+
+        public SettingPageViewModel(MainWindowViewModel mainWindowViewModel)
         {
             ConnectionOptions = new ObservableCollection<string> { "SerialPort", "TCP/IP", "Option3" };
             BaudOptions = new ObservableCollection<string> { "9600", "19200", "38400", "57600", "115200", "128000" };
@@ -94,17 +115,22 @@ namespace Mvvm.ViewModels
             SelectedDataBit = "8";
             SelectedParity = "None";
             SelectedStopBit = "1";
+            StartAddress = 0x0000;
+            EndAddress = 0x0064;
         }
 
-
-      private void UpdateSerialPortConfig() {
-         if(SelectedConnection == "SerialPort") {
-            serialDataConfig.BaudRate = int.Parse(SelectedBaud ?? "9600");
-            serialDataConfig.DataBits = int.Parse(SelectedDataBit ?? "8");
-            serialDataConfig.Parity = (Parity)System.Enum.Parse(typeof(Parity),SelectedParity ?? "None");
-            serialDataConfig.StopBits = (StopBits)System.Enum.Parse(typeof(StopBits),SelectedStopBit ?? "One");
+        private void UpdateSerialPortConfig()
+        {
+            if (SelectedConnection == "SerialPort")
+            {
+                serialDataConfig.BaudRate = int.Parse(SelectedBaud ?? "9600");
+                serialDataConfig.DataBits = int.Parse(SelectedDataBit ?? "8");
+                serialDataConfig.Parity = (Parity)System.Enum.Parse(typeof(Parity), SelectedParity ?? "None");
+                serialDataConfig.StopBits = (StopBits)System.Enum.Parse(typeof(StopBits), SelectedStopBit ?? "One");
+                serialDataConfig.startAddress = StartAddress;
+                serialDataConfig.numberOfPoints = (ushort)(EndAddress - StartAddress + 1);
             }
-         }
+        }
 
         public event PropertyChangedEventHandler PropertyChanged;
 

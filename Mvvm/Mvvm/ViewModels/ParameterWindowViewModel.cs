@@ -90,16 +90,14 @@ namespace Mvvm.ViewModels
         private void UpdateParameters()   // 모드 버스 데이터 
         {
             Parameters.Clear();
-            for (int i = 0; i < ParameterCount; i++)
+            var modbusData = _modbusConnect.ReadModbusData(StartAddress, EndAddress - StartAddress + 1);
+            foreach (var parameter in modbusData)
             {
-                double v = i + 1;
-                Parameters.Add(new ParameterModel
-                {
-                    Label = $"Parameter {i + 1}",
-                    DefaultActual = v
-                });
+                Parameters.Add(parameter);
             }
+            UpdateAddressCount();
         }
+
 
 
         private void UpdateAddressCount() {
