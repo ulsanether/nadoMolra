@@ -116,6 +116,8 @@ namespace Mvvm.ViewModels
 
         public DelegateCommand<object> OpenExcelCommand { get; }
 
+        public DelegateCommand SaveExcelCommand { get; }
+
 
         public SettingPageViewModel(MainWindowViewModel mainWindowViewModel)
         {
@@ -135,6 +137,8 @@ namespace Mvvm.ViewModels
 
 
             OpenExcelCommand = new DelegateCommand<object>(OpenExcelFile);
+
+            SaveExcelCommand = new DelegateCommand(LoadExcelData);
         }
 
         private void UpdateSerialPortConfig()
@@ -156,8 +160,9 @@ namespace Mvvm.ViewModels
         public ObservableCollection<string> ModbusUnitList { get; } = new ObservableCollection<string>();
 
 
-        private void LoadExcelData()
+        public void LoadExcelData()
         {
+
 
 
             var (modbusNameList, modbusUnitList) = _settingsManager.LoadDataFromSettings();

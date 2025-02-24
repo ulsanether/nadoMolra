@@ -1,4 +1,5 @@
-﻿using Mvvm.Model;
+﻿using DevExpress.Xpf.Core.Native;
+using Mvvm.Model;
 using Mvvm.Model.ComPort;
 using Mvvm.Views;
 using Prism.Commands;
@@ -67,12 +68,16 @@ namespace Mvvm.ViewModels
         public ObservableCollection<ParameterModel> Parameters { get; set; } = new();
 
         public DelegateCommand ApplyCommand { get; }
-
         public DelegateCommand UpdateTemplateCommand { get; }
-
+        public DelegateCommand LoadExcelCommand { get; }
         public Action RefreshTemplateAction { get; set; }
 
+
+
+
         private readonly ModbusConnect _modbusConnect;
+        private readonly ExcelSettingsManager _settingsManager = new ExcelSettingsManager();
+
 
         public ParameterWindowViewModel()
         {
@@ -80,7 +85,21 @@ namespace Mvvm.ViewModels
             _modbusConnect = new ModbusConnect();
             ApplyCommand = new DelegateCommand(UpdateParameters);
             UpdateTemplateCommand = new DelegateCommand(UpdateTemplate);
+
+
         }
+
+        private void ViewExcelList() {
+
+            foreach (var parameter in Parameters)
+            {
+                _settingsManager.ViewExcelList(parameter);
+
+
+            }
+
+
+            }
 
         private void UpdateParameters()   // 모드 버스 데이터
         {

@@ -79,16 +79,10 @@ namespace Mvvm.ViewModels
             PortConnectButton = new DelegateCommand(ConnectPorts);
 
 
-
-
-
             _timer = new Timer(1000); 
             _timer.Elapsed += (sender, e) => LoadAvailablePorts(PortComBox);
             _timer.Start();
         }
-
-
-
 
 
 
