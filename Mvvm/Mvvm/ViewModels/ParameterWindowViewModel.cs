@@ -49,26 +49,22 @@ namespace Mvvm.ViewModels
             {
                 SetProperty(ref _startAddress, value);
                 UpdateAddressCount();
-
             }
-
         }
 
         private int _endAddress;
-        public int EndAddress {
+        public int EndAddress
+        {
             get => _endAddress;
             set
             {
                 SetProperty(ref _startAddress, value);
                 UpdateAddressCount();
-
             }
         }
 
 
         public ObservableCollection<ParameterModel> Parameters { get; set; } = new();
-
-
 
         public DelegateCommand ApplyCommand { get; }
 
@@ -76,36 +72,38 @@ namespace Mvvm.ViewModels
 
         public Action RefreshTemplateAction { get; set; }
 
-
         private readonly ModbusConnect _modbusConnect;
 
         public ParameterWindowViewModel()
         {
 
-          _modbusConnect = new ModbusConnect();
+            _modbusConnect = new ModbusConnect();
             ApplyCommand = new DelegateCommand(UpdateParameters);
             UpdateTemplateCommand = new DelegateCommand(UpdateTemplate);
         }
 
-        private void UpdateParameters()   // 모드 버스 데이터 
+        private void UpdateParameters()   // 모드 버스 데이터
         {
             Parameters.Clear();
             var modbusData = _modbusConnect.ReadModbusData(StartAddress, EndAddress - StartAddress + 1);
             foreach (var parameter in modbusData)
             {
                 Parameters.Add(parameter);
+
             }
+
             UpdateAddressCount();
         }
 
 
 
-        private void UpdateAddressCount() {
+        private void UpdateAddressCount()
+        {
 
 
-         //   byte slaveId = serialPortConfig.slaveId;
-          //  ushort startAddress = serialPortConfig.startAddress;
-          //  ushort numberOfPoints = serialPortConfig.numberOfPoints;
+            //   byte slaveId = serialPortConfig.slaveId;
+            //  ushort startAddress = serialPortConfig.startAddress;
+            //  ushort numberOfPoints = serialPortConfig.numberOfPoints;
 
 
             var address = EndAddress - StartAddress;

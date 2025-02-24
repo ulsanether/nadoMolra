@@ -10,6 +10,8 @@ using Mvvm.Model.ComPort;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Timers;
+using Microsoft.Win32;
+using System.Collections.ObjectModel;
 
 namespace Mvvm.ViewModels
 {
@@ -46,6 +48,8 @@ namespace Mvvm.ViewModels
         public DelegateCommand NavigateToSettingWindowCommand { get; }
         public DelegateCommand PortConnectButton { get; }
 
+
+
         #region 필요 없음 관계 된거 다 삭제 
         public DelegateCommand ShowMessageCommand { get; }
 
@@ -74,11 +78,19 @@ namespace Mvvm.ViewModels
 
             PortConnectButton = new DelegateCommand(ConnectPorts);
 
-     
+
+
+
+
             _timer = new Timer(1000); 
             _timer.Elapsed += (sender, e) => LoadAvailablePorts(PortComBox);
             _timer.Start();
         }
+
+
+
+
+
 
         private async void ConnectPorts()
         {

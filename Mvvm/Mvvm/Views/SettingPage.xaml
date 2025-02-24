@@ -258,13 +258,15 @@
             Margin="101,94,0,0"
             HorizontalAlignment="Left"
             VerticalAlignment="Top"
-            Content="저장" />
+            Command="{Binding OpenExcelCommand}"
+            Content="불러오기" />
         <Button
             Grid.Row="2"
             Grid.Column="2"
             Margin="221,94,0,0"
             HorizontalAlignment="Left"
             VerticalAlignment="Top"
-            Content="취소" />
+            Command="{Binding SaveExcel}"
+            Content="저장" />
     </Grid>
 </UserControl>
