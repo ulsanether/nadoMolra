@@ -193,13 +193,13 @@ internal class ModbusConnect
             double v = i + 1;
             parameters.Add(new ParameterModel
             {
-                Label = $"Parameter {i + 1}",
+                Label = $"ModbusTest {i + 1}",
+                DefaultValue = "TestValue",
                 DefaultActual = v
             });
         }
 
         return parameters;
-
     }
 
 

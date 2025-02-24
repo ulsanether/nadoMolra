@@ -7,6 +7,8 @@ public class ParameterModel : BindableBase
 
 
     private double _defaultActual;
+    private string _defaultValue;
+
 
     public string Label { get; set; }
 
@@ -18,7 +20,15 @@ public class ParameterModel : BindableBase
         set { SetProperty(ref _defaultActual, value); }
     }
 
+    public string DefaultValue{ get {
+      return _defaultValue;
 
+        } set {
 
+       SetProperty(ref _defaultValue, value);
+
+        } }
+
+    public string ModbusUnit{ get; set; }
 
 }

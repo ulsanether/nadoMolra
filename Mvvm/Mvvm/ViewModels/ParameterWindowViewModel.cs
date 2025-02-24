@@ -1,10 +1,12 @@
 ﻿using DevExpress.Xpf.Core.Native;
+using ImTools;
 using Mvvm.Model;
 using Mvvm.Model.ComPort;
 using Mvvm.Views;
 using Prism.Commands;
 using Prism.Mvvm;
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Windows;
 using System.Windows.Controls;
@@ -59,72 +61,54 @@ namespace Mvvm.ViewModels
             get => _endAddress;
             set
             {
-                SetProperty(ref _startAddress, value);
+                SetProperty(ref _endAddress, value);
                 UpdateAddressCount();
             }
         }
-
 
         public ObservableCollection<ParameterModel> Parameters { get; set; } = new();
 
         public DelegateCommand ApplyCommand { get; }
         public DelegateCommand UpdateTemplateCommand { get; }
         public DelegateCommand LoadExcelCommand { get; }
+
         public Action RefreshTemplateAction { get; set; }
-
-
-
 
         private readonly ModbusConnect _modbusConnect;
         private readonly ExcelSettingsManager _settingsManager = new ExcelSettingsManager();
 
-
-        public ParameterWindowViewModel()
+        public ParameterWindowViewModel(SettingPageViewModel settingPageViewModel)
         {
-
             _modbusConnect = new ModbusConnect();
             ApplyCommand = new DelegateCommand(UpdateParameters);
             UpdateTemplateCommand = new DelegateCommand(UpdateTemplate);
+            LoadExcelCommand = settingPageViewModel.OpenExcelCommand;
 
-
+            settingPageViewModel.ExcelDataLoaded += OnExcelDataLoaded;
         }
 
-        private void ViewExcelList() {
-
-            foreach (var parameter in Parameters)
+        private void OnExcelDataLoaded(List<ParameterModel> parameterList)
+        {
+            Parameters.Clear();
+            foreach (var parameter in parameterList)
             {
-                _settingsManager.ViewExcelList(parameter);
-
-
+                Parameters.Add(parameter);
             }
+        }
 
-
-            }
-
-        private void UpdateParameters()   // 모드 버스 데이터
+        private void UpdateParameters()
         {
             Parameters.Clear();
             var modbusData = _modbusConnect.ReadModbusData(StartAddress, EndAddress - StartAddress + 1);
             foreach (var parameter in modbusData)
             {
                 Parameters.Add(parameter);
-
             }
-
             UpdateAddressCount();
         }
 
-
-
         private void UpdateAddressCount()
         {
-
-
-            //   byte slaveId = serialPortConfig.slaveId;
-            //  ushort startAddress = serialPortConfig.startAddress;
-            //  ushort numberOfPoints = serialPortConfig.numberOfPoints;
-
-
             var address = EndAddress - StartAddress;
 
             for (int i = 0; i < address; i++)
@@ -132,12 +116,10 @@ namespace Mvvm.ViewModels
                 double v = i + 1;
                 Parameters.Add(new ParameterModel
                 {
-                    Label = $"Parameter {i + 1}",
+                    Label = $"TestString {i + 1}",  //여기 부분 엑셀 name으로 변경
                     DefaultActual = v
                 });
             }
-
-
         }
 
         private void UpdateTemplate()
@@ -147,3 +129,4 @@ namespace Mvvm.ViewModels
         }
     }
 }
+

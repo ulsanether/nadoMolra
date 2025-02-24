@@ -6,10 +6,13 @@ namespace Mvvm.Views
 {
     public partial class ParameterWindow : UserControl
     {
-        public ParameterWindow()
+        private readonly SettingPageViewModel _settingPageViewModel;
+
+        public ParameterWindow(SettingPageViewModel settingPageViewModel)
         {
             InitializeComponent();
-            var viewModel = new ParameterWindowViewModel();
+            _settingPageViewModel = settingPageViewModel;
+            var viewModel = new ParameterWindowViewModel(_settingPageViewModel);
             DataContext = viewModel;
             viewModel.RefreshTemplateAction = RefreshTemplate;
         }
