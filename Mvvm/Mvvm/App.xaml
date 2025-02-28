@@ -14,14 +14,13 @@
 
                 <materialDesign:BundledTheme
                     BaseTheme="Dark"
-                    PrimaryColor="Orange"
+                    PrimaryColor="BlueGrey"
                     SecondaryColor="Green" />
                 <ResourceDictionary Source="pack://application:,,,/MaterialDesignThemes.Wpf;component/Themes/Generic.xaml" />
                 <ResourceDictionary Source="pack://application:,,,/MaterialDesignThemes.Wpf;component/Themes/MaterialDesignTheme.Light.xaml" />
                 <ResourceDictionary Source="pack://application:,,,/MaterialDesignThemes.Wpf;component/Themes/MaterialDesign3.Defaults.xaml" />
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
-
 
 
     </Application.Resources>

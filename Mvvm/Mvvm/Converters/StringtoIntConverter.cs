@@ -10,7 +10,6 @@ namespace Mvvm.Converters
         {
             return value.ToString();
         }
-
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
         {
             if (int.TryParse(value.ToString(), out int result))

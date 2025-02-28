@@ -16,7 +16,7 @@ namespace Mvvm.Views
             InitializeComponent();
             _MainWindowViewModel = new MainWindowViewModel(regionManager);
             var settingPage = new SettingPage(_MainWindowViewModel);
-            // this.Content = settingPage;
+           
             Loaded += MainWindow_Loaded;
         }
 

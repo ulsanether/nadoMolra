@@ -15,114 +15,114 @@ using System.Collections.ObjectModel;
 
 namespace Mvvm.ViewModels
 {
-    public class MainWindowViewModel : BindableBase
-    {
-        private readonly IRegionManager _regionManager;
-        private string _title = "애플리케이션";
-        private readonly Timer _timer;
+public class MainWindowViewModel : BindableBase
+{
+private readonly IRegionManager _regionManager;
+private string _title = "애플리케이션";
+private readonly Timer _timer;
 
-        private ModbusConnect _modbusConnect;
-        
-      
+private ModbusConnect _modbusConnect;
 
-        private ComboBox _portComBox;
-        private string _selectPort;
 
-        public string SelectPort
-        {
-            get => _selectPort;
-            set => SetProperty(ref _selectPort, value);
+
+private ComboBox _portComBox;
+private string _selectPort;
+
+public string SelectPort
+{
+get => _selectPort;
+set => SetProperty(ref _selectPort, value);
         }
 
         public string Title
         {
-            get => _title;
-            set => SetProperty(ref _title, value);
-        }
+get => _title;
+set => SetProperty(ref _title, value);
+                }
 
 
 
-        public new event PropertyChangedEventHandler PropertyChanged;
+                public new event PropertyChangedEventHandler PropertyChanged;
 
-        public DelegateCommand NavigateToParameterWindowCommand { get; }
-        public DelegateCommand NavigateToSettingWindowCommand { get; }
-        public DelegateCommand PortConnectButton { get; }
-
-
-
-        #region 필요 없음 관계 된거 다 삭제 
-        public DelegateCommand ShowMessageCommand { get; }
-
-        private void ShowMessage()
-        {
-            MessageBox.Show("버튼 클릭!", "알림", MessageBoxButton.OK, MessageBoxImage.Information);
-        }
-
-        public ComboBox PortComBox
-        {
-            get => _portComBox;
-            set => SetProperty(ref _portComBox, value);
-        }
-        #endregion
-
-        public DelegateCommand LoadAvailablePortsCommand { get; }
-
-        public MainWindowViewModel(IRegionManager regionManager)
-        {
-            _regionManager = regionManager;
-            _modbusConnect = new ModbusConnect();
-
-            NavigateToParameterWindowCommand = new DelegateCommand(NavigateToParameterWindow);
-            ShowMessageCommand = new DelegateCommand(ShowMessage);
-            NavigateToSettingWindowCommand = new DelegateCommand(NavigateToSettingWindow);
-
-            PortConnectButton = new DelegateCommand(ConnectPorts);
-
-
-            _timer = new Timer(1000); 
-            _timer.Elapsed += (sender, e) => LoadAvailablePorts(PortComBox);
-            _timer.Start();
-        }
+                public DelegateCommand NavigateToParameterWindowCommand { get; }
+                public DelegateCommand NavigateToSettingWindowCommand { get; }
+                public DelegateCommand PortConnectButton { get; }
 
 
 
-        private async void ConnectPorts()
-        {
-            await _modbusConnect.ConnectToPort(SelectPort);
-        }
+                #region 필요 없음 관계 된거 다 삭제
+                public DelegateCommand ShowMessageCommand { get; }
 
-        private void NavigateToSettingWindow() => _regionManager.RequestNavigate("ContentRegion", "SettingPage");
+                private void ShowMessage()
+                {
+                MessageBox.Show("버튼 클릭!", "알림", MessageBoxButton.OK, MessageBoxImage.Information);
+                }
 
-        public void LoadAvailablePorts(ComboBox portComBox)
-        {
-            if (portComBox == null) return;
+                public ComboBox PortComBox
+                {
+get => _portComBox;
+set => SetProperty(ref _portComBox, value);
+                        }
+                        #endregion
 
-            var ports = SerialPort.GetPortNames();
-            portComBox.Dispatcher.Invoke(() =>
-            {
-                portComBox.ItemsSource = ports;
-                PortComBox = portComBox;
-            });
-        }
+                        public DelegateCommand LoadAvailablePortsCommand { get; }
 
-        public int plus(int n, int z)
-        {
-            return n + z;
-        }
+                        public MainWindowViewModel(IRegionManager regionManager)
+                        {
+                        _regionManager = regionManager;
+                        _modbusConnect = new ModbusConnect();
 
-        private void HomePageLoad()
-        {
-            _regionManager.RequestNavigate("ContentRegion", "HomePage");
-        }
+                        NavigateToParameterWindowCommand = new DelegateCommand(NavigateToParameterWindow);
+                        ShowMessageCommand = new DelegateCommand(ShowMessage);
+                        NavigateToSettingWindowCommand = new DelegateCommand(NavigateToSettingWindow);
 
-        private void NavigateToParameterWindow()
-        {
-            _regionManager.RequestNavigate("ContentRegion", "ParameterWindow");
-        }
+                        PortConnectButton = new DelegateCommand(ConnectPorts);
 
-        protected void OnPropertyChanged([CallerMemberName] string propertyName = null)
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-        }
-    }
-}
+
+                        _timer = new Timer(1000);
+_timer.Elapsed += (sender, e) => LoadAvailablePorts(PortComBox);
+                            _timer.Start();
+                            }
+
+
+
+                            private async void ConnectPorts()
+                            {
+                            await _modbusConnect.ConnectToPort(SelectPort);
+                            }
+
+private void NavigateToSettingWindow() => _regionManager.RequestNavigate("ContentRegion", "SettingPage");
+
+                                public void LoadAvailablePorts(ComboBox portComBox)
+                                {
+                                if (portComBox == null) return;
+
+                                var ports = SerialPort.GetPortNames();
+portComBox.Dispatcher.Invoke(() =>
+                                    {
+                                    portComBox.ItemsSource = ports;
+                                    PortComBox = portComBox;
+                                    });
+                                    }
+
+                                    public int plus(int n, int z)
+                                    {
+                                    return n + z;
+                                    }
+
+                                    private void HomePageLoad()
+                                    {
+                                    _regionManager.RequestNavigate("ContentRegion", "HomePage");
+                                    }
+
+                                    private void NavigateToParameterWindow()
+                                    {
+                                    _regionManager.RequestNavigate("ContentRegion", "ParameterWindow");
+                                    }
+
+                                    protected void OnPropertyChanged([CallerMemberName] string propertyName = null)
+                                    {
+                                    PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+                                    }
+                                    }
+                                    }
