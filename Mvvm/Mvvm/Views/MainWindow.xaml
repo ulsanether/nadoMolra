@@ -87,7 +87,7 @@
             x:Name="DrawerHost"
             Grid.RowSpan="2"
             Width="800"
-            Height="590"
+            Height="600"
             HorizontalAlignment="Center"
             VerticalAlignment="Top"
             BorderBrush="{DynamicResource MaterialDesignDivider}"
