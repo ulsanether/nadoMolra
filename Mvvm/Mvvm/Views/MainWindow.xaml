@@ -58,10 +58,20 @@
             Style="{StaticResource MaterialDesignRaisedLightButton}"
             ToolTip="데이터 확인" />
 
+        <Button
+            Grid.Row="0"
+            Width="100"
+            Margin="0,0,260,0"
+            HorizontalAlignment="Right"
+            Command="{Binding NavigateToModbusDataViewPageCommand}"
+            Content="Modbus Data View"
+            Style="{StaticResource MaterialDesignRaisedLightButton}"
+            ToolTip="Modbus Data View" />
+
         <ContentControl Grid.Row="1" prism:RegionManager.RegionName="ContentRegion" />
 
         <Button
-            Margin="130,0,0,0"
+            Margin="0,0,300,0"
             HorizontalAlignment="Center"
             Command="{Binding PortConnectButton}"
             Style="{StaticResource MaterialDesignFloatingActionLightButton}"

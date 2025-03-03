@@ -1,6 +1,7 @@
 ﻿using Mvvm.ViewModels;
 using Prism.Regions;
 using System.Windows;
+using System.Windows.Controls;
 
 namespace Mvvm.Views
 {
@@ -20,6 +21,7 @@ namespace Mvvm.Views
             Loaded += MainWindow_Loaded;
         }
 
+    
         private void MainWindow_Loaded(object sender, RoutedEventArgs e)
         {
             _MainWindowViewModel.LoadAvailablePorts(PortComboBox);

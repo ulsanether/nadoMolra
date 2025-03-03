@@ -1,22 +1,29 @@
-﻿using DevExpress.Xpf.Core.Native;
-using ImTools;
-using Mvvm.Model;
-using Mvvm.Model.ComPort;
-using Mvvm.Views;
+﻿using System;
+using System.Collections.ObjectModel;
+using System.Linq;
+using System.Windows;
+using System.Timers;
 using Prism.Commands;
 using Prism.Mvvm;
-using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.Timers;
-using System.Windows;
-using System.Windows.Controls;
+using Mvvm.Model;
+using System.Windows.Media;
 
 namespace Mvvm.ViewModels
 {
     public class ParameterWindowViewModel : BindableBase
     {
+        private readonly ModbusConnect _modbusConnect;
+        private readonly Timer _updateTimer;
         private bool _isCardView;
+        private int _columns = 1;
+        private int _parameterCount;
+        private int _startAddress;
+        private int _endAddress;
+
+        public Action RefreshTemplateAction { get; set; }
+
+        #region Properties
         public bool IsCardView
         {
             get => _isCardView;
@@ -27,14 +34,12 @@ namespace Mvvm.ViewModels
             }
         }
 
-        private int _columns = 1;
         public int Columns
         {
             get => _columns;
             set => SetProperty(ref _columns, value);
         }
 
-        private int _parameterCount;
         public int ParameterCount
         {
             get => _parameterCount;
@@ -45,7 +50,6 @@ namespace Mvvm.ViewModels
             }
         }
 
-        private int _startAddress;
         public int StartAddress
         {
             get => _startAddress;
@@ -56,7 +60,6 @@ namespace Mvvm.ViewModels
             }
         }
 
-        private int _endAddress;
         public int EndAddress
         {
             get => _endAddress;
@@ -67,87 +70,173 @@ namespace Mvvm.ViewModels
             }
         }
 
-        public ObservableCollection<ParameterModel> Parameters { get; set; } = new();
+        public ObservableCollection<ParameterModel> Parameters { get; } = new();
+        #endregion
 
+        #region Commands
         public DelegateCommand ApplyCommand { get; }
         public DelegateCommand UpdateTemplateCommand { get; }
-        public DelegateCommand LoadExcelCommand { get; }
+        public DelegateCommand<ParameterModel> WriteCommand { get; }
+        #endregion
 
-        public Action RefreshTemplateAction { get; set; }
-
-        private readonly ModbusConnect _modbusConnect;
-        private readonly ExcelSettingsManager _settingsManager = new ExcelSettingsManager();
-        private readonly Timer _timer;
-
-        public ParameterWindowViewModel(SettingPageViewModel settingPageViewModel)
+        public ParameterWindowViewModel(ModbusConnect modbusConnect, SettingPageViewModel settingPageViewModel)
         {
-            _modbusConnect = new ModbusConnect();
+            _modbusConnect = modbusConnect;
+
+            // Commands 초기화
             ApplyCommand = new DelegateCommand(UpdateParameters);
             UpdateTemplateCommand = new DelegateCommand(UpdateTemplate);
-            LoadExcelCommand = settingPageViewModel.OpenExcelCommand;
+            WriteCommand = new DelegateCommand<ParameterModel>(ExecuteWrite);
 
+            // Timer 초기화
+            _updateTimer = new Timer(100);
+            _updateTimer.Elapsed += OnTimedEvent;
+            _updateTimer.AutoReset = false;
+
+            // 이벤트 구독
+            _modbusConnect.ConnectionStatusChanged += OnConnectionStatusChanged;
             settingPageViewModel.ExcelDataLoaded += OnExcelDataLoaded;
-
-            // 타이머 설정
-            _timer = new Timer(100);
-            _timer.Elapsed += OnTimedEvent;
-            _timer.AutoReset = true;
-            _timer.Enabled = true;
         }
 
-        private void OnExcelDataLoaded(List<ParameterModel> parameterList)
-        {
-            Parameters.Clear();
-            foreach (var parameter in parameterList)
-            {
-                Parameters.Add(parameter);
-            }
-        }
-
-        private void UpdateParameters()
-        {
-            Parameters.Clear();
-            var modbusData = _modbusConnect.ReadModbusData(StartAddress, EndAddress - StartAddress + 1);
-            foreach (var parameter in modbusData)
-            {
-                Parameters.Add(parameter);
-            }
-            UpdateAddressCount();
-        }
-
-        private void UpdateAddressCount()
-        {
-            var address = EndAddress - StartAddress;
-
-            for (int i = 0; i < address; i++)
-            {
-                double v = i + 1;
-                Parameters.Add(new ParameterModel
-                {
-                    Label = $"TestString {i + 1}",  //여기 부분 엑셀 name으로 변경
-                    DefaultActual = v
-                });
-            }
-        }
-
+        #region Private Methods
         private void UpdateTemplate()
         {
             Columns = IsCardView ? 3 : 1;
             RefreshTemplateAction?.Invoke();
         }
 
-        private void OnTimedEvent(Object source, ElapsedEventArgs e)
+        private async void UpdateParameters()
         {
-            // 모드버스 데이터를 가져와 Parameters 컬렉션을 업데이트합니다.
-            var modbusData = _modbusConnect.ReadModbusData(StartAddress, EndAddress - StartAddress + 1);
+            try
+            {
+                var modbusData = await _modbusConnect.ReadModbusData(StartAddress, EndAddress - StartAddress + 1);
+                Application.Current.Dispatcher.Invoke(() =>
+                {
+                    Parameters.Clear();
+                    foreach (var parameter in modbusData)
+                    {
+                        Parameters.Add(parameter);
+                    }
+                });
+            }
+            catch (Exception ex)
+            {
+                ShowError($"파라미터 업데이트 실패: {ex.Message}");
+            }
+        }
+
+        private void UpdateAddressCount()
+        {
+            if (EndAddress >= StartAddress)
+            {
+                var address = EndAddress - StartAddress;
+                Application.Current.Dispatcher.Invoke(() =>
+                {
+                    Parameters.Clear();
+                    for (int i = 0; i < address; i++)
+                    {
+                        Parameters.Add(new ParameterModel
+                        {
+                            Address = StartAddress + i,
+                            Label = $"Register {StartAddress + i}",
+                            DefaultValue = "0",
+                            DefaultActual = 0,
+                            ModbusUnit = "Raw",
+                            Description = $"Modbus Register at address {StartAddress + i}"
+                        });
+                    }
+                });
+            }
+        }
+
+        private async void ExecuteWrite(ParameterModel parameter)
+        {
+            try
+            {
+                if (int.TryParse(parameter.DefaultValue, out int value))
+                {
+                    await _modbusConnect.WriteRegister(parameter, value);
+                    parameter.UpdateStatus(true, "쓰기 성공");
+                }
+                else
+                {
+                    parameter.UpdateStatus(false, "잘못된 값 형식");
+                }
+            }
+            catch (Exception ex)
+            {
+                parameter.UpdateStatus(false, ex.Message);
+            }
+        }
+
+        private void OnConnectionStatusChanged(bool isConnected)
+        {
             Application.Current.Dispatcher.Invoke(() =>
             {
-                Parameters.Clear();
-                foreach (var parameter in modbusData)
+                foreach (var parameter in Parameters)
                 {
-                    Parameters.Add(parameter);
+                    parameter.UpdateStatus(isConnected, isConnected ? "연결됨" : "연결 끊김");
+                }
+
+                if (isConnected)
+                    _updateTimer.Start();
+                else
+                    _updateTimer.Stop();
+            });
+        }
+
+        private async void OnTimedEvent(object sender, ElapsedEventArgs e)
+        {
+            try
+            {
+                _updateTimer.Stop();
+                var monitoringParameters = Parameters.Where(p => p.IsMonitoring).ToList();
+
+                if (monitoringParameters.Any())
+                {
+                    var data = await _modbusConnect.ReadModbusData(StartAddress, EndAddress - StartAddress + 1);
+                    UpdateParameterValues(data);
+                }
+            }
+            finally
+            {
+                _updateTimer.Start();
+            }
+        }
+
+        private void UpdateParameterValues(List<ParameterModel> newData)
+        {
+            Application.Current.Dispatcher.Invoke(() =>
+            {
+                for (int i = 0; i < newData.Count && i < Parameters.Count; i++)
+                {
+                    if (Parameters[i].IsMonitoring)
+                    {
+                        Parameters[i].DefaultActual = newData[i].DefaultActual;
+                        Parameters[i].ModbusUnit = newData[i].ModbusUnit;
+                    }
                 }
             });
         }
+
+        private void OnExcelDataLoaded(List<ParameterModel> parameters)
+        {
+            Application.Current.Dispatcher.Invoke(() =>
+            {
+                Parameters.Clear();
+                foreach (var param in parameters)
+                {
+                    Parameters.Add(param);
+                }
+                UpdateTemplate();
+            });
+        }
+
+        private void ShowError(string message)
+        {
+            Application.Current.Dispatcher.Invoke(() =>
+                MessageBox.Show(message, "오류", MessageBoxButton.OK, MessageBoxImage.Error));
+        }
+        #endregion
     }
 }

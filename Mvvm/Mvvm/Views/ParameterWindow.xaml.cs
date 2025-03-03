@@ -1,31 +1,30 @@
-﻿using System.Windows;
-using System.Windows.Controls;
+﻿using System.Windows.Controls;
 using Mvvm.ViewModels;
+using Mvvm.Model;
 
 namespace Mvvm.Views
 {
-public partial class ParameterWindow : UserControl
-{
-private readonly SettingPageViewModel _settingPageViewModel;
+    public partial class ParameterWindow : UserControl
+    {
+        private readonly ParameterWindowViewModel _viewModel;
 
-public ParameterWindow(SettingPageViewModel settingPageViewModel)
-{
-InitializeComponent();
-_settingPageViewModel = settingPageViewModel;
-var viewModel = new ParameterWindowViewModel(_settingPageViewModel);
-DataContext = viewModel;
-viewModel.RefreshTemplateAction = RefreshTemplate;
-}
+        public ParameterWindow(ModbusConnect modbusConnect, SettingPageViewModel settingPageViewModel)
+        {
+            InitializeComponent();
+            _viewModel = new ParameterWindowViewModel(modbusConnect, settingPageViewModel);
+            DataContext = _viewModel;
+            _viewModel.RefreshTemplateAction = RefreshTemplate;
+        }
 
-private void RefreshTemplate()
-{
-var itemsControl = this.FindName("ParameterItemsControl") as ItemsControl;
-if (itemsControl != null)
-{
-var itemsSource = itemsControl.ItemsSource;
-itemsControl.ItemsSource = null;
-itemsControl.ItemsSource = itemsSource;
-}
-}
-}
+        private void RefreshTemplate()
+        {
+            var itemsControl = this.FindName("ParameterItemsControl") as ItemsControl;
+            if (itemsControl != null)
+            {
+                var itemsSource = itemsControl.ItemsSource;
+                itemsControl.ItemsSource = null;
+                itemsControl.ItemsSource = itemsSource;
+            }
+        }
+    }
 }

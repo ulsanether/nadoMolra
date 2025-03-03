@@ -1,4 +1,6 @@
 ﻿using System.Windows;
+using Mvvm.Model;
+using Mvvm.ViewModels;
 using Mvvm.Views;
 using Prism.Ioc;
 using Prism.Modularity;
@@ -16,13 +18,22 @@ namespace Mvvm
             _regionManager = Container.Resolve<IRegionManager>();
             return mainWindow;
         }
+
         protected override void RegisterTypes(IContainerRegistry containerRegistry)
         {
-            containerRegistry.RegisterSingleton<MainWindow>();
-            containerRegistry.RegisterForNavigation<HomePage>();
-            containerRegistry.RegisterForNavigation<ParameterWindow>();
-            containerRegistry.RegisterForNavigation<SettingPage>();
+            // 싱글톤으로 ModbusConnect 등록
+            containerRegistry.RegisterSingleton<ModbusConnect>();
 
+            // ViewModels 등록
+            containerRegistry.RegisterSingleton<SettingPageViewModel>();
+            containerRegistry.Register<ParameterWindowViewModel>();
+            containerRegistry.Register<ModbusDataViewPageViewModel>();
+
+            // Views 등록
+            containerRegistry.RegisterForNavigation<SettingPage>();
+            containerRegistry.RegisterForNavigation<ParameterWindow>();
+            containerRegistry.RegisterForNavigation<ModbusDataViewPage>();
         }
     }
 }
+

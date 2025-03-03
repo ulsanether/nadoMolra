@@ -1,26 +1,25 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
+﻿using System.Windows.Controls;
+using Mvvm.Model;
+using Mvvm.ViewModels;
 
-namespace Mvvm.Views;
-/// <summary>
-/// ModbusDataViewPage.xaml에 대한 상호 작용 논리
-/// </summary>
-public partial class ModbusDataViewPage : UserControl
+namespace Mvvm.Views
 {
-    public ModbusDataViewPage()
+    public partial class ModbusDataViewPage : UserControl
     {
-        InitializeComponent();
+        private readonly ModbusDataViewPageViewModel _viewModel;
+
+        public ModbusDataViewPage()
+        {
+            InitializeComponent();
+            var modbusConnect = new ModbusConnect(); 
+            _viewModel = new ModbusDataViewPageViewModel(modbusConnect);
+            DataContext = _viewModel;
+
+        }
+
+        private void UserControl_Unloaded(object sender, System.Windows.RoutedEventArgs e)
+        {
+            _viewModel.Cleanup();
+        }
     }
 }

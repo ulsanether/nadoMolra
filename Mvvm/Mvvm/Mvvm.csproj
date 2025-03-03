@@ -6,6 +6,7 @@
     <LangVersion>preview</LangVersion>
   </PropertyGroup>
   <ItemGroup>
+    <PackageReference Include="Accord.Statistics" Version="3.8.0" />
     <PackageReference Include="devexpress.wpf.core" Version="24.1.6-pre-24252" />
     <PackageReference Include="EPPlus" Version="7.6.0" />
     <PackageReference Include="MaterialDesignColors" Version="5.2.1" />
@@ -15,6 +16,8 @@
     <PackageReference Include="NModbus" Version="3.0.81" />
     <PackageReference Include="NModbus.Serial" Version="3.0.81" />
     <PackageReference Include="Prism.DryIoc" Version="8.1.97" />
+    <PackageReference Include="ScottPlot" Version="5.0.54" />
+    <PackageReference Include="ScottPlot.WPF" Version="5.0.54" />
     <PackageReference Include="Serilog" Version="4.2.0" />
   </ItemGroup>
   <ItemGroup>
