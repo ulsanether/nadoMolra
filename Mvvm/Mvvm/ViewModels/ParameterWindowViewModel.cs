@@ -8,6 +8,7 @@ using Prism.Mvvm;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Timers;
 using System.Windows;
 using System.Windows.Controls;
 
@@ -76,6 +77,7 @@ namespace Mvvm.ViewModels
 
         private readonly ModbusConnect _modbusConnect;
         private readonly ExcelSettingsManager _settingsManager = new ExcelSettingsManager();
+        private readonly Timer _timer;
 
         public ParameterWindowViewModel(SettingPageViewModel settingPageViewModel)
         {
@@ -85,6 +87,12 @@ namespace Mvvm.ViewModels
             LoadExcelCommand = settingPageViewModel.OpenExcelCommand;
 
             settingPageViewModel.ExcelDataLoaded += OnExcelDataLoaded;
+
+            // 타이머 설정
+            _timer = new Timer(100);
+            _timer.Elapsed += OnTimedEvent;
+            _timer.AutoReset = true;
+            _timer.Enabled = true;
         }
 
         private void OnExcelDataLoaded(List<ParameterModel> parameterList)
@@ -127,6 +135,19 @@ namespace Mvvm.ViewModels
             Columns = IsCardView ? 3 : 1;
             RefreshTemplateAction?.Invoke();
         }
+
+        private void OnTimedEvent(Object source, ElapsedEventArgs e)
+        {
+            // 모드버스 데이터를 가져와 Parameters 컬렉션을 업데이트합니다.
+            var modbusData = _modbusConnect.ReadModbusData(StartAddress, EndAddress - StartAddress + 1);
+            Application.Current.Dispatcher.Invoke(() =>
+            {
+                Parameters.Clear();
+                foreach (var parameter in modbusData)
+                {
+                    Parameters.Add(parameter);
+                }
+            });
+        }
     }
 }
-
