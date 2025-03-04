@@ -63,9 +63,11 @@ namespace Mvvm.ViewModels
             }
         }
 
-        public ModbusDataViewPageViewModel(ModbusConnect modbusConnect)
+        public ModbusDataViewPageViewModel(ModbusConnect modbusConnect, WpfPlot plot)
         {
             _modbusConnect = modbusConnect;
+            _wpfPlot = plot;
+
             AvailableParameters = new ObservableCollection<ParameterModel>();
             ResetChartCommand = new DelegateCommand(ResetChart);
 
@@ -74,6 +76,9 @@ namespace Mvvm.ViewModels
             _updateTimer.AutoReset = false;
 
             _modbusConnect.ConnectionStatusChanged += OnConnectionStatusChanged;
+
+            InitializeChart();
+
         }
 
         public void InitializeWithPlot(WpfPlot plot)
@@ -87,22 +92,51 @@ namespace Mvvm.ViewModels
             if (_wpfPlot == null) return;
 
             var plt = _wpfPlot.Plot;
+            
+
             plt.Clear();
-            plt.Title("실시간 모드버스 데이터");
+            plt.Font.Set("맑은 고딕");
+
+            plt.Title("Real Time ", 16);
             plt.XLabel("시간 (초)");
             plt.YLabel("값");
 
-            // 초기 데이터 설정
             double[] initialData = { 0 };
             double[] initialTimes = { 0 };
 
-            // 라인 플롯 추가
             _dataPlot = plt.Add.ScatterLine(initialTimes, initialData);
 
-            // 축 범위 설정
             plt.Axes.SetLimits(left: -10, right: 0, bottom: -10, top: 10);
             _wpfPlot.Refresh();
         }
+
+        private void UpdatePlot()
+        {
+            if (_wpfPlot == null) return;
+
+            var times = _timeData.ToArray();
+            var values = _valueData.ToArray();
+
+            if (times.Length > 0)
+            {
+                var plt = _wpfPlot.Plot;
+                plt.Clear();
+                _dataPlot = plt.Add.ScatterLine(times, values);
+
+                double timeSpan = 10; 
+                double latestTime = times.Last();
+                plt.Axes.SetLimits(
+                    left: Math.Max(latestTime - timeSpan, times[0]),
+                    right: latestTime,
+                    bottom: values.Min() - 1,
+                    top: values.Max() + 1
+                );
+            }
+
+            _wpfPlot.Refresh();
+        }
+
+
 
         private async void OnUpdateTimerElapsed(object sender, ElapsedEventArgs e)
         {
@@ -146,32 +180,7 @@ namespace Mvvm.ViewModels
             }
         }
 
-        private void UpdatePlot()
-        {
-            if (_wpfPlot == null) return;
-
-            var times = _timeData.ToArray();
-            var values = _valueData.ToArray();
-
-            if (times.Length > 0)
-            {
-                var plt = _wpfPlot.Plot;
-                plt.Clear();
-                _dataPlot = plt.Add.ScatterLine(times, values);
-
-                double timeSpan = 10; // 10초 구간만 표시
-                double latestTime = times.Last();
-                plt.Axes.SetLimits(
-                    left: Math.Max(latestTime - timeSpan, times[0]),
-                    right: latestTime,
-                    bottom: values.Min() - 1,
-                    top: values.Max() + 1
-                );
-            }
-
-            _wpfPlot.Refresh();
-        }
-
+     
         private void StartDataCollection()
         {
             _updateTimer.Start();

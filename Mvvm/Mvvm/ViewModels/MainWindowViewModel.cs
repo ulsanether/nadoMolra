@@ -44,7 +44,7 @@ namespace Mvvm.ViewModels
         public DelegateCommand NavigateToModbusDataViewPageCommand { get; }
         public DelegateCommand PortConnectButton { get; }
 
-        #region 필요 없음 관계 된거 다 삭제
+        #region 필요 없음 관계 된거 나중에 다 삭제
         public DelegateCommand ShowMessageCommand { get; }
 
         private void ShowMessage()
@@ -57,6 +57,14 @@ namespace Mvvm.ViewModels
             get => _portComBox;
             set => SetProperty(ref _portComBox, value);
         }
+		
+		//단위 테스트 확인용으로 놔둔것 
+		  public int plus(int n, int z)
+        {
+            return n + z;
+        }
+
+		
         #endregion
 
         public DelegateCommand LoadAvailablePortsCommand { get; }
@@ -83,11 +91,16 @@ namespace Mvvm.ViewModels
             await _modbusConnect.ConnectToPort(SelectPort);
         }
 
-        private void NavigateToSettingWindow() => _regionManager.RequestNavigate("ContentRegion", "SettingPage");
 
+#region 버튼 페이지 로드 부분 
+        private void HomePageLoad() => _regionManager.RequestNavigate("ContentRegion", "HomePage");
         private void NavigateToModbusDataViewPage() => _regionManager.RequestNavigate("ContentRegion", "ModbusDataViewPage");
+        private void NavigateToParameterWindow() =>  _regionManager.RequestNavigate("ContentRegion", "ParameterWindow");
+        private void NavigateToSettingWindow() => _regionManager.RequestNavigate("ContentRegion", "SettingPage");
+        
+#endregion
 
-        public void LoadAvailablePorts(ComboBox portComBox)
+	   public void LoadAvailablePorts(ComboBox portComBox)
         {
             if (portComBox == null) return;
 
@@ -98,22 +111,6 @@ namespace Mvvm.ViewModels
                 PortComBox = portComBox;
             });
         }
-
-        public int plus(int n, int z)
-        {
-            return n + z;
-        }
-
-        private void HomePageLoad()
-        {
-            _regionManager.RequestNavigate("ContentRegion", "HomePage");
-        }
-
-        private void NavigateToParameterWindow()
-        {
-            _regionManager.RequestNavigate("ContentRegion", "ParameterWindow");
-        }
-
         protected void OnPropertyChanged([CallerMemberName] string propertyName = null)
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));

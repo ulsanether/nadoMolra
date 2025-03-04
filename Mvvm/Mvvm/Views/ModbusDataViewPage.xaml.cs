@@ -1,6 +1,7 @@
-﻿using System.Windows.Controls;
-using Mvvm.Model;
+﻿// ModbusDataViewPage.xaml.cs
+using System.Windows.Controls;
 using Mvvm.ViewModels;
+using Mvvm.Model;
 
 namespace Mvvm.Views
 {
@@ -11,10 +12,9 @@ namespace Mvvm.Views
         public ModbusDataViewPage()
         {
             InitializeComponent();
-            var modbusConnect = new ModbusConnect(); 
-            _viewModel = new ModbusDataViewPageViewModel(modbusConnect);
+            var modbusConnect = new ModbusConnect();
+            _viewModel = new ModbusDataViewPageViewModel(modbusConnect, RealTimeChart);
             DataContext = _viewModel;
-
         }
 
         private void UserControl_Unloaded(object sender, System.Windows.RoutedEventArgs e)

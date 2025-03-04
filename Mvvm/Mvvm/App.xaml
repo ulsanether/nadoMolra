@@ -14,8 +14,8 @@
 
                 <materialDesign:BundledTheme
                     BaseTheme="Dark"
-                    PrimaryColor="BlueGrey"
-                    SecondaryColor="Green" />
+                    PrimaryColor="Blue"
+                    SecondaryColor="Orange" />
                 <ResourceDictionary Source="pack://application:,,,/MaterialDesignThemes.Wpf;component/Themes/Generic.xaml" />
                 <ResourceDictionary Source="pack://application:,,,/MaterialDesignThemes.Wpf;component/Themes/MaterialDesignTheme.Light.xaml" />
                 <ResourceDictionary Source="pack://application:,,,/MaterialDesignThemes.Wpf;component/Themes/MaterialDesign3.Defaults.xaml" />

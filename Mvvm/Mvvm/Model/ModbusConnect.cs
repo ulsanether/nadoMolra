@@ -10,6 +10,8 @@ using System.Linq;
 using Mvvm.ViewModels;
 using Mvvm.Model.ComPort;
 using NModbus.Serial;
+using System.Timers;
+using Mvvm.Model.Exceptions;
 
 namespace Mvvm.Model
 {
@@ -20,11 +22,26 @@ namespace Mvvm.Model
 
         private SerialPort port = null;
         private IModbusMaster master = null;
+        private readonly int MAX_RECONNECT_ATTEMPTS = 3;
+        private readonly Dictionary<ushort, DataType> dataTypeMap = new Dictionary<ushort, DataType>();
+        private readonly CommunicationStatistics statistics;
+        private readonly ModbusDataBuffer dataBuffer;
+        private bool autoReconnect = true;
+        private System.Timers.Timer reconnectTimer;
+        private DateTime lastDataReceived;
+
         public SerialPortConfig serialPortConfig { get; set; }
+        public CommunicationStatistics Statistics => statistics;
 
         public ModbusConnect()
         {
             serialPortConfig = new SerialPortConfig();
+            statistics = new CommunicationStatistics();
+            dataBuffer = new ModbusDataBuffer();
+
+
+
+            InitializeReconnectTimer();
             LoadDefaultConfig();
         }
 
@@ -41,6 +58,13 @@ namespace Mvvm.Model
                 serialPortConfig.WriteTimeout = 1000;
                 serialPortConfig.slaveId = 1;
             }
+        }
+
+        private void InitializeReconnectTimer()
+        {
+            reconnectTimer = new System.Timers.Timer(5000); // 5초마다 재시도
+            reconnectTimer.Elapsed += async (s, e) => await TryReconnect();
+            reconnectTimer.AutoReset = true;
         }
 
         public void LoadAvailablePorts(ComboBox portComBox)
@@ -94,10 +118,40 @@ namespace Mvvm.Model
             master.Transport.WriteTimeout = 2000;
         }
 
+        private async Task TryReconnect()
+        {
+            if (!autoReconnect || IsConnected()) return;
+
+            for (int attempt = 1; attempt <= MAX_RECONNECT_ATTEMPTS; attempt++)
+            {
+                try
+                {
+                    await ConnectToPort(port?.PortName);
+                    statistics.RecordReconnectSuccess();
+                    return;
+                }
+                catch (Exception ex)
+                {
+                    statistics.RecordReconnectFailure();
+                    if (attempt == MAX_RECONNECT_ATTEMPTS)
+                    {
+                        ShowMessage($"재연결 실패 ({attempt}/{MAX_RECONNECT_ATTEMPTS}): {ex.Message}", "오류", true);
+                    }
+                    await Task.Delay(1000 * attempt); // 지수 백오프
+                }
+            }
+        }
+
         public async Task<List<ParameterModel>> ReadModbusData(int startAddress, int numberOfPoints)
         {
             if (!IsConnected())
-                return CreateDummyData(numberOfPoints);
+            {
+                if (autoReconnect && !reconnectTimer.Enabled)
+                {
+                    reconnectTimer.Start();
+                }
+                return dataBuffer.GetLastValues(numberOfPoints);
+            }
 
             try
             {
@@ -107,12 +161,20 @@ namespace Mvvm.Model
                         (ushort)startAddress,
                         (ushort)numberOfPoints));
 
-                return ConvertToParameters(registers, startAddress);
+                statistics.RecordSuccessfulRead();
+                lastDataReceived = DateTime.Now;
+
+                var parameters = ConvertToParameters(registers, startAddress);
+                dataBuffer.StoreValues(parameters);
+
+                DataReceived?.Invoke(parameters);
+                return parameters;
             }
             catch (Exception ex)
             {
+                statistics.RecordError();
                 ShowMessage($"데이터 읽기 실패: {ex.Message}", "오류", true);
-                return CreateDummyData(numberOfPoints);
+                return dataBuffer.GetLastValues(numberOfPoints);
             }
         }
 
@@ -128,10 +190,42 @@ namespace Mvvm.Model
                         serialPortConfig.slaveId,
                         (ushort)parameter.Address,
                         (ushort)value));
+
+                statistics.RecordSuccessfulRead(); // 쓰기 성공도 기록
             }
             catch (Exception ex)
             {
+                statistics.RecordError();
                 throw new Exception($"쓰기 실패: {ex.Message}");
+            }
+        }
+
+        public async Task<double> ReadRegisterAsType(ushort address, DataType dataType)
+        {
+            try
+            {
+                switch (dataType)
+                {
+                    case DataType.Float:
+                        var registers = await Task.Run(() =>
+                            master.ReadHoldingRegisters(serialPortConfig.slaveId, address, 2));
+                        return ModbusDataConverter.ToFloat(registers);
+
+                    case DataType.Int32:
+                        registers = await Task.Run(() =>
+                            master.ReadHoldingRegisters(serialPortConfig.slaveId, address, 2));
+                        return ModbusDataConverter.ToInt32(registers);
+
+                    default:
+                        var register = await Task.Run(() =>
+                            master.ReadHoldingRegisters(serialPortConfig.slaveId, address, 1));
+                        return register[0];
+                }
+            }
+            catch (Exception ex)
+            {
+                statistics.RecordError();
+                throw new ModbusException($"레지스터 {address} 읽기 실패: {ex.Message}", ex);
             }
         }
 
@@ -142,13 +236,20 @@ namespace Mvvm.Model
 
         private List<ParameterModel> ConvertToParameters(ushort[] registers, int startAddress)
         {
-            return registers.Select((value, index) => new ParameterModel
+            return registers.Select((value, index) =>
             {
-                Address = startAddress + index,
-                Label = $"Register {startAddress + index}",
-                DefaultActual = value,
-                DefaultValue = value.ToString(),
-                ModbusUnit = "Raw"
+                var address = startAddress + index;
+                DataType dataType = DataType.UInt16;
+                dataTypeMap.TryGetValue((ushort)address, out dataType);
+
+                return new ParameterModel
+                {
+                    Address = address,
+                    Label = $"Register {address}",
+                    DefaultActual = value,
+                    DefaultValue = value.ToString(),
+                    ModbusUnit = dataType.ToString()
+                };
             }).ToList();
         }
 
@@ -164,12 +265,24 @@ namespace Mvvm.Model
                 }).ToList();
         }
 
+        public void RegisterDataType(ushort address, DataType dataType)
+        {
+            dataTypeMap[address] = dataType;
+        }
+
         private void ShowMessage(string message, string title, bool isError = false)
         {
             Application.Current.Dispatcher.Invoke(() =>
                 MessageBox.Show(message, title,
                     MessageBoxButton.OK,
                     isError ? MessageBoxImage.Error : MessageBoxImage.Information));
+        }
+
+        public void Dispose()
+        {
+            reconnectTimer?.Dispose();
+            master?.Dispose();
+            port?.Dispose();
         }
     }
 }

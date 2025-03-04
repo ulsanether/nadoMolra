@@ -83,17 +83,14 @@ namespace Mvvm.ViewModels
         {
             _modbusConnect = modbusConnect;
 
-            // Commands 초기화
             ApplyCommand = new DelegateCommand(UpdateParameters);
             UpdateTemplateCommand = new DelegateCommand(UpdateTemplate);
             WriteCommand = new DelegateCommand<ParameterModel>(ExecuteWrite);
 
-            // Timer 초기화
             _updateTimer = new Timer(100);
             _updateTimer.Elapsed += OnTimedEvent;
             _updateTimer.AutoReset = false;
 
-            // 이벤트 구독
             _modbusConnect.ConnectionStatusChanged += OnConnectionStatusChanged;
             settingPageViewModel.ExcelDataLoaded += OnExcelDataLoaded;
         }
