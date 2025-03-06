@@ -6,6 +6,7 @@
     xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:prism="http://prismlibrary.com/"
+    xmlns:views="clr-namespace:Mvvm.Views"
     Title="{Binding Title}"
     Width="800"
     Height="640"
@@ -21,8 +22,6 @@
             <RowDefinition />
             <RowDefinition Height="43" />
         </Grid.RowDefinitions>
-
-
 
         <materialDesign:ColorZone
             Padding="10"
