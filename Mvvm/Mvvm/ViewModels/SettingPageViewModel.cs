@@ -1,21 +1,22 @@
-﻿using System.Collections.ObjectModel;
+﻿using System;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.IO;
 using System.IO.Ports;
 using System.Runtime.CompilerServices;
-using DevExpress.Mvvm;
-using Mvvm.Model.ComPort;
-using Serilog.Events;
-using Prism.Commands;
-using Mvvm.Model;
 using System.Collections.Generic;
 using Microsoft.Win32;
 using System.Windows;
-using System;
+using Prism.Commands;
+using Prism.Mvvm;
+using Mvvm.Model;
+using Mvvm.Model.ComPort;
 
 namespace Mvvm.ViewModels
 {
     public class SettingPageViewModel : BindableBase, INotifyPropertyChanged
     {
+        #region Fields
         private string _selectedConnection;
         private string _selectedBaud;
         private string _selectedDataBit;
@@ -24,33 +25,38 @@ namespace Mvvm.ViewModels
         private ushort _startAddress;
         private ushort _endAddress;
 
-        private readonly SerialPortConfig serialDataConfig = new SerialPortConfig();
-        private readonly ExcelSettingsManager _settingsManager = new ExcelSettingsManager();
+        private readonly SerialPortConfig _serialPortConfig;
+        private readonly ExcelSettingsManager _settingsManager;
+        private readonly MainWindowViewModel _mainWindowViewModel;
 
+        public DelegateCommand SaveExcelCommand { get; private set; }
+
+        #endregion
+
+        #region Properties
         public ObservableCollection<string> ConnectionOptions { get; set; }
         public ObservableCollection<string> BaudOptions { get; set; }
         public ObservableCollection<string> DataBitOptions { get; set; }
         public ObservableCollection<string> ParityOptions { get; set; }
         public ObservableCollection<string> StopBitOptions { get; set; }
-        public ObservableCollection<ParameterModel> Parameters { get; set; } = new();
+        public ObservableCollection<ParameterModel> Parameters { get; set; }
 
         public string SelectedConnection
         {
             get => _selectedConnection;
             set
             {
-                _selectedConnection = value;
-                OnPropertyChanged();
+                SetProperty(ref _selectedConnection, value);
                 UpdateSerialPortConfig();
             }
         }
+
         public string SelectedBaud
         {
             get => _selectedBaud;
             set
             {
-                _selectedBaud = value;
-                OnPropertyChanged();
+                SetProperty(ref _selectedBaud, value);
                 UpdateSerialPortConfig();
             }
         }
@@ -60,8 +66,7 @@ namespace Mvvm.ViewModels
             get => _selectedDataBit;
             set
             {
-                _selectedDataBit = value;
-                OnPropertyChanged();
+                SetProperty(ref _selectedDataBit, value);
                 UpdateSerialPortConfig();
             }
         }
@@ -71,8 +76,7 @@ namespace Mvvm.ViewModels
             get => _selectedParity;
             set
             {
-                _selectedParity = value;
-                OnPropertyChanged();
+                SetProperty(ref _selectedParity, value);
                 UpdateSerialPortConfig();
             }
         }
@@ -82,8 +86,7 @@ namespace Mvvm.ViewModels
             get => _selectedStopBit;
             set
             {
-                _selectedStopBit = value;
-                OnPropertyChanged();
+                SetProperty(ref _selectedStopBit, value);
                 UpdateSerialPortConfig();
             }
         }
@@ -93,8 +96,7 @@ namespace Mvvm.ViewModels
             get => _startAddress;
             set
             {
-                _startAddress = value;
-                OnPropertyChanged();
+                SetProperty(ref _startAddress, value);
                 UpdateSerialPortConfig();
             }
         }
@@ -104,77 +106,144 @@ namespace Mvvm.ViewModels
             get => _endAddress;
             set
             {
-                _endAddress = value;
-                OnPropertyChanged();
+                SetProperty(ref _endAddress, value);
                 UpdateSerialPortConfig();
             }
         }
+        #endregion
 
-        public Prism.Commands.DelegateCommand OpenExcelCommand { get; }
+        #region Commands
+        public DelegateCommand OpenExcelCommand { get; }
+        #endregion
 
+        #region Events
         public event Action<List<ParameterModel>> ExcelDataLoaded;
+        #endregion
 
-        private readonly MainWindowViewModel _mainWindowViewModel;
-
+        #region Constructor
         public SettingPageViewModel(MainWindowViewModel mainWindowViewModel)
+        {
+            _mainWindowViewModel = mainWindowViewModel;
+            _serialPortConfig = new SerialPortConfig();
+            _settingsManager = new ExcelSettingsManager();
+
+            Parameters = new ObservableCollection<ParameterModel>();
+            InitializeCollections();
+
+            SetDefaultValues();
+
+            OpenExcelCommand = new DelegateCommand(OpenExcelFile);
+            SaveExcelCommand = new DelegateCommand(ExecuteSaveExcel);
+
+            try
+            {
+               LoadExcelData();
+            }
+            catch (Exception ex)
+            {
+                ShowError($"기본 엑셀 데이터 로드 실패: {ex.Message}");
+            }
+        }
+        #endregion
+
+        #region Private Methods
+        private void InitializeCollections()
         {
             ConnectionOptions = new ObservableCollection<string> { "SerialPort", "TCP/IP", "Option3" };
             BaudOptions = new ObservableCollection<string> { "9600", "19200", "38400", "57600", "115200", "128000" };
             DataBitOptions = new ObservableCollection<string> { "7", "8" };
             ParityOptions = new ObservableCollection<string> { "None", "Odd", "Even" };
             StopBitOptions = new ObservableCollection<string> { "1", "1.5", "2" };
+        }
 
+        private void SetDefaultValues()
+        {
             SelectedConnection = "SerialPort";
-            SelectedBaud = "9600";
+            SelectedBaud = "115200";
             SelectedDataBit = "8";
             SelectedParity = "None";
             SelectedStopBit = "1";
             StartAddress = 0x0000;
             EndAddress = 0x0064;
-
-            OpenExcelCommand = new Prism.Commands.DelegateCommand(OpenExcelFile);
-            _mainWindowViewModel = mainWindowViewModel;
         }
-
 
         private void OpenExcelFile()
         {
             var openFileDialog = new OpenFileDialog
             {
                 Filter = "Excel Files (*.xlsx)|*.xlsx|All Files (*.*)|*.*",
-                Title = "엑셀 파일 선택"
+                Title = "엑셀 파일 선택",
+                InitialDirectory = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Data")
             };
 
             if (openFileDialog.ShowDialog() == true)
             {
                 try
                 {
-                    _settingsManager.SaveExcelDataToSettings(openFileDialog.FileName);
-                    MessageBox.Show("엑셀 데이터를 성공적으로 저장했습니다.", "성공", MessageBoxButton.OK, MessageBoxImage.Information);
-
-                    LoadExcelData();
+                    var modbusData = ExcelSettingsManager.LoadModbusParameters(openFileDialog.FileName);
+                    LoadParametersFromModbusData(modbusData);
+                    ShowSuccess("엑셀 데이터를 성공적으로 로드했습니다.");
                 }
                 catch (Exception ex)
                 {
-                    MessageBox.Show($"엑셀 데이터를 저장하는 중 오류가 발생했습니다.\n\n{ex.Message}", "오류", MessageBoxButton.OK, MessageBoxImage.Error);
+                    ShowError($"엑셀 데이터 로드 중 오류가 발생했습니다.\n{ex.Message}");
                 }
             }
         }
 
         private void LoadExcelData()
         {
-            var (modbusNameList, modbusUnitList) = _settingsManager.LoadDataFromSettings();
+            string defaultPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Data", "ModbusParameters.xlsx");
 
+            if (File.Exists(defaultPath))
+            {
+                var modbusData = ExcelSettingsManager.LoadModbusParameters(defaultPath);
+                LoadParametersFromModbusData(modbusData);
+            }
+        }
+
+        private void ExecuteSaveExcel()
+        {
+            var saveFileDialog = new SaveFileDialog
+            {
+                Filter = "Excel Files (*.xlsx)|*.xlsx|All Files (*.*)|*.*",
+                Title = "엑셀 파일 저장",
+                DefaultExt = ".xlsx"
+            };
+
+            if (saveFileDialog.ShowDialog() == true)
+            {
+                try
+                {
+                    _settingsManager.SaveExcelDataToSettings(saveFileDialog.FileName);
+                    ShowSuccess("엑셀 데이터를 성공적으로 저장했습니다.");
+                }
+                catch (Exception ex)
+                {
+                    ShowError($"엑셀 데이터 저장 중 오류가 발생했습니다.\n{ex.Message}");
+                }
+            }
+        }
+
+        private void LoadParametersFromModbusData(Dictionary<int, (string Description, string Unit, double DefaultValue, string Note)> modbusData)
+        {
             Parameters.Clear();
             var parameterList = new List<ParameterModel>();
-            for (int i = 0; i < modbusNameList.Count; i++)
+
+            foreach (var kvp in modbusData)
             {
                 var parameter = new ParameterModel
                 {
-                    Label = $"Parameter {i + 1}",
-                    DefaultActual = double.TryParse(modbusNameList[i], out double value) ? value : 0,
-                    ModbusUnit = modbusUnitList.Count > i ? modbusUnitList[i] : string.Empty
+                    Address = kvp.Key,
+                    Label = kvp.Value.Description,
+                    Description = kvp.Value.Description,
+                    DefaultValue = kvp.Value.DefaultValue.ToString(),
+                    DefaultActual = kvp.Value.Note.Contains("나누기 10")
+                        ? kvp.Value.DefaultValue * 10
+                        : kvp.Value.DefaultValue,
+                    ModbusUnit = kvp.Value.Unit
                 };
+
                 Parameters.Add(parameter);
                 parameterList.Add(parameter);
             }
@@ -186,21 +255,26 @@ namespace Mvvm.ViewModels
         {
             if (SelectedConnection == "SerialPort")
             {
-                serialDataConfig.BaudRate = int.Parse(SelectedBaud ?? "9600");
-                serialDataConfig.DataBits = int.Parse(SelectedDataBit ?? "8");
-                serialDataConfig.Parity = (Parity)System.Enum.Parse(typeof(Parity), SelectedParity ?? "None");
-                serialDataConfig.StopBits = (StopBits)System.Enum.Parse(typeof(StopBits), SelectedStopBit ?? "One");
-                serialDataConfig.startAddress = StartAddress;
-                serialDataConfig.numberOfPoints = (ushort)(EndAddress - StartAddress + 1);
+                _serialPortConfig.BaudRate = int.Parse(SelectedBaud ?? "115200");
+                _serialPortConfig.DataBits = int.Parse(SelectedDataBit ?? "8");
+                _serialPortConfig.Parity = (Parity)Enum.Parse(typeof(Parity), SelectedParity ?? "None");
+                _serialPortConfig.StopBits = (StopBits)Enum.Parse(typeof(StopBits), SelectedStopBit ?? "One");
+                _serialPortConfig.startAddress = StartAddress;
+                _serialPortConfig.numberOfPoints = (ushort)(EndAddress - StartAddress + 1);
             }
         }
+        #endregion
 
-        public event PropertyChangedEventHandler PropertyChanged;
-
-        protected void OnPropertyChanged([CallerMemberName] string propertyName = null)
+        #region Helper Methods
+        private void ShowError(string message)
         {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+            MessageBox.Show(message, "오류", MessageBoxButton.OK, MessageBoxImage.Error);
         }
+
+        private void ShowSuccess(string message)
+        {
+            MessageBox.Show(message, "성공", MessageBoxButton.OK, MessageBoxImage.Information);
+        }
+        #endregion
     }
 }
-

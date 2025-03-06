@@ -3,9 +3,14 @@ using System.IO;
 using System.IO.Ports;
 using System.Text.Json;
 using System.Windows;
+using Mvvm.Model.IniFileRead;
+
 
 namespace Mvvm.Model.ComPort
 {
+
+
+
     public class SerialPortConfig
     {
         public int BaudRate { get; set; }

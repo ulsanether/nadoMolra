@@ -2,6 +2,7 @@
 using Prism.Mvvm;
 using System.Threading.Tasks;
 using System.Windows;
+using System.ComponentModel;
 
 namespace Mvvm.ViewModels
 {
@@ -85,6 +86,30 @@ namespace Mvvm.ViewModels
             get => _statusIcon;
             set => SetProperty(ref _statusIcon, value);
         }
+
+
+        private int _index;
+
+        public int Index
+        {
+            get { return _index; }
+            set
+            {
+                if (_index != value)
+                {
+                    _index = value;
+                    OnPropertyChanged(nameof(Index));
+                }
+            }
+        }
+
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        protected void OnPropertyChanged(string propertyName)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
+
 
         public SolidColorBrush StatusColor
         {

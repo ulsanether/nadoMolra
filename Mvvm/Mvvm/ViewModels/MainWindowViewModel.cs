@@ -25,6 +25,15 @@ namespace Mvvm.ViewModels
         private ComboBox _portComBox;
         private string _selectPort;
 
+
+        private ObservableCollection<string> _shortStringList = new();
+        public ObservableCollection<string> ShortStringList
+        {
+            get => _shortStringList;
+            set => SetProperty(ref _shortStringList, value);
+        }
+
+
         public string SelectPort
         {
             get => _selectPort;
@@ -43,6 +52,7 @@ namespace Mvvm.ViewModels
         public DelegateCommand NavigateToSettingWindowCommand { get; }
         public DelegateCommand NavigateToModbusDataViewPageCommand { get; }
         public DelegateCommand PortConnectButton { get; }
+        public DelegateCommand NavigateToHomePageCommand { get; }
 
         #region 필요 없음 관계 된거 나중에 다 삭제
         public DelegateCommand ShowMessageCommand { get; }
@@ -78,13 +88,21 @@ namespace Mvvm.ViewModels
             ShowMessageCommand = new DelegateCommand(ShowMessage);
             NavigateToSettingWindowCommand = new DelegateCommand(NavigateToSettingWindow);
             NavigateToModbusDataViewPageCommand = new DelegateCommand(NavigateToModbusDataViewPage);
+            NavigateToHomePageCommand = new DelegateCommand(HomePageLoad);
+
 
             PortConnectButton = new DelegateCommand(ConnectPorts);
-
+            
             _timer = new Timer(1000);
             _timer.Elapsed += (sender, e) => LoadAvailablePorts(PortComBox);
             _timer.Start();
+
+      
         }
+
+
+   
+
 
         private async void ConnectPorts()
         {
@@ -92,8 +110,14 @@ namespace Mvvm.ViewModels
         }
 
 
-#region 버튼 페이지 로드 부분 
-        private void HomePageLoad() => _regionManager.RequestNavigate("ContentRegion", "HomePage");
+        #region 버튼 페이지 로드 부분 
+        public void HomePageLoad()
+        {
+
+      //  MessageBox.Show("HomePage로 이동합니다.", "알림", MessageBoxButton.OK, MessageBoxImage.Information);
+            _regionManager.RequestNavigate("ContentRegion", "HomePage");
+
+        }
         private void NavigateToModbusDataViewPage() => _regionManager.RequestNavigate("ContentRegion", "ModbusDataViewPage");
         private void NavigateToParameterWindow() =>  _regionManager.RequestNavigate("ContentRegion", "ParameterWindow");
         private void NavigateToSettingWindow() => _regionManager.RequestNavigate("ContentRegion", "SettingPage");
@@ -110,6 +134,7 @@ namespace Mvvm.ViewModels
                 portComBox.ItemsSource = ports;
                 PortComBox = portComBox;
             });
+
         }
         protected void OnPropertyChanged([CallerMemberName] string propertyName = null)
         {

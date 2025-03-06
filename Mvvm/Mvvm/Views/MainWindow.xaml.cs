@@ -25,6 +25,8 @@ namespace Mvvm.Views
         private void MainWindow_Loaded(object sender, RoutedEventArgs e)
         {
             _MainWindowViewModel.LoadAvailablePorts(PortComboBox);
+            var viewModel = DataContext as MainWindowViewModel;
+            viewModel.HomePageLoad();
         }
     }
 }

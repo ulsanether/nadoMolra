@@ -11,10 +11,10 @@ namespace Mvvm.Test {
 
       [TestMethod]
       public void TestMethod1() {
-       ////   mainWindowViewModel = new MainWindowViewModel();
-       //  int result = mainWindowViewModel.plus(2, 2);
+    //      mainWindowViewModel = new MainWindowViewModel();
+     //    int result = mainWindowViewModel.plus(2, 2);
 
-     //    Assert.AreEqual(4,result,"2 + 2 should be 4");
+//        Assert.AreEqual(4,result,"2 + 2 should be 4");
  
 
          }

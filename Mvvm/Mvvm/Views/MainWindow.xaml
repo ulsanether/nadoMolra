@@ -10,6 +10,7 @@
     Width="800"
     Height="620"
     prism:ViewModelLocator.AutoWireViewModel="True"
+    Loaded="MainWindow_Loaded"
     mc:Ignorable="av">
 
 
@@ -18,6 +19,7 @@
         <Grid.RowDefinitions>
             <RowDefinition Height="80" />
             <RowDefinition Height="*" />
+            <RowDefinition Height="30" />
         </Grid.RowDefinitions>
 
 
@@ -45,6 +47,7 @@
             HorizontalAlignment="Right"
             Command="{Binding NavigateToParameterWindowCommand}"
             Content="Data"
+            Cursor="Hand"
             Style="{StaticResource MaterialDesignRaisedLightButton}"
             ToolTip="데이터 확인" />
 
@@ -108,7 +111,7 @@
 
 
             <materialDesign:DrawerHost.RightDrawerContent>
-                <StackPanel Margin="16">
+                <StackPanel Margin="0,89,0,16">
                     <TextBlock
                         Margin="4,20,4,4"
                         HorizontalAlignment="Center"
@@ -129,8 +132,6 @@
                         Content="Setting"
                         Style="{StaticResource MaterialDesignRaisedLightButton}"
                         ToolTip="통신 설정" />
-
-
 
                 </StackPanel>
             </materialDesign:DrawerHost.RightDrawerContent>
@@ -155,6 +156,7 @@
 
             </Grid>
         </materialDesign:DrawerHost>
+        <ContentControl Grid.Row="2" prism:RegionManager.RegionName="BottmContentRegion" />
 
     </Grid>
 

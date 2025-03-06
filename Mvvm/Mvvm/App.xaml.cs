@@ -28,8 +28,10 @@ namespace Mvvm
             containerRegistry.RegisterSingleton<SettingPageViewModel>();
             containerRegistry.Register<ParameterWindowViewModel>();
             containerRegistry.Register<ModbusDataViewPageViewModel>();
+            containerRegistry.Register<HomePageViewModel>();
 
             // Views 등록
+            containerRegistry.RegisterForNavigation<HomePage>();
             containerRegistry.RegisterForNavigation<SettingPage>();
             containerRegistry.RegisterForNavigation<ParameterWindow>();
             containerRegistry.RegisterForNavigation<ModbusDataViewPage>();

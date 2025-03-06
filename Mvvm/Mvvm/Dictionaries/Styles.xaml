@@ -4,16 +4,95 @@
     xmlns:local="clr-namespace:Mvvm.Views"
     xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes">
 
-    <!-- 공통 스타일 -->
+    <Style x:Key="MainButtonStyle" TargetType="{x:Type Button}">
+        <Setter Property="Background" Value="{DynamicResource Buttongradient}" />
+        <Setter Property="Foreground" Value="White" />
+        <Setter Property="FontSize" Value="15" />
+        <Setter Property="SnapsToDevicePixels" Value="True" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="{x:Type Button}">
+                    <Border
+                        Background="{TemplateBinding Background}"
+                        BorderBrush="Black"
+                        BorderThickness="0.5"
+                        CornerRadius="4">
+                        <Border.Effect>
+                            <DropShadowEffect BlurRadius="2" ShadowDepth="0" />
+                        </Border.Effect>
+
+                        <Grid>
+                            <Path
+                                Width="9"
+                                Height="16.5"
+                                Margin="16.5,0,0,0"
+                                HorizontalAlignment="Left"
+                                Data="F1 M 30.0833,22.1667L 50.6665,37.6043L 50.6665,38.7918L 30.0833,53.8333L 30.0833,22.1667 Z "
+                                Fill="#000"
+                                Opacity="0.2"
+                                Stretch="Fill" />
+                            <Path
+                                x:Name="PathIcon"
+                                Width="20"
+                                Height="20"
+                                Margin="10,0,0,0"
+                                HorizontalAlignment="Left"
+                                Data="{StaticResource SettingIcon}"
+                                Fill="#4C87B3"
+                                Stretch="Fill">
+                                <Path.Effect>
+                                    <DropShadowEffect BlurRadius="5" ShadowDepth="0" />
+                                </Path.Effect>
+                            </Path>
+
+                            <Line
+                                Name="line4"
+                                Width="2"
+                                Margin="40,0,0,0"
+                                HorizontalAlignment="Left"
+                                VerticalAlignment="Top"
+                                Opacity="0.5"
+                                Stroke="Black"
+                                Y1="0"
+                                Y2="640" />
+                            <ContentPresenter
+                                x:Name="MyContentPresenter"
+                                Margin="0,0,5,0"
+                                HorizontalAlignment="Right"
+                                VerticalAlignment="Center"
+                                Content="{TemplateBinding Content}" />
+                        </Grid>
+                    </Border>
+
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter Property="Background" Value="#E59400" />
+                            <Setter Property="Foreground" Value="White" />
+                            <Setter TargetName="PathIcon" Property="Fill" Value="Black" />
+                        </Trigger>
+
+                        <Trigger Property="IsPressed" Value="True">
+                            <Setter Property="Background" Value="OrangeRed" />
+                            <Setter Property="Foreground" Value="White" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!--  공통 스타일  -->
     <Style x:Key="ModbusValueTextBlock" TargetType="TextBlock">
         <Style.Triggers>
             <DataTrigger Binding="{Binding IsValueChanged}" Value="True">
                 <DataTrigger.EnterActions>
                     <BeginStoryboard>
                         <Storyboard>
-                            <ColorAnimation 
+                            <ColorAnimation
                                 Storyboard.TargetProperty="(TextBlock.Background).(SolidColorBrush.Color)"
-                                From="Yellow" To="Transparent" Duration="0:0:1"/>
+                                From="Yellow"
+                                To="Transparent"
+                                Duration="0:0:1" />
                         </Storyboard>
                     </BeginStoryboard>
                 </DataTrigger.EnterActions>
@@ -26,57 +105,78 @@
         <materialDesign:Card Margin="5" Padding="8">
             <Grid>
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="150"/>
-                    <ColumnDefinition Width="100"/>
-                    <ColumnDefinition Width="100"/>
-                    <ColumnDefinition Width="100"/>
-                    <ColumnDefinition Width="Auto"/>
-                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="30" />
+                    <!--  Index  -->
+                    <ColumnDefinition Width="200" />
+                    <!--  Description  -->
+                    <ColumnDefinition Width="20" />
+                    <!--  Unit  -->
+                    <ColumnDefinition Width="100" />
+                    <!--  Default  -->
+                    <ColumnDefinition Width="120" />
+                    <!--  Current Value  -->
+                    <ColumnDefinition Width="120" />
+                    <!--  Setting Value  -->
+                    <ColumnDefinition Width="Auto" />
+                    <!--  Save Button  -->
                 </Grid.ColumnDefinitions>
 
-                <!-- 레지스터 이름 -->
-                <TextBlock Grid.Column="0"
+                <!--  인덱스  -->
+                <TextBlock
+                    Grid.Column="0"
+                    HorizontalAlignment="Center"
                     VerticalAlignment="Center"
-                    Text="{Binding Label}"
-                    ToolTip="{Binding Description}"/>
+                    Text="{Binding Index}" />
 
-                <!-- 현재값 -->
-                <StackPanel Grid.Column="1" Orientation="Horizontal">
-                    <TextBlock 
-                        Style="{StaticResource ModbusValueTextBlock}"
-                        VerticalAlignment="Center"
-                        Text="{Binding DefaultActual, StringFormat={}{0:F2}}" />
-                    <TextBlock 
-                        Margin="5,0,0,0"
-                        VerticalAlignment="Center"
-                        Text="{Binding ModbusUnit}" />
-                </StackPanel>
+                <!--  설명  -->
+                <TextBlock
+                    Grid.Column="1"
+                    Margin="5,0"
+                    VerticalAlignment="Center"
+                    Text="{Binding Description}"
+                    TextWrapping="Wrap" />
 
-                <!-- 설정값 입력 -->
-                <TextBox Grid.Column="2" 
-                    Text="{Binding DefaultValue, UpdateSourceTrigger=PropertyChanged}"
-                    materialDesign:HintAssist.Hint="설정값"/>
+                <!--  단위  -->
+                <TextBlock
+                    Grid.Column="2"
+                    HorizontalAlignment="Right"
+                    VerticalAlignment="Center"
+                    Text="{Binding Unit}" />
 
-                <!-- 상태 표시 -->
-                <materialDesign:PackIcon Grid.Column="3"
-                    Kind="{Binding StatusIcon}"
-                    ToolTip="{Binding StatusMessage}"
-                    Foreground="{Binding StatusColor}"/>
+                <!--  기본값  -->
+                <TextBlock
+                    Grid.Column="3"
+                    Margin="5,0"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center"
+                    Text="{Binding DefaultValue, StringFormat={}{0:F1}}" />
 
-                <!-- 적용 버튼 -->
-                <Button Grid.Column="4"
+                <!--  현재값  -->
+                <TextBlock
+                    Grid.Column="4"
+                    Margin="5,0"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center"
+                    Style="{StaticResource ModbusValueTextBlock}"
+                    Text="{Binding DefaultActual, StringFormat={}{0:F1}}" />
+
+                <!--  설정값 입력  -->
+                <TextBox
+                    Grid.Column="5"
+                    Margin="6,0"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center"
+                    materialDesign:HintAssist.Hint="설정값"
+                    Text="{Binding DefaultValue, UpdateSourceTrigger=PropertyChanged}" />
+
+                <!--  저장 버튼  -->
+                <Button
+                    Grid.Column="6"
                     Margin="5,0"
                     Command="{Binding DataContext.WriteCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
-                    CommandParameter="{Binding}"
-                    Style="{StaticResource MaterialDesignOutlinedButton}">
-                    <materialDesign:PackIcon Kind="ContentSave"/>
+                    CommandParameter="{Binding}">
+                    <materialDesign:PackIcon Kind="ContentSave" />
                 </Button>
-
-                <!-- 모니터링 체크박스 -->
-                <CheckBox Grid.Column="5"
-                    Margin="5,0,0,0"
-                    Content="모니터링"
-                    IsChecked="{Binding IsMonitoring, Mode=TwoWay}" />
             </Grid>
         </materialDesign:Card>
     </DataTemplate>
@@ -84,7 +184,7 @@
     <!--  카드 형식 템플릿  -->
     <DataTemplate x:Key="CardTemplate">
         <materialDesign:Card
-            Width="250"
+            Width="300"
             Margin="5"
             Padding="8"
             Background="{DynamicResource MaterialDesignBackground}">
@@ -94,64 +194,69 @@
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
                 </Grid.RowDefinitions>
 
-                <!-- 헤더 -->
+                <!--  헤더 (인덱스 + 설명)  -->
                 <DockPanel Grid.Row="0" LastChildFill="True">
-                    <materialDesign:PackIcon 
-                        Kind="{Binding StatusIcon}"
-                        Foreground="{Binding StatusColor}"
-                        ToolTip="{Binding StatusMessage}"
-                        Width="24" Height="24"
-                        VerticalAlignment="Center"/>
+                    <TextBlock
+                        Width="40"
+                        Margin="0,4"
+                        DockPanel.Dock="Left"
+                        FontWeight="Bold"
+                        Text="{Binding Index}" />
                     <TextBlock
                         Margin="8,4"
-                        Style="{StaticResource MaterialDesignHeadline6TextBlock}"
-                        Text="{Binding Label}" 
-                        ToolTip="{Binding Description}"/>
+                        Text="{Binding Description}"
+                        TextWrapping="Wrap" />
                 </DockPanel>
 
-                <!-- 현재값 표시 -->
-                <StackPanel Grid.Row="1" Margin="0,8">
-                    <TextBlock Text="현재값" Style="{StaticResource MaterialDesignBody2TextBlock}"/>
-                    <DockPanel LastChildFill="True">
-                        <TextBlock 
+                <!--  단위  -->
+                <DockPanel Grid.Row="1" Margin="0,8">
+                    <TextBlock Text="단위: " />
+                    <TextBlock Margin="8,0,0,0" Text="{Binding Unit}" />
+                </DockPanel>
+
+                <!--  기본값  -->
+                <DockPanel Grid.Row="2" Margin="0,8">
+                    <TextBlock Text="기본값: " />
+                    <TextBlock Margin="8,0,0,0" Text="{Binding DefaultValue, StringFormat={}{0:F1}}" />
+                </DockPanel>
+
+                <!--  현재값 + 설정값  -->
+                <Grid Grid.Row="3" Margin="0,8">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+
+                    <!--  현재값  -->
+                    <StackPanel Grid.Column="0">
+                        <TextBlock Text="현재값" />
+                        <TextBlock
+                            FontSize="20"
                             Style="{StaticResource ModbusValueTextBlock}"
-                            Text="{Binding DefaultActual, StringFormat={}{0:F2}}"
-                            FontSize="24"/>
-                        <TextBlock 
-                            Text="{Binding ModbusUnit}"
-                            Margin="8,0,0,0"
-                            VerticalAlignment="Bottom"/>
-                    </DockPanel>
-                </StackPanel>
+                            Text="{Binding DefaultActual, StringFormat={}{0:F1}}" />
+                    </StackPanel>
 
-                <!-- 설정값 입력 -->
-                <StackPanel Grid.Row="2" Margin="0,8">
-                    <TextBox
-                        Text="{Binding DefaultValue, UpdateSourceTrigger=PropertyChanged}"
-                        materialDesign:HintAssist.Hint="설정값 입력"
-                        Style="{StaticResource MaterialDesignOutlinedTextBox}"/>
-                </StackPanel>
+                    <!--  설정값  -->
+                    <StackPanel Grid.Column="1">
+                        <TextBox materialDesign:HintAssist.Hint="설정값" Text="{Binding DefaultValue, UpdateSourceTrigger=PropertyChanged}" />
+                    </StackPanel>
+                </Grid>
 
-                <!-- 컨트롤 -->
-                <DockPanel Grid.Row="3" Margin="0,8,0,0" LastChildFill="False">
-                    <CheckBox
-                        DockPanel.Dock="Left"
-                        Content="모니터링"
-                        IsChecked="{Binding IsMonitoring, Mode=TwoWay}" />
-                    <Button
-                        DockPanel.Dock="Right"
-                        Command="{Binding DataContext.WriteCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
-                        CommandParameter="{Binding}"
-                        Style="{StaticResource MaterialDesignOutlinedButton}">
-                        <materialDesign:PackIcon Kind="ContentSave"/>
-                    </Button>
-                </DockPanel>
+                <!--  저장 버튼  -->
+                <Button
+                    Grid.Row="4"
+                    Margin="0,8,0,0"
+                    HorizontalAlignment="Right"
+                    Command="{Binding DataContext.WriteCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                    CommandParameter="{Binding}">
+                    <materialDesign:PackIcon Kind="ContentSave" />
+                </Button>
             </Grid>
         </materialDesign:Card>
     </DataTemplate>
-
     <!--  DataTemplateSelector 등록  -->
     <local:ParameterTemplateSelector
         x:Key="ParameterTemplateSelector"

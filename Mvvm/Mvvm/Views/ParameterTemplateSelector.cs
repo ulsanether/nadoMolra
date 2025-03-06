@@ -7,8 +7,8 @@ namespace Mvvm.Views
 
     public class ParameterTemplateSelector : DataTemplateSelector
     {
-        public DataTemplate? CardTemplate { get; set; }
-        public DataTemplate? ListTemplate { get; set; }
+        public DataTemplate CardTemplate { get; set; }
+        public DataTemplate ListTemplate { get; set; }
 
         public override DataTemplate SelectTemplate(object item, DependencyObject container)
         {
