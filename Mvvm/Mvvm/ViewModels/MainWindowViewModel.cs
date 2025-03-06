@@ -84,7 +84,7 @@ namespace Mvvm.ViewModels
             BottomMessageQueue = new SnackbarMessageQueue();
 
             _timer = new Timer(1000);
-            _timer.Elapsed += (sender, e) => LoadAvailablePorts(_portComBox);
+            _timer.Elapsed += (sender, e) =>LoadAvailablePorts(_portComBox);
             _timer.Start();
             BottomMessageQueue.Enqueue("애플리케이션 시작", "OK", () => { });
         }
@@ -127,6 +127,8 @@ namespace Mvvm.ViewModels
                 portComBox.ItemsSource = ports;
                 _portComBox = portComBox;
             });
+
+            PortConnected?.Invoke(_modbusConnect.portName, _modbusConnect.serialPortConfig.BaudRate);
         }
 
         protected void OnPropertyChanged([CallerMemberName] string propertyName = null)

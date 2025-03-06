@@ -1,6 +1,7 @@
 ﻿using Prism.Mvvm;
 using Mvvm.Model;
 using System.Collections.ObjectModel;
+using System.Windows;
 
 namespace Mvvm.ViewModels
 {
@@ -66,7 +67,7 @@ namespace Mvvm.ViewModels
         {
             if (_modbusConnect.serialPortConfig != null)
             {
-                BaudRate = _modbusConnect.serialPortConfig.BaudRate;
+               BaudRate = _modbusConnect.serialPortConfig.BaudRate;
                 PortName = _modbusConnect.portName ?? "없음";
             }
         }
@@ -84,8 +85,8 @@ namespace Mvvm.ViewModels
 
         private void OnPortConnected(string portName, int baudRate)
         {
-            PortName = portName;
-            BaudRate = baudRate;
+              PortName = portName;
+             BaudRate = baudRate;
             IsConnected = true;
         }
     }
