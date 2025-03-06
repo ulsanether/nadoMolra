@@ -9,13 +9,10 @@ namespace Mvvm.Views
     {
 
 
-        private readonly MainBottomBarViewModel _viewModel;
-        public MainBottomBar(ModbusConnect modbusConnect)
+        public MainBottomBar()
         {
             InitializeComponent();
 
-            _viewModel = new MainBottomBarViewModel(modbusConnect);
-            DataContext = _viewModel;
         }
     }
 }

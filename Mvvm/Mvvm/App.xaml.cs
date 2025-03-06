@@ -2,6 +2,7 @@
 using Mvvm.Model;
 using Mvvm.ViewModels;
 using Mvvm.Views;
+using Prism.Events;
 using Prism.Ioc;
 using Prism.Modularity;
 using Prism.Regions;
@@ -14,7 +15,8 @@ namespace Mvvm
 
         protected override Window CreateShell()
         {
-            var mainWindow = Container.Resolve<MainWindow>();
+            var mainBottomBarViewModel = Container.Resolve<MainBottomBarViewModel>();
+            var mainWindow = new MainWindow(Container.Resolve<IRegionManager>(), Container.Resolve<IRegionManager>(), mainBottomBarViewModel);
             _regionManager = Container.Resolve<IRegionManager>();
             return mainWindow;
         }
@@ -23,14 +25,16 @@ namespace Mvvm
         {
             // 싱글톤으로 ModbusConnect 등록
             containerRegistry.RegisterSingleton<ModbusConnect>();
-             containerRegistry.Register<Model.ModbusConnect>();
-            // ViewModels 등록
-            containerRegistry.RegisterSingleton<SettingPageViewModel>();
-            containerRegistry.Register<ParameterWindowViewModel>();
-            containerRegistry.Register<ModbusDataViewPageViewModel>();
-            containerRegistry.Register<HomePageViewModel>();
-            containerRegistry.Register<MainBottomBarViewModel>();
 
+            // EventAggregator 등록
+            containerRegistry.RegisterSingleton<IEventAggregator, EventAggregator>();
+
+            // ViewModels 등록
+            containerRegistry.Register<SettingPageViewModel>();
+            containerRegistry.RegisterSingleton<ParameterWindowViewModel>();
+            containerRegistry.RegisterSingleton<ModbusDataViewPageViewModel>();
+            containerRegistry.RegisterSingleton<HomePageViewModel>();
+            containerRegistry.RegisterSingleton<MainBottomBarViewModel>();
 
             // Views 등록
             containerRegistry.RegisterForNavigation<HomePage>();
@@ -38,8 +42,6 @@ namespace Mvvm
             containerRegistry.RegisterForNavigation<ParameterWindow>();
             containerRegistry.RegisterForNavigation<ModbusDataViewPage>();
             containerRegistry.RegisterForNavigation<MainBottomBar>();
-
         }
     }
 }
-

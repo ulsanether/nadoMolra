@@ -55,7 +55,7 @@ namespace Mvvm.Model
 
         private void LoadDefaultConfig()
         {
-            serialPortConfig.LoadSerialPortConfig();
+         
             if (serialPortConfig.BaudRate == 0)
             {
                 serialPortConfig.BaudRate = 9600;
