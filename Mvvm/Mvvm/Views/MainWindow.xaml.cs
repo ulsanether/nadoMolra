@@ -29,6 +29,9 @@ namespace Mvvm.Views
             var viewModel = DataContext as MainWindowViewModel;
             viewModel.HomePageLoad();
 
+
+
+
         }
     }
 }

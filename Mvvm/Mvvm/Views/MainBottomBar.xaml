@@ -6,9 +6,9 @@
     xmlns:prism="http://prismlibrary.com/"
     xmlns:viewmodels="clr-namespace:Mvvm.ViewModels">
 
-    <Grid Margin="5">
+    <Grid>
 
-        <materialDesign:PackIcon Margin="10,0,0,0" Kind="{Binding IsConnected, Converter={StaticResource BooleanToIconConverter}}" />
+        <materialDesign:PackIcon Margin="0,0,0,0" Kind="{Binding IsConnected, Converter={StaticResource BooleanToIconConverter}}" />
 
         <StackPanel
             HorizontalAlignment="Left"
@@ -16,7 +16,7 @@
             Orientation="Horizontal">
             <!--  Port 상태 표시  -->
             <Border
-                Margin="2"
+                Margin="2,0,100,0"
                 Padding="5,2"
                 BorderBrush="Gray"
                 BorderThickness="1">
@@ -32,7 +32,7 @@
 
             <!--  Port 이름 표시  -->
             <Border
-                Margin="2"
+                Margin="2,0,100,0"
                 Padding="5,2"
                 BorderBrush="Gray"
                 BorderThickness="1">

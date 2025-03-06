@@ -41,6 +41,24 @@ namespace Mvvm.ViewModels
         public ObservableCollection<string> StopBitOptions { get; set; }
         public ObservableCollection<ParameterModel> Parameters { get; set; }
 
+
+
+        private string _baudRate;
+        private string _portName;
+
+        public string BaudRate
+        {
+            get => _baudRate;
+            set => SetProperty(ref _baudRate, value);
+        }
+
+        public string PortName
+        {
+            get => _portName;
+            set => SetProperty(ref _portName, value);
+        }
+
+
         public string SelectedConnection
         {
             get => _selectedConnection;
@@ -123,6 +141,9 @@ namespace Mvvm.ViewModels
         #region Constructor
         public SettingPageViewModel(MainWindowViewModel mainWindowViewModel)
         {
+
+
+
             _mainWindowViewModel = mainWindowViewModel;
             _serialPortConfig = new SerialPortConfig();
             _settingsManager = new ExcelSettingsManager();

@@ -1,15 +1,21 @@
 ﻿using System.Windows.Controls;
+using Mvvm.Model;
 using Mvvm.ViewModels;
 using Prism.Regions;
-
+using Mvvm.Model;
 namespace Mvvm.Views
 {
     public partial class MainBottomBar : UserControl
     {
-        public MainBottomBar(MainBottomBarViewModel viewModel)
+
+
+        private readonly MainBottomBarViewModel _viewModel;
+        public MainBottomBar(ModbusConnect modbusConnect)
         {
             InitializeComponent();
-            DataContext = viewModel;
+
+            _viewModel = new MainBottomBarViewModel(modbusConnect);
+            DataContext = _viewModel;
         }
     }
 }

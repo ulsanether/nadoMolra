@@ -7,6 +7,7 @@ using System.Windows;
 using System.Timers;
 using System.Collections.Generic;
 using Mvvm.Model;
+using System.ComponentModel;
 
 namespace Mvvm.ViewModels
 {
@@ -20,6 +21,9 @@ namespace Mvvm.ViewModels
         private int _columns = 1;
         private int _startAddress;
         private int _endAddress;
+
+
+        private readonly SettingPageViewModel _settingPageViewModel;
         #endregion
 
         #region Properties
@@ -194,7 +198,7 @@ namespace Mvvm.ViewModels
             // 이벤트 구독
             _modbusConnect.ConnectionStatusChanged += OnConnectionStatusChanged;
             settingPageViewModel.ExcelDataLoaded += OnExcelDataLoaded;
-
+            _settingPageViewModel.PropertyChanged += SettingPageViewModel_PropertyChanged;
             // 엑셀 데이터 로드 시도
             try
             {
@@ -209,6 +213,21 @@ namespace Mvvm.ViewModels
         #endregion
 
         #region Private Methods
+
+
+
+        private void SettingPageViewModel_PropertyChanged(object sender, PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName == nameof(_settingPageViewModel.BaudRate))
+            {
+                // BaudRate 변경 처리
+            }
+            else if (e.PropertyName == nameof(_settingPageViewModel.PortName))
+            {
+                // PortName 변경 처리
+            }
+        }
+
         private void UpdateTemplate()
         {
             Columns = IsCardView ? 3 : 1;

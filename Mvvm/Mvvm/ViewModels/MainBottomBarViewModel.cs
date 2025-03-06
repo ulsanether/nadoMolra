@@ -14,6 +14,8 @@ namespace Mvvm.ViewModels
         private bool _isConnected;
         private readonly ModbusConnect _modbusConnect;
 
+        public ModbusConnect ModbusConnect => _modbusConnect;
+
         public bool IsConnected
         {
             get => _isConnected;
@@ -31,10 +33,7 @@ namespace Mvvm.ViewModels
             get => _portState;
             set
             {
-                if (SetProperty(ref _portState, value))
-                {
-                    System.Diagnostics.Debug.WriteLine($"PortState 변경됨: {value}");
-                }
+                SetProperty(ref _portState, value);
             }
         }
 
@@ -43,11 +42,7 @@ namespace Mvvm.ViewModels
             get => _portName;
             set
             {
-                System.Diagnostics.Debug.WriteLine($"PortName 설정 시도: {value}");
-                if (SetProperty(ref _portName, value))
-                {
-                    System.Diagnostics.Debug.WriteLine($"PortName 설정 완료: {_portName}");
-                }
+                SetProperty(ref _portName, value);
             }
         }
 
