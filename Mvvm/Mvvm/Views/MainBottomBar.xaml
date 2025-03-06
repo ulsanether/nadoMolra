@@ -1,0 +1,58 @@
+﻿<UserControl
+    x:Class="Mvvm.Views.MainBottomBar"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+    xmlns:prism="http://prismlibrary.com/"
+    xmlns:viewmodels="clr-namespace:Mvvm.ViewModels">
+
+    <Grid Margin="5">
+
+        <materialDesign:PackIcon Margin="10,0,0,0" Kind="{Binding IsConnected, Converter={StaticResource BooleanToIconConverter}}" />
+
+        <StackPanel
+            HorizontalAlignment="Left"
+            VerticalAlignment="Center"
+            Orientation="Horizontal">
+            <!--  Port 상태 표시  -->
+            <Border
+                Margin="2"
+                Padding="5,2"
+                BorderBrush="Gray"
+                BorderThickness="1">
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock VerticalAlignment="Center" Text="상태: " />
+                    <TextBlock
+                        VerticalAlignment="Center"
+                        Foreground="{Binding IsConnected}"
+                        Text="{Binding PortState, UpdateSourceTrigger=PropertyChanged}" />
+                </StackPanel>
+            </Border>
+
+
+            <!--  Port 이름 표시  -->
+            <Border
+                Margin="2"
+                Padding="5,2"
+                BorderBrush="Gray"
+                BorderThickness="1">
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock VerticalAlignment="Center" Text="포트: " />
+                    <TextBlock VerticalAlignment="Center" Text="{Binding PortName, UpdateSourceTrigger=PropertyChanged}" />
+                </StackPanel>
+            </Border>
+
+            <!--  Baud Rate 표시  -->
+            <Border
+                Margin="2"
+                Padding="5,2"
+                BorderBrush="Gray"
+                BorderThickness="1">
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock VerticalAlignment="Center" Text="전송속도: " />
+                    <TextBlock VerticalAlignment="Center" Text="{Binding BaudRate, UpdateSourceTrigger=PropertyChanged}" />
+                </StackPanel>
+            </Border>
+        </StackPanel>
+    </Grid>
+</UserControl>

@@ -13,17 +13,27 @@ using System.Timers;
 using Microsoft.Win32;
 using System.Collections.ObjectModel;
 using Mvvm.Views;
+using MaterialDesignThemes.Wpf;
 
 namespace Mvvm.ViewModels
 {
     public class MainWindowViewModel : BindableBase
     {
         private readonly IRegionManager _regionManager;
+
         private string _title = "애플리케이션";
         private readonly Timer _timer;
         private ModbusConnect _modbusConnect;
+
+
+        public MainBottomBarViewModel MainBottomBarViewModel { get; }
+
+
         private ComboBox _portComBox;
         private string _selectPort;
+
+        private SnackbarMessageQueue _bottomMessageQueue;
+
 
 
         private ObservableCollection<string> _shortStringList = new();
@@ -52,7 +62,16 @@ namespace Mvvm.ViewModels
         public DelegateCommand NavigateToSettingWindowCommand { get; }
         public DelegateCommand NavigateToModbusDataViewPageCommand { get; }
         public DelegateCommand PortConnectButton { get; }
+        public SnackbarMessageQueue BottomMessageQueue
+        {
+            get => _bottomMessageQueue;
+            set => SetProperty(ref _bottomMessageQueue, value);
+        }
         public DelegateCommand NavigateToHomePageCommand { get; }
+
+
+        public DelegateCommand LoadAvailablePortsCommand { get; }
+
 
         #region 필요 없음 관계 된거 나중에 다 삭제
         public DelegateCommand ShowMessageCommand { get; }
@@ -67,64 +86,82 @@ namespace Mvvm.ViewModels
             get => _portComBox;
             set => SetProperty(ref _portComBox, value);
         }
-		
-		//단위 테스트 확인용으로 놔둔것 
-		  public int plus(int n, int z)
+
+        //단위 테스트 확인용으로 놔둔것 
+        public int plus(int n, int z)
         {
             return n + z;
         }
 
-		
+
         #endregion
 
-        public DelegateCommand LoadAvailablePortsCommand { get; }
+
+
+
 
         public MainWindowViewModel(IRegionManager regionManager)
         {
             _regionManager = regionManager;
             _modbusConnect = new ModbusConnect();
 
-            NavigateToParameterWindowCommand = new DelegateCommand(NavigateToParameterWindow);
+
             ShowMessageCommand = new DelegateCommand(ShowMessage);
+
+
+            NavigateToParameterWindowCommand = new DelegateCommand(NavigateToParameterWindow);
             NavigateToSettingWindowCommand = new DelegateCommand(NavigateToSettingWindow);
             NavigateToModbusDataViewPageCommand = new DelegateCommand(NavigateToModbusDataViewPage);
             NavigateToHomePageCommand = new DelegateCommand(HomePageLoad);
-
-
             PortConnectButton = new DelegateCommand(ConnectPorts);
-            
+    
+
+            BottomMessageQueue = new SnackbarMessageQueue();
+            MainBottomBarViewModel = new MainBottomBarViewModel(_modbusConnect);
+
             _timer = new Timer(1000);
             _timer.Elapsed += (sender, e) => LoadAvailablePorts(PortComBox);
             _timer.Start();
+            BottomMessageQueue.Enqueue("애플리케이션 시작", "OK", () => { });
 
-      
         }
-
-
-   
 
 
         private async void ConnectPorts()
         {
             await _modbusConnect.ConnectToPort(SelectPort);
+
+            if (_modbusConnect.IsConnected())
+            {
+                BottomMessageQueue.Enqueue("포트 연결 성공", "OK", () => { });
+       
+            }
+            else
+            {
+                BottomMessageQueue.Enqueue("포트 연결 실패", "OK", () => { });
+            }
         }
 
 
         #region 버튼 페이지 로드 부분 
         public void HomePageLoad()
         {
-
-      //  MessageBox.Show("HomePage로 이동합니다.", "알림", MessageBoxButton.OK, MessageBoxImage.Information);
             _regionManager.RequestNavigate("ContentRegion", "HomePage");
-
         }
         private void NavigateToModbusDataViewPage() => _regionManager.RequestNavigate("ContentRegion", "ModbusDataViewPage");
-        private void NavigateToParameterWindow() =>  _regionManager.RequestNavigate("ContentRegion", "ParameterWindow");
+        private void NavigateToParameterWindow() => _regionManager.RequestNavigate("ContentRegion", "ParameterWindow");
         private void NavigateToSettingWindow() => _regionManager.RequestNavigate("ContentRegion", "SettingPage");
-        
-#endregion
 
-	   public void LoadAvailablePorts(ComboBox portComBox)
+
+
+
+
+        #endregion
+
+
+
+
+        public void LoadAvailablePorts(ComboBox portComBox)
         {
             if (portComBox == null) return;
 
@@ -134,8 +171,9 @@ namespace Mvvm.ViewModels
                 portComBox.ItemsSource = ports;
                 PortComBox = portComBox;
             });
-
         }
+
+
         protected void OnPropertyChanged([CallerMemberName] string propertyName = null)
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));

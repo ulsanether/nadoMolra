@@ -8,7 +8,7 @@
     xmlns:prism="http://prismlibrary.com/"
     Title="{Binding Title}"
     Width="800"
-    Height="620"
+    Height="640"
     prism:ViewModelLocator.AutoWireViewModel="True"
     Loaded="MainWindow_Loaded"
     mc:Ignorable="av">
@@ -18,8 +18,8 @@
     <Grid Height="600" VerticalAlignment="Top">
         <Grid.RowDefinitions>
             <RowDefinition Height="80" />
-            <RowDefinition Height="*" />
-            <RowDefinition Height="30" />
+            <RowDefinition />
+            <RowDefinition Height="43" />
         </Grid.RowDefinitions>
 
 
@@ -43,8 +43,8 @@
         <Button
             Grid.Row="0"
             Width="100"
-            Margin="0,0,140,0"
-            HorizontalAlignment="Right"
+            Margin="560,24,0,24"
+            HorizontalAlignment="Left"
             Command="{Binding NavigateToParameterWindowCommand}"
             Content="Data"
             Cursor="Hand"
@@ -56,8 +56,8 @@
         <Button
             Grid.Row="0"
             Width="100"
-            Margin="0,0,260,0"
-            HorizontalAlignment="Right"
+            Margin="440,24,0,24"
+            HorizontalAlignment="Left"
             Command="{Binding NavigateToModbusDataViewPageCommand}"
             Content="Modbus Data View"
             Style="{StaticResource MaterialDesignRaisedLightButton}"
@@ -66,7 +66,8 @@
         <ContentControl Grid.Row="1" prism:RegionManager.RegionName="ContentRegion" />
 
         <Button
-            Margin="0,0,300,0"
+            Width="56"
+            Margin="100,12,399,12"
             HorizontalAlignment="Center"
             Command="{Binding PortConnectButton}"
             Style="{StaticResource MaterialDesignFloatingActionLightButton}"
@@ -80,9 +81,8 @@
             x:Name="PortComboBox"
             Width="120"
             Height="50"
-            Margin="100,0,200,0"
-            HorizontalAlignment="Center"
-            VerticalAlignment="Center"
+            Margin="290,0,0,0"
+            HorizontalAlignment="Left"
             materialDesign:HintAssist.Hint="포트 연결"
             materialDesign:TextFieldAssist.HasClearButton="True"
             ItemsSource="{Binding ShortStringList}"
@@ -90,7 +90,7 @@
             Style="{StaticResource MaterialDesignOutlinedComboBox}" />
         <materialDesign:DrawerHost
             x:Name="DrawerHost"
-            Grid.RowSpan="2"
+            Grid.RowSpan="3"
             Width="800"
             Height="600"
             HorizontalAlignment="Center"
@@ -108,7 +108,6 @@
                     </Style.Triggers>
                 </Style>
             </materialDesign:DrawerHost.Style>
-
 
             <materialDesign:DrawerHost.RightDrawerContent>
                 <StackPanel Margin="0,89,0,16">
@@ -157,6 +156,18 @@
             </Grid>
         </materialDesign:DrawerHost>
         <ContentControl Grid.Row="2" prism:RegionManager.RegionName="BottmContentRegion" />
+
+
+        <materialDesign:Snackbar
+            x:Name="SnackbarOne"
+            Grid.Row="1"
+            Width="200"
+            Height="38"
+            Margin="0,0,10,0"
+            HorizontalAlignment="Right"
+            VerticalAlignment="Bottom"
+            IsActive="True"
+            MessageQueue="{Binding BottomMessageQueue}" />
 
     </Grid>
 

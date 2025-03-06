@@ -33,6 +33,14 @@ namespace Mvvm.Model
         public SerialPortConfig serialPortConfig { get; set; }
         public CommunicationStatistics Statistics => statistics;
 
+
+
+        protected virtual void OnConnectionStatusChanged(bool isConnected)
+        {
+            ConnectionStatusChanged?.Invoke(isConnected);
+        }
+
+
         public ModbusConnect()
         {
             serialPortConfig = new SerialPortConfig();
@@ -72,22 +80,30 @@ namespace Mvvm.Model
             portComBox.ItemsSource = SerialPort.GetPortNames();
         }
 
-        public async Task ConnectToPort(string portName)
+
+        public string portName;
+        public async Task ConnectToPort(string _portName)
         {
+            portName = _portName;
+
             try
             {
                 await DisconnectIfConnected();
-                await OpenNewConnection(portName);
-
+                await OpenNewConnection(_portName);
                 ConnectionStatusChanged?.Invoke(true);
-                ShowMessage("연결에 성공했습니다.", "정보");
             }
             catch (Exception ex)
             {
                 ConnectionStatusChanged?.Invoke(false);
                 ShowMessage($"포트 연결 실패: {ex.Message}", "오류", true);
             }
+
+
+
         }
+
+
+        
 
         private async Task DisconnectIfConnected()
         {
@@ -229,7 +245,7 @@ namespace Mvvm.Model
             }
         }
 
-        private bool IsConnected()
+        public bool IsConnected()
         {
             return master != null && port != null && port.IsOpen;
         }
@@ -277,6 +293,9 @@ namespace Mvvm.Model
                     MessageBoxButton.OK,
                     isError ? MessageBoxImage.Error : MessageBoxImage.Information));
         }
+
+
+
 
         public void Dispose()
         {

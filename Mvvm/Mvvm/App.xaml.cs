@@ -23,18 +23,22 @@ namespace Mvvm
         {
             // 싱글톤으로 ModbusConnect 등록
             containerRegistry.RegisterSingleton<ModbusConnect>();
-
+             containerRegistry.Register<Model.ModbusConnect>();
             // ViewModels 등록
             containerRegistry.RegisterSingleton<SettingPageViewModel>();
             containerRegistry.Register<ParameterWindowViewModel>();
             containerRegistry.Register<ModbusDataViewPageViewModel>();
             containerRegistry.Register<HomePageViewModel>();
+            containerRegistry.Register<MainBottomBarViewModel>();
+
 
             // Views 등록
             containerRegistry.RegisterForNavigation<HomePage>();
             containerRegistry.RegisterForNavigation<SettingPage>();
             containerRegistry.RegisterForNavigation<ParameterWindow>();
             containerRegistry.RegisterForNavigation<ModbusDataViewPage>();
+            containerRegistry.RegisterForNavigation<MainBottomBar>();
+
         }
     }
 }

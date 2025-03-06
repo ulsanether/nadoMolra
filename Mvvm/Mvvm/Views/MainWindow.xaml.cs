@@ -2,6 +2,7 @@
 using Prism.Regions;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Forms;
 
 namespace Mvvm.Views
 {
@@ -12,12 +13,12 @@ namespace Mvvm.Views
     {
         private readonly MainWindowViewModel _MainWindowViewModel;
 
-        public MainWindow(IRegionManager regionManager)
+        public MainWindow(IRegionManager regionManager, IRegionManager bottomRegionManager)
         {
             InitializeComponent();
             _MainWindowViewModel = new MainWindowViewModel(regionManager);
             var settingPage = new SettingPage(_MainWindowViewModel);
-           
+            bottomRegionManager.RegisterViewWithRegion("BottmContentRegion", "MainBottomBar");
             Loaded += MainWindow_Loaded;
         }
 
@@ -27,6 +28,7 @@ namespace Mvvm.Views
             _MainWindowViewModel.LoadAvailablePorts(PortComboBox);
             var viewModel = DataContext as MainWindowViewModel;
             viewModel.HomePageLoad();
+
         }
     }
 }
