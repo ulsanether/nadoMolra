@@ -101,9 +101,9 @@ namespace Mvvm.ViewModels
             if (_modbusConnect.IsConnected())
             {
                 BottomMessageQueue.Enqueue("포트 연결 성공", "OK", () => { });
-              //  PortConnected?.Invoke(_modbusConnect.portName, _modbusConnect.serialPortConfig.BaudRate);
+                PortConnected?.Invoke(_modbusConnect.portName, _modbusConnect.serialPortConfig.BaudRate);
 
-                _mainBottomBarViewModel.OnPortConnected("11111", 19200);
+              //  _mainBottomBarViewModel.OnPortConnected("11111", 19200);
             }
             else
             {
