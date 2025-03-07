@@ -13,6 +13,8 @@ namespace Mvvm.Views
         {
             InitializeComponent();
 
+            DataContext = new MainBottomBarViewModel(new ModbusConnect());
+
         }
     }
 }

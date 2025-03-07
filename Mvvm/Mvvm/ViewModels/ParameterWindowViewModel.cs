@@ -198,7 +198,7 @@ namespace Mvvm.ViewModels
             // 이벤트 구독
             _modbusConnect.ConnectionStatusChanged += OnConnectionStatusChanged;
             settingPageViewModel.ExcelDataLoaded += OnExcelDataLoaded;
-            _settingPageViewModel.PropertyChanged += SettingPageViewModel_PropertyChanged;
+           // _settingPageViewModel.PropertyChanged += SettingPageViewModel_PropertyChanged;
             // 엑셀 데이터 로드 시도
             try
             {
