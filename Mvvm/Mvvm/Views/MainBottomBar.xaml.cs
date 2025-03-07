@@ -15,6 +15,7 @@ namespace Mvvm.Views
 
             DataContext = new MainBottomBarViewModel(new ModbusConnect());
 
+         
         }
     }
 }
