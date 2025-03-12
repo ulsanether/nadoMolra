@@ -1,12 +1,12 @@
 ﻿using System.Windows.Controls;
-using Mvvm.Model;
 using Mvvm.ViewModels;
 using Prism.Regions;
-using Mvvm.Model;
+
 namespace Mvvm.Views
 {
     public partial class MainBottomBar : UserControl
     {
+<<<<<<< HEAD
 
 
         public MainBottomBar()
@@ -14,6 +14,12 @@ namespace Mvvm.Views
             InitializeComponent();
             DataContext = new MainBottomBarViewModel(new ModbusConnect());
 
+=======
+        public MainBottomBar(MainBottomBarViewModel viewModel)
+        {
+            InitializeComponent();
+            DataContext = viewModel;
+>>>>>>> parent of 48f1f02 (bar 업데이트 수정중)
         }
     }
 }

@@ -5,8 +5,11 @@ using System.Timers;
 using System.Windows;
 using System.Windows.Input;
 using Mvvm.Model;
+<<<<<<< HEAD
 using Prism.Commands;
 using Prism.Mvvm;
+=======
+>>>>>>> parent of 48f1f02 (bar 업데이트 수정중)
 
 namespace Mvvm.ViewModels
 {
@@ -16,12 +19,21 @@ namespace Mvvm.ViewModels
         private readonly SettingPageViewModel _settingPageViewModel;
         private int _startAddress;
         private int _endAddress;
+<<<<<<< HEAD
         private bool _isCardView;
         private bool _isListView;
         private ObservableCollection<ParameterModel> _parameters;
         private Timer _updateTimer;
 
         public ParameterWindowViewModel(ModbusConnect modbusConnect, SettingPageViewModel settingPageViewModel)
+=======
+        #endregion
+
+        #region Properties
+        public Action RefreshTemplateAction { get; set; }
+
+        public bool IsCardView
+>>>>>>> parent of 48f1f02 (bar 업데이트 수정중)
         {
             _modbusConnect = modbusConnect;
             _settingPageViewModel = settingPageViewModel;
@@ -88,6 +100,63 @@ namespace Mvvm.ViewModels
                 });
             }
 
+<<<<<<< HEAD
+=======
+        private void ShowError(string message)
+        {
+            Application.Current.Dispatcher.Invoke(() =>
+            {
+                MessageBox.Show(message, "오류", MessageBoxButton.OK, MessageBoxImage.Error);
+            });
+        }
+
+        public ObservableCollection<ParameterModel> Parameters { get; } = new();
+        #endregion
+
+        #region Commands
+        public DelegateCommand GenerateParametersCommand { get; }
+        public DelegateCommand UpdateTemplateCommand { get; }
+        public DelegateCommand<ParameterModel> WriteCommand { get; }
+        #endregion
+
+        #region Constructor
+        public ParameterWindowViewModel(ModbusConnect modbusConnect, SettingPageViewModel settingPageViewModel)
+        {
+            _modbusConnect = modbusConnect;
+            _modbusData = new Dictionary<int, (string, string, double, string)>();
+
+            // Commands 초기화
+            GenerateParametersCommand = new DelegateCommand(UpdateParameters);
+            UpdateTemplateCommand = new DelegateCommand(UpdateTemplate);
+            WriteCommand = new DelegateCommand<ParameterModel>(ExecuteWrite);
+
+            // 타이머 초기화
+            _updateTimer = new Timer(100);
+            _updateTimer.Elapsed += OnTimedEvent;
+            _updateTimer.AutoReset = false;
+
+            // 이벤트 구독
+            _modbusConnect.ConnectionStatusChanged += OnConnectionStatusChanged;
+            settingPageViewModel.ExcelDataLoaded += OnExcelDataLoaded;
+
+            // 엑셀 데이터 로드 시도
+            try
+            {
+                string excelPath = System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Data", "ModbusParameters.xlsx");
+                _modbusData = ExcelSettingsManager.LoadModbusParameters(excelPath);
+            }
+            catch (Exception ex)
+            {
+                ShowError($"엑셀 데이터 로드 실패: {ex.Message}");
+            }
+        }
+        #endregion
+
+        #region Private Methods
+        private void UpdateTemplate()
+        {
+            Columns = IsCardView ? 3 : 1;
+>>>>>>> parent of 48f1f02 (bar 업데이트 수정중)
             RefreshTemplateAction?.Invoke();
         }
 

@@ -26,6 +26,50 @@ namespace Mvvm.Model.ComPort
 
         private const string CONFIG_FILE = "serialport.config";
 
-  
+        public void SaveSerialPortconfig()
+        {
+            try
+            {
+                var json = JsonSerializer.Serialize(this);
+                File.WriteAllText(CONFIG_FILE, json);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"설정 저장 실패: {ex.Message}", "오류",
+                    MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        public void LoadSerialPortConfig()
+        {
+            try
+            {
+                if (File.Exists(CONFIG_FILE))
+                {
+                    var json = File.ReadAllText(CONFIG_FILE);
+                    var config = JsonSerializer.Deserialize<SerialPortConfig>(json);
+                    CopyFrom(config);
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"설정 로드 실패: {ex.Message}", "오류",
+                    MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        private void CopyFrom(SerialPortConfig config)
+        {
+            BaudRate = config.BaudRate;
+            DataBits = config.DataBits;
+            Parity = config.Parity;
+            StopBits = config.StopBits;
+            ReadTimeout = config.ReadTimeout;
+            WriteTimeout = config.WriteTimeout;
+            slaveId = config.slaveId;
+            startAddress = config.startAddress;
+            numberOfPoints = config.numberOfPoints;
+            FunctionCode = config.FunctionCode;
+        }
     }
 }
