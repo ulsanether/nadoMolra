@@ -22,7 +22,6 @@ namespace Mvvm.ViewModels
         private int _startAddress;
         private int _endAddress;
 
-
         private readonly SettingPageViewModel _settingPageViewModel;
         #endregion
 
@@ -53,8 +52,6 @@ namespace Mvvm.ViewModels
             get => _columns;
             set => SetProperty(ref _columns, value);
         }
-
-
 
         public const int MAX_ADDRESS = 65535; // ushort의 최대값
 
@@ -214,8 +211,6 @@ namespace Mvvm.ViewModels
 
         #region Private Methods
 
-
-
         private void SettingPageViewModel_PropertyChanged(object sender, PropertyChangedEventArgs e)
         {
             if (e.PropertyName == nameof(_settingPageViewModel.BaudRate))
@@ -244,7 +239,7 @@ namespace Mvvm.ViewModels
                     return;
                 }
 
-                var modbusData = await _modbusConnect.ReadModbusData(StartAddress, EndAddress - StartAddress + 1);
+                var modbusData = await _modbusConnect.ReadModbusData(1, 10);
                 Application.Current.Dispatcher.Invoke(() =>
                 {
                     Parameters.Clear();
@@ -265,8 +260,6 @@ namespace Mvvm.ViewModels
                 ShowError($"파라미터 업데이트 실패: {ex.Message}");
             }
         }
-
-
 
         private async void ExecuteWrite(ParameterModel parameter)
         {
@@ -351,7 +344,7 @@ namespace Mvvm.ViewModels
             });
         }
 
-
         #endregion
     }
 }
+

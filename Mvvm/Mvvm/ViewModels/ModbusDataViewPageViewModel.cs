@@ -233,9 +233,33 @@ namespace Mvvm.ViewModels
 
         private void OnConnectionStatusChanged(bool isConnected)
         {
-            if (!isConnected)
+            if (isConnected)
+            {
+                LoadModbusData();
+            }
+            else
             {
                 IsRealTimeUpdate = false;
+            }
+        }
+
+        private async void LoadModbusData()
+        {
+            try
+            {
+                var modbusData = await _modbusConnect.ReadModbusData(1, 10);
+                Application.Current.Dispatcher.Invoke(() =>
+                {
+                    AvailableParameters.Clear();
+                    foreach (var parameter in modbusData)
+                    {
+                        AvailableParameters.Add(parameter);
+                    }
+                });
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Modbus 데이터 로드 실패: {ex.Message}", "오류", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 
@@ -296,3 +320,5 @@ namespace Mvvm.ViewModels
         }
     }
 }
+
+

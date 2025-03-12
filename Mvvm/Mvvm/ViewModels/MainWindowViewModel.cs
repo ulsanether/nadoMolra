@@ -25,7 +25,7 @@ namespace Mvvm.ViewModels
         private readonly ModbusDataViewPageViewModel _modbusDataViewPageViewModel;
         private string _title = "애플리케이션";
         private readonly Timer _timer;
-        private ModbusConnect _modbusConnect;
+        private readonly ModbusConnect _modbusConnect;
 
         private ComboBox _portComBox;
         private string _selectPort;
@@ -69,12 +69,12 @@ namespace Mvvm.ViewModels
 
         private readonly MainBottomBarViewModel _mainBottomBarViewModel;
 
-        public MainWindowViewModel(IRegionManager regionManager, MainBottomBarViewModel mainBottomBarViewModel, ModbusDataViewPageViewModel modbusDataViewPageViewModel)
+        public MainWindowViewModel(IRegionManager regionManager, MainBottomBarViewModel mainBottomBarViewModel, ModbusDataViewPageViewModel modbusDataViewPageViewModel, ModbusConnect modbusConnect)
         {
             _regionManager = regionManager;
             _mainBottomBarViewModel = mainBottomBarViewModel;
             _modbusDataViewPageViewModel = modbusDataViewPageViewModel;
-            _modbusConnect = new ModbusConnect();
+            _modbusConnect = modbusConnect;
 
             ShowMessageCommand = new DelegateCommand(ShowMessage);
 
@@ -104,14 +104,10 @@ namespace Mvvm.ViewModels
             if (_modbusConnect.IsConnected())
             {
                 BottomMessageQueue.Enqueue("포트 연결 성공", "OK", () => { });
-              //  PortConnected?.Invoke(_modbusConnect.portName, _modbusConnect.serialPortConfig.BaudRate);
 
                 _modbusDataViewPageViewModel.InitializeWithPlot(new WpfPlot());
                 _modbusDataViewPageViewModel.IsRealTimeUpdate = true;
                 NavigateToModbusDataViewPage();
-
-               // _mainBottomBarViewModel.OnPortConnected("11111", 19200);
-
             }
             else
             {

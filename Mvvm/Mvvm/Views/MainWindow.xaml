@@ -167,6 +167,16 @@
             VerticalAlignment="Bottom"
             IsActive="True"
             MessageQueue="{Binding BottomMessageQueue}" />
+        <Button
+            Grid.Row="0"
+            Width="100"
+            Margin="0,24,0,24"
+            HorizontalAlignment="Left"
+            Command="{Binding OpenParameterWindowCommand}"
+            Content="Data"
+            Cursor="Hand"
+            Style="{StaticResource MaterialDesignRaisedLightButton}"
+            ToolTip="데이터 확인" />
 
     </Grid>
 
