@@ -83,14 +83,11 @@ namespace Mvvm.ViewModels
             UpdatePortConfiguration();
         }
 
-        public void OnPortConnected(string portName, int baudRate)
+        private void OnPortConnected(string portName, int baudRate)
         {
-            PortName = portName;
-            BaudRate = baudRate;
+              PortName = portName;
+             BaudRate = baudRate;
             IsConnected = true;
-
-        //    MessageBox.Show("포트 연결 성공", "OK", MessageBoxButton.OK, MessageBoxImage.Information);
-
         }
     }
 }
