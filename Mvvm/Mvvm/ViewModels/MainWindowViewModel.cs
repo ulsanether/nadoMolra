@@ -106,14 +106,12 @@ namespace Mvvm.ViewModels
                 BottomMessageQueue.Enqueue("포트 연결 성공", "OK", () => { });
               //  PortConnected?.Invoke(_modbusConnect.portName, _modbusConnect.serialPortConfig.BaudRate);
 
-<<<<<<< HEAD
-                // ModbusDataViewPage로 이동하고 데이터 초기화
                 _modbusDataViewPageViewModel.InitializeWithPlot(new WpfPlot());
                 _modbusDataViewPageViewModel.IsRealTimeUpdate = true;
                 NavigateToModbusDataViewPage();
-=======
+
                 _mainBottomBarViewModel.OnPortConnected("11111", 19200);
->>>>>>> parent of 91d4fc9 (Update MainWindowViewModel.cs)
+
             }
             else
             {
