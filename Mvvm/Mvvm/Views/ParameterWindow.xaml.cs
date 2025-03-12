@@ -1,4 +1,6 @@
-﻿using System.Windows.Controls;
+﻿// ParameterWindow.xaml.cs
+
+using System.Windows.Controls;
 using Mvvm.ViewModels;
 using Mvvm.Model;
 
@@ -8,10 +10,10 @@ namespace Mvvm.Views
     {
         private readonly ParameterWindowViewModel _viewModel;
 
-        public ParameterWindow(ModbusConnect modbusConnect, SettingPageViewModel settingPageViewModel)
+        public ParameterWindow(ModbusConnect modbusConnect)
         {
             InitializeComponent();
-            _viewModel = new ParameterWindowViewModel(modbusConnect, settingPageViewModel);
+            _viewModel = new ParameterWindowViewModel(modbusConnect);
             DataContext = _viewModel;
             _viewModel.RefreshTemplateAction = RefreshTemplate;
         }
@@ -32,7 +34,6 @@ namespace Mvvm.Views
             var regex = new System.Text.RegularExpressions.Regex("[^0-9]+");
             e.Handled = regex.IsMatch(e.Text);
         }
-
-
     }
 }
+

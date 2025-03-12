@@ -1,4 +1,6 @@
-﻿using System.Windows;
+﻿// App.xaml.cs
+
+using System.Windows;
 using Mvvm.Model;
 using Mvvm.ViewModels;
 using Mvvm.Views;
@@ -26,7 +28,6 @@ namespace Mvvm
 
         protected override void RegisterTypes(IContainerRegistry containerRegistry)
         {
-
             containerRegistry.Register<MainWindowViewModel>();
 
             // 싱글톤으로 ModbusConnect 등록
@@ -35,7 +36,6 @@ namespace Mvvm
             // EventAggregator 등록
             containerRegistry.RegisterSingleton<IEventAggregator, EventAggregator>();
             // ViewModels 등록
-            containerRegistry.Register<SettingPageViewModel>();
             containerRegistry.RegisterSingleton<ParameterWindowViewModel>();
             containerRegistry.RegisterSingleton<ModbusDataViewPageViewModel>();
             containerRegistry.RegisterSingleton<HomePageViewModel>();

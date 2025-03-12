@@ -8,6 +8,9 @@
     xmlns:prism="http://prismlibrary.com/">
     <Application.Resources>
         <ResourceDictionary>
+
+
+
             <ResourceDictionary.MergedDictionaries>
                 <ResourceDictionary Source="Dictionaries/Colours.xaml" />
                 <ResourceDictionary Source="Dictionaries/Icons.xaml" />

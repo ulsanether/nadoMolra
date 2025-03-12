@@ -1,4 +1,6 @@
-﻿using System;
+﻿// SettingPage.xaml.cs
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -13,6 +15,8 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 using Mvvm.ViewModels;
+using Prism.Regions;
+using Mvvm.Model;
 
 namespace Mvvm.Views;
 /// <summary>
@@ -23,6 +27,12 @@ public partial class SettingPage : UserControl
     public SettingPage()
     {
         InitializeComponent();
-        DataContext = new SettingPageViewModel();
+        var regionManager = (IRegionManager)Application.Current.Resources["RegionManager"];
+        var mainBottomBarViewModel = (MainBottomBarViewModel)Application.Current.Resources["MainBottomBarViewModel"];
+        var modbusDataViewPageViewModel = (ModbusDataViewPageViewModel)Application.Current.Resources["ModbusDataViewPageViewModel"];
+        var modbusConnect = (ModbusConnect)Application.Current.Resources["ModbusConnect"];
+        var parameterWindowViewModel = (ParameterWindowViewModel)Application.Current.Resources["ParameterWindowViewModel"];
+
+        DataContext = new MainWindowViewModel(regionManager, mainBottomBarViewModel, modbusDataViewPageViewModel, modbusConnect, parameterWindowViewModel);
     }
 }

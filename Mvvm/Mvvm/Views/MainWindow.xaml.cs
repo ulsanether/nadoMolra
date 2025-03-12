@@ -1,4 +1,6 @@
-﻿using Mvvm.Model;
+﻿// MainWindow.xaml.cs
+
+using Mvvm.Model;
 using Mvvm.ViewModels;
 using Prism.Events;
 using Prism.Regions;
@@ -14,8 +16,7 @@ namespace Mvvm.Views
         {
             InitializeComponent();
 
-            var settingPageViewModel = new SettingPageViewModel();
-            var parameterWindowViewModel = new ParameterWindowViewModel(modbusConnect, settingPageViewModel);
+            var parameterWindowViewModel = new ParameterWindowViewModel(modbusConnect);
 
             _MainWindowViewModel = new MainWindowViewModel(regionManager, mainBottomBarViewModel, modbusDataViewPageViewModel, modbusConnect, parameterWindowViewModel);
             mainBottomBarViewModel.SubscribeToPortConnectedEvent(_MainWindowViewModel);
