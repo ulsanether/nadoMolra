@@ -9,12 +9,12 @@ using Microsoft.Win32;
 using System.Windows;
 using Prism.Commands;
 using Prism.Mvvm;
-using Mvvm.Model;
 using Mvvm.Model.ComPort;
+using Mvvm.Model.IniFileRead;
 
 namespace Mvvm.ViewModels
 {
-    public class SettingPageViewModel : BindableBase, INotifyPropertyChanged
+    public class SettingPageViewModel : BindableBase
     {
         #region Fields
         private string _selectedConnection;
@@ -41,8 +41,6 @@ namespace Mvvm.ViewModels
         public ObservableCollection<string> StopBitOptions { get; set; }
         public ObservableCollection<ParameterModel> Parameters { get; set; }
 
-
-
         private string _baudRate;
         private string _portName;
 
@@ -57,7 +55,6 @@ namespace Mvvm.ViewModels
             get => _portName;
             set => SetProperty(ref _portName, value);
         }
-
 
         public string SelectedConnection
         {
@@ -137,14 +134,13 @@ namespace Mvvm.ViewModels
         #region Events
         public event Action<List<ParameterModel>> ExcelDataLoaded;
         #endregion
-
+       
         #region Constructor
-        public SettingPageViewModel(MainWindowViewModel mainWindowViewModel)
+
+        public SettingPageViewModel()
         {
+           
 
-
-
-            _mainWindowViewModel = mainWindowViewModel;
             _serialPortConfig = new SerialPortConfig();
             _settingsManager = new ExcelSettingsManager();
 
@@ -175,6 +171,11 @@ namespace Mvvm.ViewModels
             DataBitOptions = new ObservableCollection<string> { "7", "8" };
             ParityOptions = new ObservableCollection<string> { "None", "Odd", "Even" };
             StopBitOptions = new ObservableCollection<string> { "1", "1.5", "2" };
+        }
+
+        private void ShowError(string message)
+        {
+           
         }
 
         private void SetDefaultValues()
@@ -287,11 +288,6 @@ namespace Mvvm.ViewModels
         #endregion
 
         #region Helper Methods
-        private void ShowError(string message)
-        {
-            MessageBox.Show(message, "오류", MessageBoxButton.OK, MessageBoxImage.Error);
-        }
-
         private void ShowSuccess(string message)
         {
             MessageBox.Show(message, "성공", MessageBoxButton.OK, MessageBoxImage.Information);

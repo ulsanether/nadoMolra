@@ -8,6 +8,10 @@ using System.Timers;
 using System.Collections.Generic;
 using Mvvm.Model;
 using System.ComponentModel;
+using Mvvm.Model.IniFileRead;
+
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace Mvvm.ViewModels
 {
@@ -15,7 +19,7 @@ namespace Mvvm.ViewModels
     {
         #region Fields
         private readonly ModbusConnect _modbusConnect;
-        private readonly Timer _updateTimer;
+        private readonly System.Timers.Timer _updateTimer;
         private readonly Dictionary<int, (string Description, string Unit, double DefaultValue, string Note)> _modbusData;
         private bool _isCardView;
         private int _columns = 1;
@@ -23,6 +27,7 @@ namespace Mvvm.ViewModels
         private int _endAddress;
 
         private readonly SettingPageViewModel _settingPageViewModel;
+        private CancellationTokenSource _cancellationTokenSource; // 추가된 필드
         #endregion
 
         #region Properties
@@ -188,7 +193,7 @@ namespace Mvvm.ViewModels
             WriteCommand = new DelegateCommand<ParameterModel>(ExecuteWrite);
 
             // 타이머 초기화
-            _updateTimer = new Timer(100);
+            _updateTimer = new System.Timers.Timer(100);
             _updateTimer.Elapsed += OnTimedEvent;
             _updateTimer.AutoReset = false;
 
@@ -206,6 +211,9 @@ namespace Mvvm.ViewModels
             {
                 ShowError($"엑셀 데이터 로드 실패: {ex.Message}");
             }
+
+            // 백그라운드 작업 시작
+            StartBackgroundTask();
         }
         #endregion
 
@@ -229,7 +237,7 @@ namespace Mvvm.ViewModels
             RefreshTemplateAction?.Invoke();
         }
 
-        private async void UpdateParameters()
+        public async void UpdateParameters()
         {
             try
             {
@@ -342,6 +350,26 @@ namespace Mvvm.ViewModels
                 }
                 UpdateTemplate();
             });
+        }
+
+        private void StartBackgroundTask()
+        {
+            _cancellationTokenSource = new CancellationTokenSource();
+            var token = _cancellationTokenSource.Token;
+
+            Task.Run(async () =>
+            {
+                while (!token.IsCancellationRequested)
+                {
+                    UpdateParameters();
+                    await Task.Delay(1000); // 1초마다 업데이트
+                }
+            }, token);
+        }
+
+        public void StopBackgroundTask()
+        {
+            _cancellationTokenSource?.Cancel();
         }
 
         #endregion

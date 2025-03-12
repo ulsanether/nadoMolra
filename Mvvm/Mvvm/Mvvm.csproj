@@ -6,6 +6,12 @@
     <LangVersion>preview</LangVersion>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Remove="Enum\**" />
+    <EmbeddedResource Remove="Enum\**" />
+    <None Remove="Enum\**" />
+    <Page Remove="Enum\**" />
+  </ItemGroup>
+  <ItemGroup>
     <PackageReference Include="Accord.Statistics" Version="3.8.0" />
     <PackageReference Include="devexpress.wpf.core" Version="24.1.6-pre-24252" />
     <PackageReference Include="EPPlus" Version="6.2.10" />
@@ -32,8 +38,5 @@
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
     </None>
-  </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Enum\" />
   </ItemGroup>
 </Project>

@@ -20,9 +20,9 @@ namespace Mvvm.Views;
 /// </summary>
 public partial class SettingPage : UserControl
 {
-    public SettingPage(MainWindowViewModel mainWindowViewModel)
+    public SettingPage()
     {
         InitializeComponent();
-        DataContext = new SettingPageViewModel(mainWindowViewModel);
+        DataContext = new SettingPageViewModel();
     }
 }

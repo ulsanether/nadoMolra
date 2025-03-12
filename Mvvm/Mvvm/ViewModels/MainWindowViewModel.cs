@@ -23,6 +23,7 @@ namespace Mvvm.ViewModels
         private readonly IRegionManager _regionManager;
         private readonly SettingPageViewModel _settingPageViewModel;
         private readonly ModbusDataViewPageViewModel _modbusDataViewPageViewModel;
+        private readonly ParameterWindowViewModel _parameterWindowViewModel;
         private string _title = "애플리케이션";
         private readonly Timer _timer;
         private readonly ModbusConnect _modbusConnect;
@@ -69,12 +70,13 @@ namespace Mvvm.ViewModels
 
         private readonly MainBottomBarViewModel _mainBottomBarViewModel;
 
-        public MainWindowViewModel(IRegionManager regionManager, MainBottomBarViewModel mainBottomBarViewModel, ModbusDataViewPageViewModel modbusDataViewPageViewModel, ModbusConnect modbusConnect)
+        public MainWindowViewModel(IRegionManager regionManager, MainBottomBarViewModel mainBottomBarViewModel, ModbusDataViewPageViewModel modbusDataViewPageViewModel, ModbusConnect modbusConnect, ParameterWindowViewModel parameterWindowViewModel)
         {
             _regionManager = regionManager;
             _mainBottomBarViewModel = mainBottomBarViewModel;
             _modbusDataViewPageViewModel = modbusDataViewPageViewModel;
             _modbusConnect = modbusConnect;
+            _parameterWindowViewModel = parameterWindowViewModel;
 
             ShowMessageCommand = new DelegateCommand(ShowMessage);
 
@@ -90,6 +92,13 @@ namespace Mvvm.ViewModels
             _timer.Elapsed += (sender, e) => LoadAvailablePorts(_portComBox);
             _timer.Start();
             BottomMessageQueue.Enqueue("애플리케이션 시작", "OK", () => { });
+
+            InitializeParameterWindowViewModel();
+        }
+
+        private void InitializeParameterWindowViewModel()
+        {
+            _parameterWindowViewModel.UpdateParameters();
         }
 
         private void ShowMessage()
@@ -119,9 +128,18 @@ namespace Mvvm.ViewModels
         {
             _regionManager.RequestNavigate("ContentRegion", "HomePage");
         }
-        private void NavigateToModbusDataViewPage() => _regionManager.RequestNavigate("ContentRegion", "ModbusDataViewPage");
-        private void NavigateToParameterWindow() => _regionManager.RequestNavigate("ContentRegion", "ParameterWindow");
-        private void NavigateToSettingWindow() => _regionManager.RequestNavigate("ContentRegion", "SettingPage");
+        private void NavigateToModbusDataViewPage()
+        {
+            _regionManager.RequestNavigate("ContentRegion", "ModbusDataViewPage");
+        }
+        private void NavigateToParameterWindow()
+        {
+            _regionManager.RequestNavigate("ContentRegion", "ParameterWindow");
+        }
+        private void NavigateToSettingWindow()
+        {
+            _regionManager.RequestNavigate("ContentRegion", "SettingPage");
+        }
 
         public void LoadAvailablePorts(ComboBox portComBox)
         {

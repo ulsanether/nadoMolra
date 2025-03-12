@@ -6,7 +6,7 @@ using System.Linq;
 using System.Windows;
 using OfficeOpenXml;
 
-namespace Mvvm.Model
+namespace Mvvm.Model.IniFileRead
 {
     public class ExcelSettingsManager
     {
@@ -20,13 +20,13 @@ namespace Mvvm.Model
         {
             try
             {
-                StringCollection modbusNameList = new StringCollection();
-                StringCollection modbusUnitList = new StringCollection();
+                var modbusNameList = new StringCollection();
+                var modbusUnitList = new StringCollection();
 
                 using (var package = new ExcelPackage(new FileInfo(filePath)))
                 {
                     var worksheet = package.Workbook.Worksheets[0];
-                    int row = 2;
+                    var row = 2;
 
                     while (worksheet.Cells[row, 1].Value != null)
                     {
@@ -53,22 +53,20 @@ namespace Mvvm.Model
             try
             {
                 if (!File.Exists(filePath))
-                {
                     throw new FileNotFoundException($"엑셀 파일을 찾을 수 없습니다: {filePath}");
-                }
 
                 using (var package = new ExcelPackage(new FileInfo(filePath)))
                 {
                     var worksheet = package.Workbook.Worksheets[0];
-                    int rowCount = worksheet.Dimension?.Rows ?? 0;
+                    var rowCount = worksheet.Dimension?.Rows ?? 0;
 
                     // 헤더를 제외하고 2번째 행부터 데이터 읽기
-                    for (int row = 2; row <= rowCount; row++)
+                    for (var row = 2; row <= rowCount; row++)
                     {
                         var indexValue = worksheet.Cells[row, 1].Value;
                         if (indexValue == null) continue;
 
-                        if (!int.TryParse(indexValue.ToString(), out int index))
+                        if (!int.TryParse(indexValue.ToString(), out var index))
                             continue;
 
                         var description = GetCellValue(worksheet, row, 3);
@@ -77,9 +75,7 @@ namespace Mvvm.Model
                         var note = GetCellValue(worksheet, row, 7);
 
                         if (!string.IsNullOrWhiteSpace(description))
-                        {
                             modbusData.Add(index, (description, unit, defaultValue, note));
-                        }
                     }
                 }
             }
@@ -94,7 +90,7 @@ namespace Mvvm.Model
 
         public Dictionary<int, (string Description, string Unit, double DefaultValue, string Note)> LoadModbusParameters()
         {
-            string defaultPath = Path.Combine(
+            var defaultPath = Path.Combine(
                 AppDomain.CurrentDomain.BaseDirectory,
                 "Data",
                 "ModbusParameters.xlsx");
@@ -122,7 +118,7 @@ namespace Mvvm.Model
             var (modbusNameList, modbusUnitList) = LoadDataFromSettings();
 
             Console.WriteLine("Settings 데이터 출력:");
-            for (int i = 0; i < Math.Max(modbusNameList.Count, modbusUnitList.Count); i++)
+            for (var i = 0; i < Math.Max(modbusNameList.Count, modbusUnitList.Count); i++)
             {
                 var name = i < modbusNameList.Count ? modbusNameList[i] : "(빈 데이터)";
                 var unit = i < modbusUnitList.Count ? modbusUnitList[i] : "(빈 데이터)";
@@ -145,7 +141,7 @@ namespace Mvvm.Model
             // 숫자 형식이 아닌 문자 제거
             value = new string(value.Where(c => char.IsDigit(c) || c == '.' || c == '-').ToArray());
 
-            if (double.TryParse(value, out double result))
+            if (double.TryParse(value, out var result))
                 return result;
 
             return 0.0;

@@ -20,17 +20,20 @@ namespace Mvvm
             var modbusConnect = Container.Resolve<ModbusConnect>();
             var mainWindow = new MainWindow(Container.Resolve<IRegionManager>(), Container.Resolve<IRegionManager>(), mainBottomBarViewModel, modbusDataViewPageViewModel, modbusConnect);
             _regionManager = Container.Resolve<IRegionManager>();
+
             return mainWindow;
         }
 
         protected override void RegisterTypes(IContainerRegistry containerRegistry)
         {
+
+            containerRegistry.Register<MainWindowViewModel>();
+
             // 싱글톤으로 ModbusConnect 등록
             containerRegistry.RegisterSingleton<ModbusConnect>();
 
             // EventAggregator 등록
             containerRegistry.RegisterSingleton<IEventAggregator, EventAggregator>();
-
             // ViewModels 등록
             containerRegistry.Register<SettingPageViewModel>();
             containerRegistry.RegisterSingleton<ParameterWindowViewModel>();

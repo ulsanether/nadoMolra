@@ -7,11 +7,9 @@
     xmlns:viewmodels="clr-namespace:Mvvm.ViewModels"
     prism:ViewModelLocator.AutoWireViewModel="True">
 
-
     <Grid Margin="5">
 
         <materialDesign:PackIcon Margin="10,0,0,0" Kind="{Binding IsConnected, Converter={StaticResource BooleanToIconConverter}}" />
-
 
         <StackPanel
             HorizontalAlignment="Left"
@@ -31,7 +29,6 @@
                         Text="{Binding PortState, UpdateSourceTrigger=PropertyChanged}" />
                 </StackPanel>
             </Border>
-
 
             <!--  Port 이름 표시  -->
             <Border
@@ -59,3 +56,4 @@
         </StackPanel>
     </Grid>
 </UserControl>
+
