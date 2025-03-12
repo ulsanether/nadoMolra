@@ -66,12 +66,8 @@
                 <RadioButton
                     Margin="0,0,10,0"
                     Content="리스트 형식"
-                    IsChecked="{Binding IsListView}"
-                    />
-                <RadioButton
-                    Content="카드 형식"
-                    IsChecked="{Binding IsCardView}"
-                    />
+                    IsChecked="{Binding IsListView}" />
+                <RadioButton Content="카드 형식" IsChecked="{Binding IsCardView}" />
             </StackPanel>
         </Grid>
 
@@ -88,7 +84,5 @@
                 </ItemsControl.ItemsPanel>
             </ItemsControl>
         </ScrollViewer>
-
-
     </Grid>
 </UserControl>

@@ -7,14 +7,11 @@
     xmlns:viewmodels="clr-namespace:Mvvm.ViewModels"
     prism:ViewModelLocator.AutoWireViewModel="True">
 
-<<<<<<< HEAD
-    <Grid>
-        <materialDesign:PackIcon Margin="0,0,0,0" Kind="{Binding IsConnected, Converter={StaticResource BooleanToIconConverter}}" />
-=======
+
     <Grid Margin="5">
 
         <materialDesign:PackIcon Margin="10,0,0,0" Kind="{Binding IsConnected, Converter={StaticResource BooleanToIconConverter}}" />
->>>>>>> parent of 48f1f02 (bar 업데이트 수정중)
+
 
         <StackPanel
             HorizontalAlignment="Left"

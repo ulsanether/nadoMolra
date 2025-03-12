@@ -104,18 +104,14 @@ namespace Mvvm.ViewModels
             if (_modbusConnect.IsConnected())
             {
                 BottomMessageQueue.Enqueue("포트 연결 성공", "OK", () => { });
-<<<<<<< HEAD
               //  PortConnected?.Invoke(_modbusConnect.portName, _modbusConnect.serialPortConfig.BaudRate);
 
                 _modbusDataViewPageViewModel.InitializeWithPlot(new WpfPlot());
                 _modbusDataViewPageViewModel.IsRealTimeUpdate = true;
                 NavigateToModbusDataViewPage();
 
-                _mainBottomBarViewModel.OnPortConnected("11111", 19200);
+               // _mainBottomBarViewModel.OnPortConnected("11111", 19200);
 
-=======
-                PortConnected?.Invoke(_modbusConnect.portName, _modbusConnect.serialPortConfig.BaudRate);
->>>>>>> parent of 8ae6a40 (수정)
             }
             else
             {

@@ -28,10 +28,7 @@ namespace Mvvm.Views
             _MainWindowViewModel.LoadAvailablePorts(PortComboBox);
             var viewModel = DataContext as MainWindowViewModel;
             viewModel.HomePageLoad();
-<<<<<<< HEAD
-=======
 
->>>>>>> parent of 48f1f02 (bar 업데이트 수정중)
         }
     }
 }
