@@ -14,6 +14,7 @@ using Microsoft.Win32;
 using System.Collections.ObjectModel;
 using Mvvm.Views;
 using MaterialDesignThemes.Wpf;
+using ScottPlot.WPF;
 
 namespace Mvvm.ViewModels
 {
@@ -21,6 +22,7 @@ namespace Mvvm.ViewModels
     {
         private readonly IRegionManager _regionManager;
         private readonly SettingPageViewModel _settingPageViewModel;
+        private readonly ModbusDataViewPageViewModel _modbusDataViewPageViewModel;
         private string _title = "애플리케이션";
         private readonly Timer _timer;
         private ModbusConnect _modbusConnect;
@@ -67,10 +69,11 @@ namespace Mvvm.ViewModels
 
         private readonly MainBottomBarViewModel _mainBottomBarViewModel;
 
-        public MainWindowViewModel(IRegionManager regionManager, MainBottomBarViewModel mainBottomBarViewModel)
+        public MainWindowViewModel(IRegionManager regionManager, MainBottomBarViewModel mainBottomBarViewModel, ModbusDataViewPageViewModel modbusDataViewPageViewModel)
         {
             _regionManager = regionManager;
             _mainBottomBarViewModel = mainBottomBarViewModel;
+            _modbusDataViewPageViewModel = modbusDataViewPageViewModel;
             _modbusConnect = new ModbusConnect();
 
             ShowMessageCommand = new DelegateCommand(ShowMessage);
@@ -84,7 +87,7 @@ namespace Mvvm.ViewModels
             BottomMessageQueue = new SnackbarMessageQueue();
 
             _timer = new Timer(1000);
-            _timer.Elapsed += (sender, e) =>LoadAvailablePorts(_portComBox);
+            _timer.Elapsed += (sender, e) => LoadAvailablePorts(_portComBox);
             _timer.Start();
             BottomMessageQueue.Enqueue("애플리케이션 시작", "OK", () => { });
         }
@@ -103,7 +106,10 @@ namespace Mvvm.ViewModels
                 BottomMessageQueue.Enqueue("포트 연결 성공", "OK", () => { });
                 PortConnected?.Invoke(_modbusConnect.portName, _modbusConnect.serialPortConfig.BaudRate);
 
-              //  _mainBottomBarViewModel.OnPortConnected("11111", 19200);
+                // ModbusDataViewPage로 이동하고 데이터 초기화
+                _modbusDataViewPageViewModel.InitializeWithPlot(new WpfPlot());
+                _modbusDataViewPageViewModel.IsRealTimeUpdate = true;
+                NavigateToModbusDataViewPage();
             }
             else
             {

@@ -58,7 +58,7 @@ namespace Mvvm.Model
          
             if (serialPortConfig.BaudRate == 0)
             {
-                serialPortConfig.BaudRate = 9600;
+                serialPortConfig.BaudRate = 115200;
                 serialPortConfig.DataBits = 8;
                 serialPortConfig.Parity = Parity.None;
                 serialPortConfig.StopBits = StopBits.One;

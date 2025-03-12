@@ -71,7 +71,7 @@
                 <RadioButton
                     Content="카드 형식"
                     IsChecked="{Binding IsCardView}"
-                  />
+                    />
             </StackPanel>
         </Grid>
 
@@ -88,5 +88,7 @@
                 </ItemsControl.ItemsPanel>
             </ItemsControl>
         </ScrollViewer>
+
+
     </Grid>
 </UserControl>

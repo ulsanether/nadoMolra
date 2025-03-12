@@ -16,7 +16,6 @@ namespace Mvvm.Views
             _viewModel = new ModbusDataViewPageViewModel(modbusConnect, RealTimeChart);
             DataContext = _viewModel;
         }
-
         private void UserControl_Unloaded(object sender, System.Windows.RoutedEventArgs e)
         {
             _viewModel.Cleanup();

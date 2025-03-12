@@ -12,10 +12,8 @@ namespace Mvvm.Views
         public MainBottomBar()
         {
             InitializeComponent();
-
             DataContext = new MainBottomBarViewModel(new ModbusConnect());
 
-         
         }
     }
 }

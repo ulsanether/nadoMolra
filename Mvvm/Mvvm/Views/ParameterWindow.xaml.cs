@@ -7,12 +7,14 @@ namespace Mvvm.Views
     public partial class ParameterWindow : UserControl
     {
         private readonly ParameterWindowViewModel _viewModel;
+        private readonly ModbusDataViewPageViewModel _modbusDataViewPageViewModel;
 
-        public ParameterWindow(ModbusConnect modbusConnect, SettingPageViewModel settingPageViewModel)
+        public ParameterWindow(ModbusConnect modbusConnect, SettingPageViewModel settingPageViewModel, ModbusDataViewPageViewModel modbusDataViewPageViewModel)
         {
             InitializeComponent();
             _viewModel = new ParameterWindowViewModel(modbusConnect, settingPageViewModel);
-            DataContext = _viewModel;
+            _modbusDataViewPageViewModel = modbusDataViewPageViewModel;
+            DataContext = new { ParameterViewModel = _viewModel, ModbusDataViewModel = _modbusDataViewPageViewModel };
             _viewModel.RefreshTemplateAction = RefreshTemplate;
         }
 
@@ -32,7 +34,5 @@ namespace Mvvm.Views
             var regex = new System.Text.RegularExpressions.Regex("[^0-9]+");
             e.Handled = regex.IsMatch(e.Text);
         }
-
-
     }
 }

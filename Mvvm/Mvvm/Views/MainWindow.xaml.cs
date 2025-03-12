@@ -1,4 +1,5 @@
 ﻿using Mvvm.ViewModels;
+using Prism.Events;
 using Prism.Regions;
 using System.Windows;
 
@@ -11,11 +12,12 @@ namespace Mvvm.Views
     {
         private readonly MainWindowViewModel _MainWindowViewModel;
 
-        public MainWindow(IRegionManager regionManager, IRegionManager bottomRegionManager, MainBottomBarViewModel mainBottomBarViewModel)
+        public MainWindow(IRegionManager regionManager, IRegionManager bottomRegionManager, MainBottomBarViewModel mainBottomBarViewModel, ModbusDataViewPageViewModel modbusDataViewPageViewModel)
         {
             InitializeComponent();
-            _MainWindowViewModel = new MainWindowViewModel(regionManager, mainBottomBarViewModel);
+            _MainWindowViewModel = new MainWindowViewModel(regionManager, mainBottomBarViewModel, modbusDataViewPageViewModel);
             mainBottomBarViewModel.SubscribeToPortConnectedEvent(_MainWindowViewModel);
+
             var settingPage = new SettingPage(_MainWindowViewModel);
             bottomRegionManager.RegisterViewWithRegion("BottmContentRegion", "MainBottomBar");
             Loaded += MainWindow_Loaded;

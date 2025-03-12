@@ -16,7 +16,8 @@ namespace Mvvm
         protected override Window CreateShell()
         {
             var mainBottomBarViewModel = Container.Resolve<MainBottomBarViewModel>();
-            var mainWindow = new MainWindow(Container.Resolve<IRegionManager>(), Container.Resolve<IRegionManager>(), mainBottomBarViewModel);
+            var modbusDataViewPageViewModel = Container.Resolve<ModbusDataViewPageViewModel>();
+            var mainWindow = new MainWindow(Container.Resolve<IRegionManager>(), Container.Resolve<IRegionManager>(), mainBottomBarViewModel, modbusDataViewPageViewModel);
             _regionManager = Container.Resolve<IRegionManager>();
             return mainWindow;
         }

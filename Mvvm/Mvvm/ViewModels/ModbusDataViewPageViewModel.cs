@@ -26,9 +26,16 @@ namespace Mvvm.ViewModels
         private WpfPlot _wpfPlot;
         private readonly object _lockObject = new();
         private IPlottable _dataPlot;
+        private bool _autoScale;
+        private string _selectedChartType;
+        private string _statistics;
+        private ObservableCollection<string> _chartTypes;
+        private ObservableCollection<string> _communicationLog;
 
         public ObservableCollection<ParameterModel> AvailableParameters { get; }
         public DelegateCommand ResetChartCommand { get; }
+        public DelegateCommand ExportDataCommand { get; }
+        public DelegateCommand ResetStatisticsCommand { get; }
 
         public bool IsRealTimeUpdate
         {
@@ -63,6 +70,36 @@ namespace Mvvm.ViewModels
             }
         }
 
+        public bool AutoScale
+        {
+            get => _autoScale;
+            set => SetProperty(ref _autoScale, value);
+        }
+
+        public string SelectedChartType
+        {
+            get => _selectedChartType;
+            set => SetProperty(ref _selectedChartType, value);
+        }
+
+        public string Statistics
+        {
+            get => _statistics;
+            set => SetProperty(ref _statistics, value);
+        }
+
+        public ObservableCollection<string> ChartTypes
+        {
+            get => _chartTypes;
+            set => SetProperty(ref _chartTypes, value);
+        }
+
+        public ObservableCollection<string> CommunicationLog
+        {
+            get => _communicationLog;
+            set => SetProperty(ref _communicationLog, value);
+        }
+
         public ModbusDataViewPageViewModel(ModbusConnect modbusConnect, WpfPlot plot)
         {
             _modbusConnect = modbusConnect;
@@ -70,6 +107,8 @@ namespace Mvvm.ViewModels
 
             AvailableParameters = new ObservableCollection<ParameterModel>();
             ResetChartCommand = new DelegateCommand(ResetChart);
+            ExportDataCommand = new DelegateCommand(ExportData);
+            ResetStatisticsCommand = new DelegateCommand(ResetStatistics);
 
             _updateTimer = new Timer(50);
             _updateTimer.Elapsed += OnUpdateTimerElapsed;
@@ -78,7 +117,7 @@ namespace Mvvm.ViewModels
             _modbusConnect.ConnectionStatusChanged += OnConnectionStatusChanged;
 
             InitializeChart();
-
+            InitializeChartTypes();
         }
 
         public void InitializeWithPlot(WpfPlot plot)
@@ -92,8 +131,6 @@ namespace Mvvm.ViewModels
             if (_wpfPlot == null) return;
 
             var plt = _wpfPlot.Plot;
-            
-
             plt.Clear();
             plt.Font.Set("맑은 고딕");
 
@@ -110,6 +147,12 @@ namespace Mvvm.ViewModels
             _wpfPlot.Refresh();
         }
 
+        private void InitializeChartTypes()
+        {
+            ChartTypes = new ObservableCollection<string> { "Line", "Bar", "Scatter" };
+            SelectedChartType = ChartTypes.First();
+        }
+
         private void UpdatePlot()
         {
             if (_wpfPlot == null) return;
@@ -123,7 +166,7 @@ namespace Mvvm.ViewModels
                 plt.Clear();
                 _dataPlot = plt.Add.ScatterLine(times, values);
 
-                double timeSpan = 10; 
+                double timeSpan = 10;
                 double latestTime = times.Last();
                 plt.Axes.SetLimits(
                     left: Math.Max(latestTime - timeSpan, times[0]),
@@ -135,8 +178,6 @@ namespace Mvvm.ViewModels
 
             _wpfPlot.Refresh();
         }
-
-
 
         private async void OnUpdateTimerElapsed(object sender, ElapsedEventArgs e)
         {
@@ -180,7 +221,6 @@ namespace Mvvm.ViewModels
             }
         }
 
-     
         private void StartDataCollection()
         {
             _updateTimer.Start();
@@ -217,6 +257,16 @@ namespace Mvvm.ViewModels
                 plt.Axes.SetLimits(left: -10, right: 0, bottom: -10, top: 10);
                 _wpfPlot.Refresh();
             }
+        }
+
+        private void ExportData()
+        {
+            // 데이터 내보내기 로직 추가
+        }
+
+        private void ResetStatistics()
+        {
+            // 통계 리셋 로직 추가
         }
 
         public void UpdateAvailableParameters(IEnumerable<ParameterModel> parameters)
