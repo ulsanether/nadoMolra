@@ -5,15 +5,16 @@
     xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
     xmlns:prism="http://prismlibrary.com/"
     xmlns:viewmodels="clr-namespace:Mvvm.ViewModels"
-    prism:ViewModelLocator.AutoWireViewModel="True">
+    prism:ViewModelLocator.AutoWireViewModel="True"
+    Background="#FFC8C8C8">
 
     <Grid Margin="5">
 
-        <materialDesign:PackIcon Margin="10,0,0,0" Kind="{Binding IsConnected, Converter={StaticResource BooleanToIconConverter}}" />
-
         <StackPanel
-            HorizontalAlignment="Left"
+            Margin="55,0,0,0"
+            HorizontalAlignment="Right"
             VerticalAlignment="Center"
+            Background="White"
             Orientation="Horizontal">
             <!--  Port 상태 표시  -->
             <Border
@@ -27,6 +28,7 @@
                         VerticalAlignment="Center"
                         Foreground="{Binding IsConnected}"
                         Text="{Binding PortState, UpdateSourceTrigger=PropertyChanged}" />
+                    <materialDesign:PackIcon Margin="30,0,0,0" Kind="{Binding IsConnected, Converter={StaticResource BooleanToIconConverter}}" />
                 </StackPanel>
             </Border>
 

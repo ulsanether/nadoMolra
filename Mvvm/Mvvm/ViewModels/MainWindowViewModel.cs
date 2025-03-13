@@ -31,7 +31,7 @@ namespace Mvvm.ViewModels
         private string _title = "애플리케이션";
         private readonly Timer _timer;
         private readonly ModbusConnect _modbusConnect;
-
+        private static readonly NLog.Logger Logger = NLog.LogManager.GetCurrentClassLogger();
         private ComboBox _portComBox;
         private string _selectPort;
         private SnackbarMessageQueue _bottomMessageQueue;
@@ -48,6 +48,29 @@ namespace Mvvm.ViewModels
             get => _selectPort;
             set => SetProperty(ref _selectPort, value);
         }
+
+
+        private byte _slaveId;
+        public byte SlaveId { get; set => SetProperty(ref _slaveId, value);
+
+        }
+
+
+        private int _delayBetweenPolls;
+        public int DelayBetweenPolls
+        {
+            get => _delayBetweenPolls;
+            set => SetProperty(ref _delayBetweenPolls, value);
+        }
+
+        private int _responseTimeout;
+        public int ResponseTimeout
+        {
+            get => _responseTimeout;
+            set => SetProperty(ref _responseTimeout, value);
+        }
+
+
 
         public string Title
         {
@@ -184,7 +207,6 @@ namespace Mvvm.ViewModels
         public DelegateCommand OpenExcelCommand { get; }
 
         public event Action<List<ParameterModel>> ExcelDataLoaded;
-
         public MainWindowViewModel(IRegionManager regionManager, MainBottomBarViewModel mainBottomBarViewModel, ModbusDataViewPageViewModel modbusDataViewPageViewModel, ModbusConnect modbusConnect, ParameterWindowViewModel parameterWindowViewModel)
         {
             _regionManager = regionManager;
@@ -222,15 +244,10 @@ namespace Mvvm.ViewModels
             OpenExcelCommand = new DelegateCommand(OpenExcelFile);
             SaveExcelCommand = new DelegateCommand(ExecuteSaveExcel);
 
-            try
-            {
-                LoadExcelData();
-            }
-            catch (Exception ex)
-            {
-                ShowError($"기본 엑셀 데이터 로드 실패: {ex.Message}");
-            }
+         
         }
+
+   
 
         private void InitializeParameterWindowViewModel()
         {
@@ -249,7 +266,7 @@ namespace Mvvm.ViewModels
             if (_modbusConnect.IsConnected())
             {
 
-             _modbusConnect.ReadModbusData(0, 10);
+           //  _modbusConnect.ReadModbusData(0, 10);
 
 
 
@@ -293,7 +310,14 @@ namespace Mvvm.ViewModels
                 _portComBox = portComBox;
             });
 
-            PortConnected?.Invoke(_modbusConnect.portName, _modbusConnect.serialPortConfig.BaudRate);
+            if (int.TryParse(Properties.Settings.Default.BaudRate, out int baudRate))
+            {
+                PortConnected?.Invoke(_modbusConnect.portName, baudRate);
+            }
+            else
+            {
+                ShowError("에러.");
+            }
         }
 
         protected void OnPropertyChanged([CallerMemberName] string propertyName = null)
@@ -311,20 +335,23 @@ namespace Mvvm.ViewModels
             StopBitOptions = new ObservableCollection<string> { "1", "1.5", "2" };
         }
 
+
+
         private void ShowError(string message)
         {
+            Logger.Error(message);
             MessageBox.Show(message, "오류", MessageBoxButton.OK, MessageBoxImage.Error);
         }
 
         private void SetDefaultValues()
         {
-            SelectedConnection = "SerialPort";
-            SelectedBaud = "115200";
-            SelectedDataBit = "8";
-            SelectedParity = "None";
-            SelectedStopBit = "1";
-            StartAddress = 0x0000;
-            EndAddress = 0x0064;
+            SelectedConnection = Properties.Settings.Default.SelectedConnection;
+            SelectedBaud = Properties.Settings.Default.BaudRate;
+            SelectedDataBit = Properties.Settings.Default.DataBits;
+            SelectedParity = Properties.Settings.Default.Parity;
+            SelectedStopBit = Properties.Settings.Default.StopBits;
+            StartAddress = Properties.Settings.Default.StartAddress;
+            EndAddress = Properties.Settings.Default.EndAddress;
         }
 
         private void OpenExcelFile()
@@ -341,7 +368,8 @@ namespace Mvvm.ViewModels
                 try
                 {
                     var modbusData = ExcelSettingsManager.LoadModbusParameters(openFileDialog.FileName);
-                    LoadParametersFromModbusData(modbusData);
+                    ExcelSettingsManager.SaveModbusParametersToSettings(modbusData);
+                    LogModbusParameters(modbusData);
                     ShowSuccess("엑셀 데이터를 성공적으로 로드했습니다.");
                 }
                 catch (Exception ex)
@@ -351,6 +379,15 @@ namespace Mvvm.ViewModels
             }
         }
 
+        private void LogModbusParameters(Dictionary<int, (string Size, string Description, string Unit, double DefaultValue, string Func, string Note)> modbusData)  
+        {
+            foreach (var kvp in modbusData)
+            {
+                Logger.Info($"Index: {kvp.Key}, Size: {kvp.Value.Size}, Description: {kvp.Value.Description}, Unit: {kvp.Value.Unit}, DefaultValue: {kvp.Value.DefaultValue}, Note: {kvp.Value.Note}");
+            }
+        }
+
+
         private void LoadExcelData()
         {
             string defaultPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Data", "ModbusParameters.xlsx");
@@ -358,67 +395,38 @@ namespace Mvvm.ViewModels
             if (File.Exists(defaultPath))
             {
                 var modbusData = ExcelSettingsManager.LoadModbusParameters(defaultPath);
-                LoadParametersFromModbusData(modbusData);
+                //LoadParametersFromModbusData(modbusData);
             }
         }
+
+
+
 
         private void ExecuteSaveExcel()
         {
-            var saveFileDialog = new SaveFileDialog
-            {
-                Filter = "Excel Files (*.xlsx)|*.xlsx|All Files (*.*)|*.*",
-                Title = "엑셀 파일 저장",
-                DefaultExt = ".xlsx"
-            };
-
-            if (saveFileDialog.ShowDialog() == true)
-            {
-                try
-                {
-                    _settingsManager.SaveExcelDataToSettings(saveFileDialog.FileName);
-                    ShowSuccess("엑셀 데이터를 성공적으로 저장했습니다.");
-                }
-                catch (Exception ex)
-                {
-                    ShowError($"엑셀 데이터 저장 중 오류가 발생했습니다.\n{ex.Message}");
-                }
-            }
+            Properties.Settings.Default.SelectedConnection = SelectedConnection;
+            Properties.Settings.Default.BaudRate = SelectedBaud;
+            Properties.Settings.Default.DataBits = SelectedDataBit;
+            Properties.Settings.Default.Parity = SelectedParity;
+            Properties.Settings.Default.StopBits = SelectedStopBit;
+            Properties.Settings.Default.StartAddress = StartAddress;
+            Properties.Settings.Default.EndAddress = EndAddress;
+            Properties.Settings.Default.SlaveId = SlaveId;
+            Properties.Settings.Default.DelayBetweenPolls = DelayBetweenPolls;
+            Properties.Settings.Default.ResponseTimeout = ResponseTimeout;
+            Properties.Settings.Default.Save();
+            MessageBox.Show("설정을 성공적으로 저장했습니다.");
         }
 
-        private void LoadParametersFromModbusData(Dictionary<int, (string Description, string Unit, double DefaultValue, string Note)> modbusData)
-        {
-            Parameters.Clear();
-            var parameterList = new List<ParameterModel>();
-
-            foreach (var kvp in modbusData)
-            {
-                var parameter = new ParameterModel
-                {
-                    Address = kvp.Key,
-                    Label = kvp.Value.Description,
-                    Description = kvp.Value.Description,
-                    DefaultValue = kvp.Value.DefaultValue.ToString(),
-                    DefaultActual = kvp.Value.Note.Contains("나누기 10")
-                        ? kvp.Value.DefaultValue * 10
-                        : kvp.Value.DefaultValue,
-                    ModbusUnit = kvp.Value.Unit
-                };
-
-                Parameters.Add(parameter);
-                parameterList.Add(parameter);
-            }
-
-            ExcelDataLoaded?.Invoke(parameterList);
-        }
 
         private void UpdateSerialPortConfig()
         {
             if (SelectedConnection == "SerialPort")
             {
-                _serialPortConfig.BaudRate = int.Parse(SelectedBaud ?? "115200");
-                _serialPortConfig.DataBits = int.Parse(SelectedDataBit ?? "8");
-                _serialPortConfig.Parity = (Parity)Enum.Parse(typeof(Parity), SelectedParity ?? "None");
-                _serialPortConfig.StopBits = (StopBits)Enum.Parse(typeof(StopBits), SelectedStopBit ?? "One");
+            //    _serialPortConfig.BaudRate = int.Parse(SelectedBaud ?? "115200");
+             //   _serialPortConfig.DataBits = int.Parse(SelectedDataBit ?? "8");
+              //  _serialPortConfig.Parity = (Parity)Enum.Parse(typeof(Parity), SelectedParity ?? "None");
+                //_serialPortConfig.StopBits = (StopBits)Enum.Parse(typeof(StopBits), SelectedStopBit ?? "One");
                 _serialPortConfig.startAddress = StartAddress;
                 _serialPortConfig.numberOfPoints = (ushort)(EndAddress - StartAddress + 1);
             }

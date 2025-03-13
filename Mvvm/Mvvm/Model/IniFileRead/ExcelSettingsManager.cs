@@ -16,39 +16,9 @@ namespace Mvvm.Model.IniFileRead
         }
 
         #region Public Methods
-        public void SaveExcelDataToSettings(string filePath)
+        public static Dictionary<int, (string Size, string Description, string Unit, double DefaultValue, string Func, string Note)> LoadModbusParameters(string filePath)
         {
-            try
-            {
-                var modbusNameList = new StringCollection();
-                var modbusUnitList = new StringCollection();
-
-                using (var package = new ExcelPackage(new FileInfo(filePath)))
-                {
-                    var worksheet = package.Workbook.Worksheets[0];
-                    var row = 2;
-
-                    while (worksheet.Cells[row, 1].Value != null)
-                    {
-                        modbusNameList.Add(worksheet.Cells[row, 1].Value?.ToString() ?? string.Empty);
-                        modbusUnitList.Add(worksheet.Cells[row, 3].Value?.ToString() ?? string.Empty);
-                        row++;
-                    }
-
-                    Properties.Settings.Default.ModbusName = modbusNameList;
-                    Properties.Settings.Default.ModbusUnit = modbusUnitList;
-                    Properties.Settings.Default.Save();
-                }
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"설정 저장 중 오류 발생: {ex.Message}", "오류", MessageBoxButton.OK, MessageBoxImage.Error);
-            }
-        }
-
-        public static Dictionary<int, (string Description, string Unit, double DefaultValue, string Note)> LoadModbusParameters(string filePath)
-        {
-            var modbusData = new Dictionary<int, (string Description, string Unit, double DefaultValue, string Note)>();
+            var modbusData = new Dictionary<int, (string Size, string Description, string Unit, double DefaultValue, string Func, string Note)>();
 
             try
             {
@@ -69,62 +39,65 @@ namespace Mvvm.Model.IniFileRead
                         if (!int.TryParse(indexValue.ToString(), out var index))
                             continue;
 
+                        var size = GetCellValue(worksheet, row, 2);
                         var description = GetCellValue(worksheet, row, 3);
                         var unit = GetCellValue(worksheet, row, 4);
                         var defaultValue = ParseDefaultValue(GetCellValue(worksheet, row, 5));
-                        var note = GetCellValue(worksheet, row, 7);
-
+                        var func = GetCellValue(worksheet, row, 7);
+                        var note = GetCellValue(worksheet, row, 8);
                         if (!string.IsNullOrWhiteSpace(description))
-                            modbusData.Add(index, (description, unit, defaultValue, note));
+                            modbusData.Add(index, (size, description, unit, defaultValue, func, note));
                     }
                 }
             }
             catch (Exception ex)
             {
                 MessageBox.Show($"엑셀 파일 로드 중 오류 발생: {ex.Message}", "오류", MessageBoxButton.OK, MessageBoxImage.Error);
-                return new Dictionary<int, (string Description, string Unit, double DefaultValue, string Note)>();
+                return new Dictionary<int, (string Size, string Description, string Unit, double DefaultValue, string Func, string Note)>();
             }
 
             return modbusData;
         }
 
-        public Dictionary<int, (string Description, string Unit, double DefaultValue, string Note)> LoadModbusParameters()
+        public static void SaveModbusParametersToSettings(Dictionary<int, (string Size, string Description, string Unit, double DefaultValue, string Func, string Note)> modbusData)
         {
-            var defaultPath = Path.Combine(
-                AppDomain.CurrentDomain.BaseDirectory,
-                "Data",
-                "ModbusParameters.xlsx");
-
-            return LoadModbusParameters(defaultPath);
-        }
-
-        public (List<string> ModbusName, List<string> ModbusUnit) LoadDataFromSettings()
-        {
-            var savedModbusName = Properties.Settings.Default.ModbusName;
-            var modbusNameList = savedModbusName != null
-                ? new List<string>(savedModbusName.Cast<string>())
-                : new List<string>();
-
-            var savedModbusUnit = Properties.Settings.Default.ModbusUnit;
-            var modbusUnitList = savedModbusUnit != null
-                ? new List<string>(savedModbusUnit.Cast<string>())
-                : new List<string>();
-
-            return (modbusNameList, modbusUnitList);
-        }
-
-        public void PrintDataToConsole()
-        {
-            var (modbusNameList, modbusUnitList) = LoadDataFromSettings();
-
-            Console.WriteLine("Settings 데이터 출력:");
-            for (var i = 0; i < Math.Max(modbusNameList.Count, modbusUnitList.Count); i++)
+            try
             {
-                var name = i < modbusNameList.Count ? modbusNameList[i] : "(빈 데이터)";
-                var unit = i < modbusUnitList.Count ? modbusUnitList[i] : "(빈 데이터)";
-                Console.WriteLine($"[{i}] ModbusName: {name}, ModbusUnit: {unit}");
+                var indexList = new StringCollection();
+                var sizeList = new StringCollection();
+                var descriptionList = new StringCollection();
+                var unitList = new StringCollection();
+                var defaultValueList = new StringCollection();
+                var noteList = new StringCollection();
+                var funcList = new StringCollection();
+
+                foreach (var kvp in modbusData)
+                {
+                    indexList.Add(kvp.Key.ToString());
+                    sizeList.Add(kvp.Value.Size);
+                    descriptionList.Add(kvp.Value.Description);
+                    unitList.Add(kvp.Value.Unit);
+                    defaultValueList.Add(kvp.Value.DefaultValue.ToString());
+                    funcList.Add(kvp.Value.Func);
+                    noteList.Add(kvp.Value.Note);
+                }
+
+                Properties.Settings.Default.Index = indexList;
+                Properties.Settings.Default.Size = sizeList;
+                Properties.Settings.Default.Description = descriptionList;
+                Properties.Settings.Default.Unit = unitList;
+                Properties.Settings.Default.DefaultValue = defaultValueList;
+                Properties.Settings.Default.Note = noteList;
+                Properties.Settings.Default.Func = funcList;
+
+                Properties.Settings.Default.Save();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"설정 저장 중 오류 발생: {ex.Message}", "오류", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
+
         #endregion
 
         #region Private Helper Methods

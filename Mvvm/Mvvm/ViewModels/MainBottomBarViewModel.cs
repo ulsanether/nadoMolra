@@ -87,7 +87,7 @@ namespace Mvvm.ViewModels
         {
               PortName = portName;
              BaudRate = baudRate;
-            IsConnected = true;
+        
         }
     }
 }

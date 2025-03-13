@@ -8,6 +8,7 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     d:DesignHeight="450"
     d:DesignWidth="800"
+    Background="White"
     mc:Ignorable="d">
     <Grid>
         <Grid.ColumnDefinitions>
@@ -167,7 +168,7 @@
                 Margin="0,0,0,0"
                 HorizontalAlignment="Left"
                 VerticalAlignment="Top"
-                Text="1000"
+                Text="{Binding ResponseTimeout}"
                 TextWrapping="Wrap" />
             <TextBlock
                 Grid.Row="2"
@@ -194,7 +195,7 @@
                 Margin="0,0,0,0"
                 HorizontalAlignment="Left"
                 VerticalAlignment="Center"
-                Text="20"
+                Text="{Binding DelayBetweenPolls}"
                 TextWrapping="Wrap" />
             <TextBlock
                 Grid.Row="2"
@@ -219,7 +220,7 @@
                 Margin="127,69,0,0"
                 HorizontalAlignment="Left"
                 VerticalAlignment="Top"
-                Text="100"
+                Text="{Binding SlaveId}"
                 TextWrapping="Wrap" />
             <TextBlock
                 Width="32"
@@ -229,29 +230,7 @@
                 VerticalAlignment="Top"
                 Text="[ms]" />
 
-            <TextBlock
-                Grid.Column="0"
-                Width="118"
-                Height="16"
-                Margin="0,111,0,0"
-                HorizontalAlignment="Left"
-                VerticalAlignment="Top"
-                Text="Start Address" />
-            <TextBlock
-                Grid.Row="1"
-                Width="32"
-                Height="16"
-                Margin="301,69,0,0"
-                HorizontalAlignment="Left"
-                VerticalAlignment="Center"
-                Text="[ms]" />
-            <TextBox
-                Width="120"
-                Margin="127,69,0,0"
-                HorizontalAlignment="Left"
-                VerticalAlignment="Center"
-                Text="100"
-                TextWrapping="Wrap" />
+
         </Grid>
 
 

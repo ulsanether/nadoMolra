@@ -165,8 +165,7 @@
                     Margin="6,0"
                     HorizontalAlignment="Center"
                     VerticalAlignment="Center"
-                    materialDesign:HintAssist.Hint="설정값"
-                    Text="{Binding DefaultValue, UpdateSourceTrigger=PropertyChanged}" />
+                    Text="{Binding NewValue, UpdateSourceTrigger=PropertyChanged}" />
 
                 <!--  저장 버튼  -->
                 <Button
@@ -239,9 +238,12 @@
                     </StackPanel>
 
                     <!--  설정값  -->
-                    <StackPanel Grid.Column="1">
-                        <TextBox materialDesign:HintAssist.Hint="설정값" Text="{Binding DefaultValue, UpdateSourceTrigger=PropertyChanged}" />
-                    </StackPanel>
+                    <TextBox
+                        Grid.Column="5"
+                        Margin="6,0"
+                        HorizontalAlignment="Center"
+                        VerticalAlignment="Center"
+                        Text="{Binding NewValue, UpdateSourceTrigger=PropertyChanged}" />
                 </Grid>
 
                 <!--  저장 버튼  -->

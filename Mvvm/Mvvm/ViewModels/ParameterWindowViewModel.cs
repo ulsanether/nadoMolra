@@ -14,11 +14,16 @@ using Mvvm.Model.IniFileRead;
 
 using System.Threading;
 using System.Threading.Tasks;
+using System.Windows.Controls;
+using NLog;
 
 namespace Mvvm.ViewModels
 {
     public class ParameterWindowViewModel : BindableBase
     {
+
+        private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
+
         #region Fields
         private readonly ModbusConnect _modbusConnect;
         private readonly System.Timers.Timer _updateTimer;
@@ -83,7 +88,7 @@ namespace Mvvm.ViewModels
                 }
 
                 SetProperty(ref _startAddress, value);
-                UpdateAddressCount();
+               // UpdateAddressCount();
             }
         }
 
@@ -115,57 +120,11 @@ namespace Mvvm.ViewModels
                 }
 
                 SetProperty(ref _endAddress, value);
-                UpdateAddressCount();
+               // UpdateAddressCount();
             }
         }
+  
 
-        private void UpdateAddressCount()
-        {
-            try
-            {
-                if (EndAddress >= StartAddress)
-                {
-                    var address = EndAddress - StartAddress + 1;
-
-                    if (address > 125)
-                    {
-                        ShowError("주소 범위가 너무 큽니다. 최대 125개까지 가능합니다.");
-                        return;
-                    }
-
-                    Application.Current.Dispatcher.Invoke(() =>
-                    {
-                        Parameters.Clear();
-                        for (int i = 0; i < address; i++)
-                        {
-                            var currentAddress = StartAddress + i;
-                            var parameter = new ParameterModel
-                            {
-                                Address = currentAddress,
-                                Label = _modbusData.TryGetValue(currentAddress, out var data)
-                                    ? data.Description
-                                    : $"Register {currentAddress}",
-                                DefaultValue = "0",
-                                DefaultActual = 0,
-                                ModbusUnit = _modbusData.TryGetValue(currentAddress, out data)
-                                    ? data.Unit
-                                    : "Raw",
-                                Description = _modbusData.TryGetValue(currentAddress, out data)
-                                    ? data.Description
-                                    : $"Modbus Register at address {currentAddress}"
-                            };
-
-                            Console.WriteLine($"Description: {parameter.Description}, Unit: {parameter.ModbusUnit}, DefaultValue: {parameter.DefaultValue}");
-                            Parameters.Add(parameter);
-                        }
-                    });
-                }
-            }
-            catch (Exception ex)
-            {
-                ShowError($"주소 업데이트 중 오류 발생: {ex.Message}");
-            }
-        }
 
         private void ShowError(string message)
         {
@@ -192,24 +151,20 @@ namespace Mvvm.ViewModels
             _modbusConnect = modbusConnect;
             _modbusData = new Dictionary<int, (string, string, double, string)>();
 
-            // Commands 초기화
             GenerateParametersCommand = new DelegateCommand(UpdateParameters);
             UpdateTemplateCommand = new DelegateCommand(UpdateTemplate);
             WriteCommand = new DelegateCommand<ParameterModel>(ExecuteWrite);
 
-            // 타이머 초기화
             _updateTimer = new System.Timers.Timer(100);
             _updateTimer.Elapsed += OnTimedEvent;
             _updateTimer.AutoReset = false;
 
-            // 이벤트 구독
             _modbusConnect.ConnectionStatusChanged += OnConnectionStatusChanged;
 
-            // 엑셀 데이터 로드 시도
             try
             {
                 string excelPath = System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Data", "ModbusParameters.xlsx");
-                _modbusData = ExcelSettingsManager.LoadModbusParameters(excelPath);
+              //  _modbusData = ExcelSettingsManager.LoadModbusParameters(excelPath);
             }
             catch (Exception ex)
             {
@@ -228,7 +183,6 @@ namespace Mvvm.ViewModels
             Columns = IsCardView ? 3 : 1;
             RefreshTemplateAction?.Invoke();
         }
-
         public async void UpdateParameters()
         {
             try
@@ -239,13 +193,43 @@ namespace Mvvm.ViewModels
                     return;
                 }
 
-                var modbusData = await _modbusConnect.ReadModbusData(1, 10);
+                var modbusData = await _modbusConnect.ReadModbusData(StartAddress, EndAddress - StartAddress + 1);
                 if (Application.Current?.Dispatcher != null)
                 {
                     Application.Current.Dispatcher.Invoke(() =>
                     {
                         Parameters.Clear();
                         ModbusDataViewParameters.Clear();
+
+                        var indexList = Properties.Settings.Default.Index;
+                        var descriptionList = Properties.Settings.Default.Description;
+                        var unitList = Properties.Settings.Default.Unit;
+                        var defaultValueList = Properties.Settings.Default.DefaultValue;
+
+                        if (indexList != null && descriptionList != null && unitList != null && defaultValueList != null)
+                        {
+                            for (int i = 0; i < indexList.Count; i++)
+                            {
+                                int index = int.Parse(indexList[i]);
+                                if (index < StartAddress || index > EndAddress) continue;
+
+                                var defaultValue = double.Parse(defaultValueList[i]);
+
+                                var parameter = new ParameterModel
+                                {
+                                    Address = index,
+                                    Description = descriptionList[i],
+                                    ModbusUnit = unitList[i],
+                                    DefaultValue = defaultValue.ToString(),
+                                    Index = index
+                                };
+                                Parameters.Add(parameter);
+
+                                // NLog로 출력
+                                Logger.Info($"Loaded Parameter - Description: {parameter.Description}, ModbusUnit: {parameter.ModbusUnit}, DefaultValue: {parameter.DefaultValue}");
+                            }
+                        }
+
                         foreach (var parameter in modbusData)
                         {
                             if (_modbusData != null && _modbusData.TryGetValue(parameter.Address, out var data))
@@ -253,9 +237,22 @@ namespace Mvvm.ViewModels
                                 parameter.Description = data.Description;
                                 parameter.ModbusUnit = data.Unit;
                                 parameter.DefaultValue = data.DefaultValue.ToString();
-                                Console.WriteLine($"Description: {parameter.Description}, Unit: {parameter.ModbusUnit}, DefaultValue: {parameter.DefaultValue}");
+                                parameter.DefaultActual = double.Parse(parameter.DefaultValue);
                             }
-                            Parameters.Add(parameter);
+
+                            // 중복 추가 방지 및 값 덮어쓰기
+                            var existingParameter = Parameters.FirstOrDefault(p => p.Address == parameter.Address);
+                            if (existingParameter != null)
+                            {
+                                existingParameter.Description = parameter.Description;
+                                existingParameter.ModbusUnit = parameter.ModbusUnit;
+                                existingParameter.DefaultValue = parameter.DefaultValue;
+                                existingParameter.DefaultActual = parameter.DefaultActual;
+                            }
+                            else
+                            {
+                                Parameters.Add(parameter);
+                            }
                             ModbusDataViewParameters.Add(parameter);
                         }
                     });
@@ -271,11 +268,15 @@ namespace Mvvm.ViewModels
             }
         }
 
+
+
+
+
         private async void ExecuteWrite(ParameterModel parameter)
         {
             try
             {
-                if (int.TryParse(parameter.DefaultValue, out int value))
+                if (int.TryParse(parameter.NewValue, out int value))
                 {
                     await _modbusConnect.WriteRegister(parameter, value);
                     parameter.UpdateStatus(true, "쓰기 성공");
@@ -316,8 +317,7 @@ namespace Mvvm.ViewModels
 
                 if (monitoringParameters.Any())
                 {
-                    var data = await _modbusConnect.ReadModbusData(StartAddress, EndAddress - StartAddress + 1);
-                    UpdateParameterValues(data);
+        
                 }
             }
             finally
@@ -326,20 +326,13 @@ namespace Mvvm.ViewModels
             }
         }
 
-        private void UpdateParameterValues(List<ParameterModel> newData)
-        {
-            Application.Current.Dispatcher.Invoke(() =>
-            {
-                for (int i = 0; i < newData.Count && i < Parameters.Count; i++)
-                {
-                    if (Parameters[i].IsMonitoring)
-                    {
-                        Parameters[i].DefaultActual = newData[i].DefaultActual;
-                        Parameters[i].ModbusUnit = newData[i].ModbusUnit;
-                    }
-                }
-            });
-        }
+
+#if DEBUG 
+
+        #endif
+
+
+
 
         private void OnExcelDataLoaded(List<ParameterModel> parameters)
         {
@@ -364,7 +357,7 @@ namespace Mvvm.ViewModels
                 while (!token.IsCancellationRequested)
                 {
                     UpdateParameters();
-                    await Task.Delay(1000); // 1초마다 업데이트
+                    await Task.Delay(Properties.Settings.Default.ReadTimeout);  
                 }
             }, token);
         }
@@ -377,4 +370,3 @@ namespace Mvvm.ViewModels
         #endregion
     }
 }
-

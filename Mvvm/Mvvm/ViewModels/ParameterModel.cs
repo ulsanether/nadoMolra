@@ -1,8 +1,10 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.ComponentModel;
+using System.Threading.Tasks;
 using System.Windows.Media;
 using Prism.Mvvm;
 
-namespace Mvvm.ViewModels
+namespace Mvvm.Model
 {
     public class ParameterModel : BindableBase
     {
@@ -17,6 +19,8 @@ namespace Mvvm.ViewModels
         private string _statusMessage;
         private string _statusIcon;
         private SolidColorBrush _statusColor;
+        private int _index;
+        private string _unit;
 
         public int Address { get; set; }
         public string Label { get; set; }
@@ -24,12 +28,43 @@ namespace Mvvm.ViewModels
         public double DefaultActual { get; set; }
         public string DefaultValue { get; set; }
         public string ModbusUnit { get; set; }
-        public bool IsValueChanged { get; set; }
+        public bool IsValueChanged
+        {
+            get => _isValueChanged;
+            set => SetProperty(ref _isValueChanged, value);
+        }
         public bool IsMonitoring { get; set; }
-        public string StatusMessage { get; set; }
-        public string StatusIcon { get; set; }
-        public SolidColorBrush StatusColor { get; set; }
-
+        public string StatusMessage
+        {
+            get => _statusMessage;
+            set => SetProperty(ref _statusMessage, value);
+        }
+        public string StatusIcon
+        {
+            get => _statusIcon;
+            set => SetProperty(ref _statusIcon, value);
+        }
+        public SolidColorBrush StatusColor
+        {
+            get => _statusColor;
+            set => SetProperty(ref _statusColor, value);
+        }
+        public int Index
+        {
+            get => _index;
+            set => SetProperty(ref _index, value);
+        }
+        public string Unit
+        {
+            get => _unit;
+            set => SetProperty(ref _unit, value);
+        }
+        private string _newValue;
+        public string NewValue
+        {
+            get => _newValue;
+            set => SetProperty(ref _newValue, value);
+        }
         public ParameterModel()
         {
             // 기본 생성자
@@ -39,15 +74,14 @@ namespace Mvvm.ViewModels
         {
             await Task.Delay(1000);
             IsValueChanged = false;
-            RaisePropertyChanged(nameof(IsValueChanged));
         }
 
         public void UpdateStatus(bool isSuccess, string message = null)
         {
             StatusMessage = message;
+            StatusIcon = isSuccess ? "Check" : "Close";
             StatusColor = isSuccess ? Brushes.Green : Brushes.Red;
-            RaisePropertyChanged(nameof(StatusMessage));
-            RaisePropertyChanged(nameof(StatusColor));
         }
     }
 }
+

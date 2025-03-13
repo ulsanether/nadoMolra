@@ -41,21 +41,50 @@ namespace Mvvm.Model
             statistics = new CommunicationStatistics();
             dataBuffer = new ModbusDataBuffer();
 
-            LoadDefaultConfig();
+          LoadDefaultConfig();
         }
 
         private void LoadDefaultConfig()
         {
-            if (serialPortConfig.BaudRate == 0)
+            if (int.TryParse(Properties.Settings.Default.BaudRate, out int baudRate))
             {
-                serialPortConfig.BaudRate = 115200;
-                serialPortConfig.DataBits = 8;
-                serialPortConfig.Parity = Parity.None;
-                serialPortConfig.StopBits = StopBits.One;
-                serialPortConfig.ReadTimeout = 1000;
-                serialPortConfig.WriteTimeout = 1000;
-                serialPortConfig.slaveId = 1;
+                serialPortConfig.BaudRate = baudRate;
             }
+            else
+            {
+                ShowMessage("Invalid baud rate in settings.", "Error", true);
+            }
+
+            if (int.TryParse(Properties.Settings.Default.DataBits, out int dataBits))
+            {
+                serialPortConfig.DataBits = dataBits;
+            }
+            else
+            {
+                ShowMessage("Invalid data bits in settings.", "Error", true);
+            }
+
+            if (Enum.TryParse(Properties.Settings.Default.Parity, out Parity parity))
+            {
+                serialPortConfig.Parity = parity;
+            }
+            else
+            {
+                ShowMessage("Invalid parity in settings.", "Error", true);
+            }
+
+            if (Enum.TryParse(Properties.Settings.Default.StopBits, out StopBits stopBits))
+            {
+                serialPortConfig.StopBits = stopBits;
+            }
+            else
+            {
+                ShowMessage("Invalid stop bits in settings.", "Error", true);
+            }
+
+            serialPortConfig.ReadTimeout = Properties.Settings.Default.ReadTimeout;
+            serialPortConfig.WriteTimeout = Properties.Settings.Default.WriteTimeout;
+            serialPortConfig.slaveId = Properties.Settings.Default.SlaveId;
         }
 
         public void LoadAvailablePorts(ComboBox portComBox)
@@ -103,7 +132,9 @@ namespace Mvvm.Model
                 WriteTimeout = serialPortConfig.WriteTimeout
             };
 
-            await Task.Run(() => port.Open());
+            await Task.Run(() => 
+            
+            port.Open());
 
             var factory = new ModbusFactory();
             master = factory.CreateRtuMaster(port);
@@ -202,24 +233,53 @@ namespace Mvvm.Model
             return master != null && port != null && port.IsOpen;
         }
 
+        private struct IndexInfo
+        {
+            public int Index { get; set; }
+            public int Position { get; set; }
+        }
+
         private List<ParameterModel> ConvertToParameters(ushort[] registers, int startAddress)
         {
+            var indexList = Properties.Settings.Default.Index;
+            var descriptionList = Properties.Settings.Default.Description;
+            var unitList = Properties.Settings.Default.Unit;
+            var defaultValueList = Properties.Settings.Default.DefaultValue;
+
             return registers.Select((value, index) =>
             {
                 var address = startAddress + index;
                 DataType dataType = DataType.UInt16;
                 dataTypeMap.TryGetValue((ushort)address, out dataType);
 
+                // Settings에서 해당 주소에 맞는 인덱스 찾기
+                IndexInfo? settingsIndex = null;
+                if (indexList != null)
+                {
+                    var matches = indexList.Cast<string>()
+                        .Select((indexStr, i) => new IndexInfo { Index = int.Parse(indexStr), Position = i })
+                        .Where(x => x.Index == address)
+                        .ToList();
+
+                    if (matches.Any())
+                    {
+                        settingsIndex = matches.First();
+                    }
+                }
+
                 return new ParameterModel
                 {
                     Address = address,
-                    Label = $"Register {address}",
+                    Label = settingsIndex.HasValue ? descriptionList[settingsIndex.Value.Position] : $"Register {address}",
+                    Description = settingsIndex.HasValue ? descriptionList[settingsIndex.Value.Position] : $"Register {address}",
                     DefaultActual = value,
-                    DefaultValue = value.ToString(),
-                    ModbusUnit = dataType.ToString()
+                    DefaultValue = settingsIndex.HasValue ? defaultValueList[settingsIndex.Value.Position] : value.ToString(),
+                    ModbusUnit = settingsIndex.HasValue ? unitList[settingsIndex.Value.Position] : "Raw",
+                    Index = address
                 };
             }).ToList();
         }
+
 
         private List<ParameterModel> CreateDummyData(int count)
         {
@@ -282,6 +342,7 @@ namespace Mvvm.Model
                     {
                         Timestamp = DateTime.Now,
                         Value = parameter.DefaultActual
+
                     });
                 }
             }
@@ -298,7 +359,8 @@ namespace Mvvm.Model
                     .Select(dp => new ParameterModel
                     {
                         DefaultActual = dp.Value,
-                        DefaultValue = dp.Value.ToString()
+                     //   DefaultValue = dp.Value.ToString(),
+                        
                     })
                     .ToList();
             }

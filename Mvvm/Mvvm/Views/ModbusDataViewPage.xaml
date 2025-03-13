@@ -23,6 +23,8 @@
                         <RowDefinition Height="*" />
                     </Grid.RowDefinitions>
 
+                    <StackPanel Orientation="Vertical" />
+
                     <!--  컨트롤 패널  -->
                     <StackPanel
                         Grid.Row="0"
@@ -63,49 +65,66 @@
                             VerticalAlignment="Center"
                             Content="자동 스케일"
                             IsChecked="{Binding AutoScale}" />
+                        <Button
+                            Width="100"
+                            Click="OnAddButtonClick"
+                            Content="추가" />
+                        <TextBox x:Name="ValueInputTextBox" Width="200" />
                     </StackPanel>
 
                     <!--  차트  -->
                     <ScottPlot:WpfPlot
-                        x:Name="RealTimeChart"
+                        x:Name="WpfPlot"
                         Grid.Row="1"
                         Margin="5" />
                 </Grid>
             </TabItem>
 
-            <!--  데이터 테이블 탭  -->
             <TabItem Header="Set Point Table">
                 <Grid>
-                    <DataGrid
-                        Margin="5"
-                        AutoGenerateColumns="False"
-                        CanUserAddRows="False"
-                        ItemsSource="{Binding AvailableParameters}">
+                    <DataGrid 
+    Margin="5"
+    AutoGenerateColumns="False"
+    ItemsSource="{Binding AvailableParameters, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+    EnableRowVirtualization="True"
+    IsSynchronizedWithCurrentItem="True">
                         <DataGrid.Columns>
-                            <DataGridTextColumn
-                                Width="80"
-                                Binding="{Binding Address}"
-                                Header="주소" />
-                            <DataGridTextColumn
-                                Width="150"
-                                Binding="{Binding Label}"
-                                Header="레이블" />
-                            <DataGridTextColumn
-                                Width="200"
-                                Binding="{Binding Description}"
-                                Header="설명" />
-                            <DataGridTextColumn
-                                Width="100"
-                                Binding="{Binding DefaultActual, StringFormat=F2}"
-                                Header="현재값" />
-                            <DataGridTextColumn
-                                Width="80"
-                                Binding="{Binding ModbusUnit}"
-                                Header="단위" />
+                            <DataGridTextColumn 
+            Width="80"
+            Binding="{Binding Address, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+            Header="주소" />
+                            <DataGridTextColumn 
+            Width="150"
+            Binding="{Binding Label, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+            Header="레이블" />
+                            <DataGridTextColumn 
+            Width="200"
+            Binding="{Binding Description, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+            Header="설명" />
+                            <DataGridTextColumn 
+            Width="100"
+            Binding="{Binding DefaultActual, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, StringFormat=F2}"
+            Header="현재값">
+                                <DataGridTextColumn.CellStyle>
+                                    <Style TargetType="DataGridCell">
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding IsValueChanged}" Value="True">
+                                                <Setter Property="Background" Value="Yellow"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </DataGridTextColumn.CellStyle>
+                            </DataGridTextColumn>
+                            <DataGridTextColumn 
+            Width="80"
+            Binding="{Binding ModbusUnit, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+            Header="단위" />
                         </DataGrid.Columns>
                     </DataGrid>
+
                 </Grid>
             </TabItem>
+
 
             <!--  통신 상태 탭  -->
             <TabItem Header="통신 상태">
@@ -225,5 +244,4 @@
         </TabControl>
     </Grid>
 </UserControl>
-
 

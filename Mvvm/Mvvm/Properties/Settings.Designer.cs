@@ -12,7 +12,7 @@ namespace Mvvm.Properties {
     
     
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.VisualStudio.Editors.SettingsDesigner.SettingsSingleFileGenerator", "17.12.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.VisualStudio.Editors.SettingsDesigner.SettingsSingleFileGenerator", "17.13.0.0")]
     internal sealed partial class Settings : global::System.Configuration.ApplicationSettingsBase {
         
         private static Settings defaultInstance = ((Settings)(global::System.Configuration.ApplicationSettingsBase.Synchronized(new Settings())));
@@ -25,32 +25,32 @@ namespace Mvvm.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        public global::System.Collections.Specialized.StringCollection ModbusName {
+        public global::System.Collections.Specialized.StringCollection Description {
             get {
-                return ((global::System.Collections.Specialized.StringCollection)(this["ModbusName"]));
+                return ((global::System.Collections.Specialized.StringCollection)(this["Description"]));
             }
             set {
-                this["ModbusName"] = value;
+                this["Description"] = value;
             }
         }
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        public global::System.Collections.Specialized.StringCollection ModbusUnit {
+        public global::System.Collections.Specialized.StringCollection Unit {
             get {
-                return ((global::System.Collections.Specialized.StringCollection)(this["ModbusUnit"]));
+                return ((global::System.Collections.Specialized.StringCollection)(this["Unit"]));
             }
             set {
-                this["ModbusUnit"] = value;
+                this["Unit"] = value;
             }
         }
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("9600")]
-        public int BaudRate {
+        public string BaudRate {
             get {
-                return ((int)(this["BaudRate"]));
+                return ((string)(this["BaudRate"]));
             }
             set {
                 this["BaudRate"] = value;
@@ -60,9 +60,9 @@ namespace Mvvm.Properties {
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("8")]
-        public int DataBits {
+        public string DataBits {
             get {
-                return ((int)(this["DataBits"]));
+                return ((string)(this["DataBits"]));
             }
             set {
                 this["DataBits"] = value;
@@ -114,6 +114,133 @@ namespace Mvvm.Properties {
             }
             set {
                 this["StopBits"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("SerialPort")]
+        public string SelectedConnection {
+            get {
+                return ((string)(this["SelectedConnection"]));
+            }
+            set {
+                this["SelectedConnection"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("0")]
+        public ushort StartAddress {
+            get {
+                return ((ushort)(this["StartAddress"]));
+            }
+            set {
+                this["StartAddress"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("64")]
+        public ushort EndAddress {
+            get {
+                return ((ushort)(this["EndAddress"]));
+            }
+            set {
+                this["EndAddress"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("1")]
+        public byte SlaveId {
+            get {
+                return ((byte)(this["SlaveId"]));
+            }
+            set {
+                this["SlaveId"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("100")]
+        public int DelayBetweenPolls {
+            get {
+                return ((int)(this["DelayBetweenPolls"]));
+            }
+            set {
+                this["DelayBetweenPolls"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("20")]
+        public int ResponseTimeout {
+            get {
+                return ((int)(this["ResponseTimeout"]));
+            }
+            set {
+                this["ResponseTimeout"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        public global::System.Collections.Specialized.StringCollection Index {
+            get {
+                return ((global::System.Collections.Specialized.StringCollection)(this["Index"]));
+            }
+            set {
+                this["Index"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        public global::System.Collections.Specialized.StringCollection Size {
+            get {
+                return ((global::System.Collections.Specialized.StringCollection)(this["Size"]));
+            }
+            set {
+                this["Size"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        public global::System.Collections.Specialized.StringCollection DefaultValue {
+            get {
+                return ((global::System.Collections.Specialized.StringCollection)(this["DefaultValue"]));
+            }
+            set {
+                this["DefaultValue"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        public global::System.Collections.Specialized.StringCollection Note {
+            get {
+                return ((global::System.Collections.Specialized.StringCollection)(this["Note"]));
+            }
+            set {
+                this["Note"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        public global::System.Collections.Specialized.StringCollection Func {
+            get {
+                return ((global::System.Collections.Specialized.StringCollection)(this["Func"]));
+            }
+            set {
+                this["Func"] = value;
             }
         }
     }
