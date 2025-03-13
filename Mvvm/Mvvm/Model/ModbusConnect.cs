@@ -1,17 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO.Ports;
-using System.Threading;
+using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using NModbus;
-using System.Linq;
-using Mvvm.ViewModels;
 using Mvvm.Model.ComPort;
-using NModbus.Serial;
-using System.Timers;
 using Mvvm.Model.Exceptions;
+using Mvvm.ViewModels;
+using NModbus;
+using NModbus.Serial;
 
 namespace Mvvm.Model
 {
@@ -27,19 +25,15 @@ namespace Mvvm.Model
         private readonly CommunicationStatistics statistics;
         private readonly ModbusDataBuffer dataBuffer;
         private bool autoReconnect = true;
-        private System.Timers.Timer reconnectTimer;
         private DateTime lastDataReceived;
 
         public SerialPortConfig serialPortConfig { get; set; }
         public CommunicationStatistics Statistics => statistics;
 
-
-
         protected virtual void OnConnectionStatusChanged(bool isConnected)
         {
             ConnectionStatusChanged?.Invoke(isConnected);
         }
-
 
         public ModbusConnect()
         {
@@ -47,15 +41,11 @@ namespace Mvvm.Model
             statistics = new CommunicationStatistics();
             dataBuffer = new ModbusDataBuffer();
 
-
-
-            InitializeReconnectTimer();
             LoadDefaultConfig();
         }
 
         private void LoadDefaultConfig()
         {
-         
             if (serialPortConfig.BaudRate == 0)
             {
                 serialPortConfig.BaudRate = 115200;
@@ -68,18 +58,10 @@ namespace Mvvm.Model
             }
         }
 
-        private void InitializeReconnectTimer()
-        {
-            reconnectTimer = new System.Timers.Timer(5000); // 5초마다 재시도
-            reconnectTimer.Elapsed += async (s, e) => await TryReconnect();
-            reconnectTimer.AutoReset = true;
-        }
-
         public void LoadAvailablePorts(ComboBox portComBox)
         {
             portComBox.ItemsSource = SerialPort.GetPortNames();
         }
-
 
         public string portName;
         public async Task ConnectToPort(string _portName)
@@ -88,6 +70,7 @@ namespace Mvvm.Model
 
             try
             {
+                MessageBox.Show("포트 연결 시도 중...", "연결", MessageBoxButton.OK, MessageBoxImage.Information);
                 await DisconnectIfConnected();
                 await OpenNewConnection(_portName);
                 ConnectionStatusChanged?.Invoke(true);
@@ -97,13 +80,7 @@ namespace Mvvm.Model
                 ConnectionStatusChanged?.Invoke(false);
                 ShowMessage($"포트 연결 실패: {ex.Message}", "오류", true);
             }
-
-
-
         }
-
-
-        
 
         private async Task DisconnectIfConnected()
         {
@@ -134,39 +111,12 @@ namespace Mvvm.Model
             master.Transport.WriteTimeout = 2000;
         }
 
-        private async Task TryReconnect()
-        {
-            if (!autoReconnect || IsConnected()) return;
-
-            for (int attempt = 1; attempt <= MAX_RECONNECT_ATTEMPTS; attempt++)
-            {
-                try
-                {
-                    await ConnectToPort(port?.PortName);
-                    statistics.RecordReconnectSuccess();
-                    return;
-                }
-                catch (Exception ex)
-                {
-                    statistics.RecordReconnectFailure();
-                    if (attempt == MAX_RECONNECT_ATTEMPTS)
-                    {
-                        ShowMessage($"재연결 실패 ({attempt}/{MAX_RECONNECT_ATTEMPTS}): {ex.Message}", "오류", true);
-                    }
-                    await Task.Delay(1000 * attempt); // 지수 백오프
-                }
-            }
-        }
-
         public async Task<List<ParameterModel>> ReadModbusData(int startAddress, int numberOfPoints)
         {
             if (!IsConnected())
             {
-                if (autoReconnect && !reconnectTimer.Enabled)
-                {
-                    reconnectTimer.Start();
-                }
-                return dataBuffer.GetLastValues(numberOfPoints);
+                var lastValues = dataBuffer.GetLastValues(numberOfPoints);
+                return lastValues;
             }
 
             try
@@ -183,14 +133,16 @@ namespace Mvvm.Model
                 var parameters = ConvertToParameters(registers, startAddress);
                 dataBuffer.StoreValues(parameters);
 
+                var lastValues = dataBuffer.GetLastValues(numberOfPoints);
                 DataReceived?.Invoke(parameters);
-                return parameters;
+                return lastValues;
             }
             catch (Exception ex)
             {
                 statistics.RecordError();
                 ShowMessage($"데이터 읽기 실패: {ex.Message}", "오류", true);
-                return dataBuffer.GetLastValues(numberOfPoints);
+                var lastValues = dataBuffer.GetLastValues(numberOfPoints);
+                return lastValues;
             }
         }
 
@@ -207,7 +159,7 @@ namespace Mvvm.Model
                         (ushort)parameter.Address,
                         (ushort)value));
 
-                statistics.RecordSuccessfulRead(); // 쓰기 성공도 기록
+                statistics.RecordSuccessfulRead();
             }
             catch (Exception ex)
             {
@@ -294,18 +246,80 @@ namespace Mvvm.Model
                     isError ? MessageBoxImage.Error : MessageBoxImage.Information));
         }
 
-
-
-
         public void Dispose()
         {
-            reconnectTimer?.Dispose();
             master?.Dispose();
             port?.Dispose();
         }
     }
+}
+namespace Mvvm.Model
+{
+    public class ModbusDataBuffer
+    {
+        private readonly int bufferSize = 1000;
+        private readonly Dictionary<int, Queue<DataPoint>> dataBuffer = new Dictionary<int, Queue<DataPoint>>();
+        private readonly object lockObject = new object();
 
+        public void StoreValues(List<ParameterModel> parameters)
+        {
+            lock (lockObject)
+            {
+                foreach (var parameter in parameters)
+                {
+                    if (!dataBuffer.ContainsKey(parameter.Address))
+                    {
+                        dataBuffer[parameter.Address] = new Queue<DataPoint>(bufferSize);
+                    }
 
+                    var queue = dataBuffer[parameter.Address];
+                    if (queue.Count >= bufferSize)
+                    {
+                        queue.Dequeue();
+                    }
+
+                    queue.Enqueue(new DataPoint
+                    {
+                        Timestamp = DateTime.Now,
+                        Value = parameter.DefaultActual
+                    });
+                }
+            }
+        }
+
+        public List<ParameterModel> GetLastValues(int count)
+        {
+            lock (lockObject)
+            {
+                return dataBuffer.Values
+                    .SelectMany(queue => queue)
+                    .OrderByDescending(dp => dp.Timestamp)
+                    .Take(count)
+                    .Select(dp => new ParameterModel
+                    {
+                        DefaultActual = dp.Value,
+                        DefaultValue = dp.Value.ToString()
+                    })
+                    .ToList();
+            }
+        }
+
+        public DataPoint[] GetHistoricalData(int address, TimeSpan timeSpan)
+        {
+            lock (lockObject)
+            {
+                if (!dataBuffer.ContainsKey(address))
+                {
+                    return Array.Empty<DataPoint>();
+                }
+
+                var cutoff = DateTime.Now - timeSpan;
+                return dataBuffer[address]
+                    .Where(dp => dp.Timestamp >= cutoff)
+                    .ToArray();
+            }
+        }
+    }
 
     public class CommunicationStatistics
     {
@@ -359,6 +373,18 @@ namespace Mvvm.Model
         }
     }
 
+    public class DataPoint
+    {
+        public DateTime Timestamp { get; set; }
+        public double Value { get; set; }
+    }
+
+    public enum DataType
+    {
+        UInt16,
+        Int16,
+        UInt32,
+        Int32,
+        Float
+    }
 }
-
-

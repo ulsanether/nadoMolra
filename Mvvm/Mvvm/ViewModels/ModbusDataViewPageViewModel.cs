@@ -104,7 +104,7 @@ namespace Mvvm.ViewModels
         {
             _modbusConnect = modbusConnect;
             _wpfPlot = plot;
-
+            
             AvailableParameters = new ObservableCollection<ParameterModel>();
             ResetChartCommand = new DelegateCommand(ResetChart);
             ExportDataCommand = new DelegateCommand(ExportData);
@@ -235,6 +235,8 @@ namespace Mvvm.ViewModels
         {
             if (isConnected)
             {
+
+
                 LoadModbusData();
             }
             else
@@ -308,6 +310,15 @@ namespace Mvvm.ViewModels
                     SelectedParameter = AvailableParameters.First();
                 }
             });
+        }
+
+
+        public void UpdateCommunicationStatus()
+        {
+         
+            bool isConnected = _modbusConnect.IsConnected();
+
+            OnConnectionStatusChanged(isConnected);
         }
 
         public void Cleanup()

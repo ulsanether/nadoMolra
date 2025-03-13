@@ -1,8 +1,6 @@
-﻿using System.Windows.Media;
+﻿using System.Threading.Tasks;
+using System.Windows.Media;
 using Prism.Mvvm;
-using System.Threading.Tasks;
-using System.Windows;
-using System.ComponentModel;
 
 namespace Mvvm.ViewModels
 {
@@ -20,124 +18,36 @@ namespace Mvvm.ViewModels
         private string _statusIcon;
         private SolidColorBrush _statusColor;
 
-        public int Address
-        {
-            get => _address;
-            set => SetProperty(ref _address, value);
-        }
-
-        public string Label
-        {
-            get => _label;
-            set => SetProperty(ref _label, value);
-        }
-
-        public string Description
-        {
-            get => _description;
-            set => SetProperty(ref _description, value);
-        }
-
-        public double DefaultActual
-        {
-            get => _defaultActual;
-            set
-            {
-                if (SetProperty(ref _defaultActual, value))
-                {
-                    IsValueChanged = true;
-                    ResetValueChangedFlag();
-                }
-            }
-        }
-
-        public string DefaultValue
-        {
-            get => _defaultValue;
-            set => SetProperty(ref _defaultValue, value);
-        }
-
-        public string ModbusUnit
-        {
-            get => _modbusUnit;
-            set => SetProperty(ref _modbusUnit, value);
-        }
-
-        public bool IsValueChanged
-        {
-            get => _isValueChanged;
-            set => SetProperty(ref _isValueChanged, value);
-        }
-
-        public bool IsMonitoring
-        {
-            get => _isMonitoring;
-            set => SetProperty(ref _isMonitoring, value);
-        }
-
-        public string StatusMessage
-        {
-            get => _statusMessage;
-            set => SetProperty(ref _statusMessage, value);
-        }
-
-        public string StatusIcon
-        {
-            get => _statusIcon;
-            set => SetProperty(ref _statusIcon, value);
-        }
-
-
-        private int _index;
-
-        public int Index
-        {
-            get { return _index; }
-            set
-            {
-                if (_index != value)
-                {
-                    _index = value;
-                    OnPropertyChanged(nameof(Index));
-                }
-            }
-        }
-
-        public event PropertyChangedEventHandler PropertyChanged;
-
-        protected void OnPropertyChanged(string propertyName)
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-        }
-
-
-        public SolidColorBrush StatusColor
-        {
-            get => _statusColor;
-            set => SetProperty(ref _statusColor, value);
-        }
+        public int Address { get; set; }
+        public string Label { get; set; }
+        public string Description { get; set; }
+        public double DefaultActual { get; set; }
+        public string DefaultValue { get; set; }
+        public string ModbusUnit { get; set; }
+        public bool IsValueChanged { get; set; }
+        public bool IsMonitoring { get; set; }
+        public string StatusMessage { get; set; }
+        public string StatusIcon { get; set; }
+        public SolidColorBrush StatusColor { get; set; }
 
         public ParameterModel()
         {
-            StatusIcon = "CheckCircle";
-            StatusColor = new SolidColorBrush(Colors.Green);
-            StatusMessage = "준비";
+            // 기본 생성자
         }
 
         private async void ResetValueChangedFlag()
         {
             await Task.Delay(1000);
-            Application.Current.Dispatcher.Invoke(() =>
-            {
-                IsValueChanged = false;
-            });
+            IsValueChanged = false;
+            RaisePropertyChanged(nameof(IsValueChanged));
         }
 
         public void UpdateStatus(bool isSuccess, string message = null)
         {
-            StatusIcon = isSuccess ? "CheckCircle" : "Alert";
-            StatusColor = new SolidColorBrush(isSuccess ? Colors.Green : Colors.Red);
-            StatusMessage = message ?? (isSuccess ? "정상" : "오류");
+            StatusMessage = message;
+            StatusColor = isSuccess ? Brushes.Green : Brushes.Red;
+            RaisePropertyChanged(nameof(StatusMessage));
+            RaisePropertyChanged(nameof(StatusColor));
         }
     }
 }

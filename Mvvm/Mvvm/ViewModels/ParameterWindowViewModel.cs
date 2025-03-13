@@ -154,6 +154,8 @@ namespace Mvvm.ViewModels
                                     ? data.Description
                                     : $"Modbus Register at address {currentAddress}"
                             };
+
+                            Console.WriteLine($"Description: {parameter.Description}, Unit: {parameter.ModbusUnit}, DefaultValue: {parameter.DefaultValue}");
                             Parameters.Add(parameter);
                         }
                     });
@@ -174,6 +176,8 @@ namespace Mvvm.ViewModels
         }
 
         public ObservableCollection<ParameterModel> Parameters { get; } = new();
+
+        public ObservableCollection<ParameterModel> ModbusDataViewParameters { get; } = new();
         #endregion
 
         #region Commands
@@ -236,20 +240,30 @@ namespace Mvvm.ViewModels
                 }
 
                 var modbusData = await _modbusConnect.ReadModbusData(1, 10);
-                Application.Current.Dispatcher.Invoke(() =>
+                if (Application.Current?.Dispatcher != null)
                 {
-                    Parameters.Clear();
-                    foreach (var parameter in modbusData)
+                    Application.Current.Dispatcher.Invoke(() =>
                     {
-                        if (_modbusData.TryGetValue(parameter.Address, out var data))
+                        Parameters.Clear();
+                        ModbusDataViewParameters.Clear();
+                        foreach (var parameter in modbusData)
                         {
-                            parameter.Description = data.Description;
-                            parameter.ModbusUnit = data.Unit;
-                            parameter.DefaultValue = data.DefaultValue.ToString();
+                            if (_modbusData != null && _modbusData.TryGetValue(parameter.Address, out var data))
+                            {
+                                parameter.Description = data.Description;
+                                parameter.ModbusUnit = data.Unit;
+                                parameter.DefaultValue = data.DefaultValue.ToString();
+                                Console.WriteLine($"Description: {parameter.Description}, Unit: {parameter.ModbusUnit}, DefaultValue: {parameter.DefaultValue}");
+                            }
+                            Parameters.Add(parameter);
+                            ModbusDataViewParameters.Add(parameter);
                         }
-                        Parameters.Add(parameter);
-                    }
-                });
+                    });
+                }
+                else
+                {
+                    ShowError("Dispatcher is not available.");
+                }
             }
             catch (Exception ex)
             {

@@ -248,11 +248,16 @@ namespace Mvvm.ViewModels
 
             if (_modbusConnect.IsConnected())
             {
+
+             _modbusConnect.ReadModbusData(0, 10);
+
+
+
                 BottomMessageQueue.Enqueue("포트 연결 성공", "OK", () => { });
 
                 _modbusDataViewPageViewModel.InitializeWithPlot(new WpfPlot());
                 _modbusDataViewPageViewModel.IsRealTimeUpdate = true;
-                NavigateToModbusDataViewPage();
+                //NavigateToModbusDataViewPage();
             }
             else
             {

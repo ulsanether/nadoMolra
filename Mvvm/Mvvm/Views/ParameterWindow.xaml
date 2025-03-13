@@ -10,13 +10,17 @@
     d:DesignWidth="1000"
     mc:Ignorable="d">
 
+    <UserControl.Resources>
+        <ResourceDictionary Source="pack://application:,,,/Mvvm;component/Dictionaries/Styles.xaml" />
+    </UserControl.Resources>
+
     <Grid Margin="10">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
 
-        <!--  상단 제어 패널  -->
+        <!-- 상단 제어 패널 -->
         <Grid Grid.Row="0" Margin="0,0,0,10">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="Auto" />
@@ -28,7 +32,7 @@
                 <ColumnDefinition Width="Auto" />
             </Grid.ColumnDefinitions>
 
-            <!--  시작 주소  -->
+            <!-- 시작 주소 -->
             <TextBlock
                 Grid.Column="0"
                 Margin="0,0,5,0"
@@ -39,7 +43,7 @@
                 Margin="0,0,10,0"
                 materialDesign:HintAssist.Hint="시작"
                 Text="{Binding StartAddress, UpdateSourceTrigger=PropertyChanged}" />
-            <!--  끝 주소  -->
+            <!-- 끝 주소 -->
             <TextBlock
                 Grid.Column="2"
                 Margin="0,0,5,0"
@@ -51,14 +55,14 @@
                 materialDesign:HintAssist.Hint="끝"
                 Text="{Binding EndAddress, UpdateSourceTrigger=PropertyChanged}" />
 
-            <!--  생성 버튼  -->
+            <!-- 생성 버튼 -->
             <Button
                 Grid.Column="4"
                 Margin="0,0,10,0"
                 Command="{Binding GenerateParametersCommand}"
                 Content="생성" />
 
-            <!--  표시 방식 선택  -->
+            <!-- 표시 방식 선택 -->
             <StackPanel
                 Grid.Column="6"
                 HorizontalAlignment="Right"
@@ -71,7 +75,7 @@
             </StackPanel>
         </Grid>
 
-        <!--  파라미터 표시 영역  -->
+        <!-- 파라미터 표시 영역 -->
         <ScrollViewer Grid.Row="1">
             <ItemsControl
                 x:Name="ParameterItemsControl"
@@ -79,7 +83,7 @@
                 ItemsSource="{Binding Parameters}">
                 <ItemsControl.ItemsPanel>
                     <ItemsPanelTemplate>
-                        <WrapPanel IsItemsHost="True" />
+                        <WrapPanel Background="LightGray" IsItemsHost="True" />
                     </ItemsPanelTemplate>
                 </ItemsControl.ItemsPanel>
             </ItemsControl>
