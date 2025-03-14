@@ -22,17 +22,25 @@ namespace Mvvm.Views;
 /// <summary>
 /// SettingPage.xaml에 대한 상호 작용 논리
 /// </summary>
+///
 public partial class SettingPage : UserControl
 {
+    private readonly MainWindowViewModel _viewModel;
+
     public SettingPage()
     {
         InitializeComponent();
-        var regionManager = (IRegionManager)Application.Current.Resources["RegionManager"];
-        var mainBottomBarViewModel = (MainBottomBarViewModel)Application.Current.Resources["MainBottomBarViewModel"];
-        var modbusDataViewPageViewModel = (ModbusDataViewPageViewModel)Application.Current.Resources["ModbusDataViewPageViewModel"];
-        var modbusConnect = (ModbusConnect)Application.Current.Resources["ModbusConnect"];
-        var parameterWindowViewModel = (ParameterWindowViewModel)Application.Current.Resources["ParameterWindowViewModel"];
+        var modbusConnect = new ModbusConnect();
+        var mainBottomBarViewModel = new MainBottomBarViewModel(modbusConnect);
+        var parameterWindowViewModel = new ParameterWindowViewModel(modbusConnect);
+        var regionManager = new RegionManager();
 
-        DataContext = new MainWindowViewModel(regionManager, mainBottomBarViewModel, modbusDataViewPageViewModel, modbusConnect, parameterWindowViewModel);
+        _viewModel = new MainWindowViewModel(
+            regionManager,
+            mainBottomBarViewModel,
+            modbusConnect,
+            parameterWindowViewModel);
+
+        DataContext = _viewModel;
     }
 }

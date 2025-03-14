@@ -12,11 +12,10 @@ namespace Mvvm.Views
 
         public ParameterWindow(ModbusConnect modbusConnect)
         {
-           
+            InitializeComponent();
             _viewModel = new ParameterWindowViewModel(modbusConnect);
             DataContext = _viewModel;
             _viewModel.RefreshTemplateAction = RefreshTemplate;
-            InitializeComponent();
         }
 
         private void RefreshTemplate()
@@ -30,8 +29,6 @@ namespace Mvvm.Views
             }
         }
 
-
-
         private void NumberValidationTextBox(object sender, System.Windows.Input.TextCompositionEventArgs e)
         {
             var regex = new System.Text.RegularExpressions.Regex("[^0-9]+");
@@ -39,3 +36,4 @@ namespace Mvvm.Views
         }
     }
 }
+

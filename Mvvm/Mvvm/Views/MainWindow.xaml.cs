@@ -12,13 +12,19 @@ namespace Mvvm.Views
     {
         private readonly MainWindowViewModel _MainWindowViewModel;
 
-        public MainWindow(IRegionManager regionManager, IRegionManager bottomRegionManager, MainBottomBarViewModel mainBottomBarViewModel, ModbusDataViewPageViewModel modbusDataViewPageViewModel, ModbusConnect modbusConnect)
+        public MainWindow(IRegionManager regionManager, IRegionManager bottomRegionManager, MainBottomBarViewModel mainBottomBarViewModel, ModbusConnect modbusConnect)
         {
             InitializeComponent();
 
             var parameterWindowViewModel = new ParameterWindowViewModel(modbusConnect);
 
-            _MainWindowViewModel = new MainWindowViewModel(regionManager, mainBottomBarViewModel, modbusDataViewPageViewModel, modbusConnect, parameterWindowViewModel);
+            _MainWindowViewModel = new MainWindowViewModel(
+                regionManager,
+                mainBottomBarViewModel,
+                modbusConnect,
+                parameterWindowViewModel);
+
+            DataContext = _MainWindowViewModel;
             mainBottomBarViewModel.SubscribeToPortConnectedEvent(_MainWindowViewModel);
 
             var settingPage = new SettingPage();
@@ -35,8 +41,7 @@ namespace Mvvm.Views
         {
             _MainWindowViewModel.LoadAvailablePorts(PortComboBox);
             var viewModel = DataContext as MainWindowViewModel;
-            viewModel.HomePageLoad();
+            viewModel?.HomePageLoad();
         }
     }
 }
-

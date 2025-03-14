@@ -1,0 +1,209 @@
+﻿# 모든 시험 ref값은 *10을 한 값으로 지정되어있음
+# 모든 ref 비교 는 <=를 기준으로 왼쪽 오른쪽을 정함
+major_test1: 
+    name: '전기적 인터페이스'
+    medium_test1:
+        name: 'FAULT ALARM 정상'
+        timer: 3
+        voltage_set: '280'
+        resistor_set: 'open'
+        type_fault_L: true
+        type_fault_R: true
+        type_fire_L: false
+        type_fire_R: true
+        type_other: false
+        ref_fault_L: 210
+        ref_fault_R: 250
+        ref_fire_L: 
+        ref_fire_R: 5
+        ref_other:
+        graph: false
+    medium_test2:
+        name: 'FIER ALARM 정상'
+        timer: 3
+        voltage_set: '280'
+        resistor_set: '2.4k'
+        type_fault_L: false
+        type_fault_R: true
+        type_fire_L: true
+        type_fire_R: true
+        type_other: false
+        ref_fault_L: 
+        ref_fault_R: 5
+        ref_fire_L: 255
+        ref_fire_R: 285
+        ref_other:
+        graph: false
+
+major_name2: 
+    name: '전원'
+    medium_test1:
+        name: '정격 전압'
+        miner_test1:
+            name: 'FIRE'
+            timer: 3
+            voltage_set: '280'
+            resistor_set: '2.4k'
+            type_fault_L: false
+            type_fault_R: true
+            type_fire_L: true
+            type_fire_R: true
+            type_other: false
+            ref_fault_L: 
+            ref_fault_R: 5
+            ref_fire_L: 255
+            ref_fire_R: 285
+            ref_other:
+            graph: false
+        miner_test2:
+            name: 'FAULT'
+            timer: 3
+            voltage_set: '280'
+            resistor_set: 'open'
+            type_fault_L: true
+            type_fault_R: true
+            type_fire_L: false
+            type_fire_R: true
+            type_other: false
+            ref_fault_L: 210
+            ref_fault_R: 250
+            ref_fire_L: 
+            ref_fire_R: 5
+            ref_other:
+            graph: false
+    medium_test2:
+        name: '정상전압 MIN'
+        miner_test1:
+            name: 'FIRE'
+            timer: 3
+            voltage_set: '220'
+            resistor_set: '2.4k'
+            type_fault_L: false
+            type_fault_R: true
+            type_fire_L: true
+            type_fire_R: true
+            type_other: false
+            ref_fault_L:
+            ref_fault_R: 5
+            ref_fire_L: 195
+            ref_fire_R: 225
+            ref_other:
+            graph: false
+        miner_test2:
+            name: 'FAULT'
+            timer: 3
+            voltage_set: '220'
+            resistor_set: 'open'
+            type_fault_L: true
+            type_fault_R: true
+            type_fire_L: false
+            type_fire_R: true
+            type_other: false
+            ref_fault_L: 210
+            ref_fault_R: 250
+            ref_fire_L: 
+            ref_fire_R: 5
+            ref_other:
+            graph: false
+    medium_test3:
+        name: '정상전압 MAX'
+        miner_test1:
+            name: 'FIRE'
+            timer: 3
+            voltage_set: '290'
+            resistor_set: '2.4k'
+            type_fault_L: false
+            type_fault_R: true
+            type_fire_L: true
+            type_fire_R: true
+            type_other: false
+            ref_fault_L:
+            ref_fault_R: 5
+            ref_fire_L: 265
+            ref_fire_R: 295
+            ref_other:
+            graph: false
+        miner_test2:
+            name: 'FAULT'
+            timer: 3
+            voltage_set: '290'
+            resistor_set: 'open'
+            type_fault_L: true
+            type_fault_R: true
+            type_fire_L: false
+            type_fire_R: true
+            type_other: false
+            ref_fault_L: 210
+            ref_fault_R: 250
+            ref_fire_L: 
+            ref_fire_R: 5
+            ref_other:
+            graph: false
+    medium_test4:
+        name: '비상 전압 MIN'
+        miner_test1:
+            name: 'FIRE'
+            timer: 3
+            voltage_set: '160'
+            resistor_set: '2.4k'
+            type_fault_L: false
+            type_fault_R: true
+            type_fire_L: true
+            type_fire_R: true
+            type_other: false
+            ref_fault_L:
+            ref_fault_R: 5
+            ref_fire_L: 135
+            ref_fire_R: 165
+            ref_other:
+            graph: false
+        miner_test2:
+            name: 'FAULT'
+            timer: 3
+            voltage_set: '160'
+            resistor_set: 'open'
+            type_fault_L: true
+            type_fault_R: true
+            type_fire_L: false
+            type_fire_R: true
+            type_other: false
+            ref_fault_L: 210
+            ref_fault_R: 250
+            ref_fire_L: 
+            ref_fire_R: 5
+            ref_other:
+            graph: false
+    medium_test5:
+        name: '비상 전압 MAX'
+        miner_test1:
+            name: 'FIRE'
+            timer: 3
+            voltage_set: '290'
+            resistor_set: '2.4k'
+            type_fault_L: false
+            type_fault_R: true
+            type_fire_L: true
+            type_fire_R: true
+            type_other: false
+            ref_fault_L:
+            ref_fault_R: 5
+            ref_fire_L: 265
+            ref_fire_R: 295
+            ref_other:
+            graph: false
+        miner_test2:
+            name: 'FAULT'
+            timer: 3
+            voltage_set: '290'
+            resistor_set: 'open'
+            type_fault_L: true
+            type_fault_R: true
+            type_fire_L: false
+            type_fire_R: true
+            type_other: false
+            ref_fault_L: 210
+            ref_fault_R: 250
+            ref_fire_L: 
+            ref_fire_R: 5
+            ref_other:
+            graph: false

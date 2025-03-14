@@ -1,6 +1,4 @@
-﻿// MainWindowViewModel.cs
-
-using Prism.Commands;
+﻿using Prism.Commands;
 using Prism.Mvvm;
 using Prism.Regions;
 using System.Windows;
@@ -26,7 +24,6 @@ namespace Mvvm.ViewModels
     public class MainWindowViewModel : BindableBase
     {
         private readonly IRegionManager _regionManager;
-        private readonly ModbusDataViewPageViewModel _modbusDataViewPageViewModel;
         private readonly ParameterWindowViewModel _parameterWindowViewModel;
         private string _title = "애플리케이션";
         private readonly Timer _timer;
@@ -49,12 +46,12 @@ namespace Mvvm.ViewModels
             set => SetProperty(ref _selectPort, value);
         }
 
-
         private byte _slaveId;
-        public byte SlaveId { get; set => SetProperty(ref _slaveId, value);
-
+        public byte SlaveId
+        {
+            get => _slaveId;
+            set => SetProperty(ref _slaveId, value);
         }
-
 
         private int _delayBetweenPolls;
         public int DelayBetweenPolls
@@ -69,8 +66,6 @@ namespace Mvvm.ViewModels
             get => _responseTimeout;
             set => SetProperty(ref _responseTimeout, value);
         }
-
-
 
         public string Title
         {
@@ -207,11 +202,11 @@ namespace Mvvm.ViewModels
         public DelegateCommand OpenExcelCommand { get; }
 
         public event Action<List<ParameterModel>> ExcelDataLoaded;
-        public MainWindowViewModel(IRegionManager regionManager, MainBottomBarViewModel mainBottomBarViewModel, ModbusDataViewPageViewModel modbusDataViewPageViewModel, ModbusConnect modbusConnect, ParameterWindowViewModel parameterWindowViewModel)
+
+        public MainWindowViewModel(IRegionManager regionManager, MainBottomBarViewModel mainBottomBarViewModel, ModbusConnect modbusConnect, ParameterWindowViewModel parameterWindowViewModel)
         {
             _regionManager = regionManager;
             _mainBottomBarViewModel = mainBottomBarViewModel;
-            _modbusDataViewPageViewModel = modbusDataViewPageViewModel;
             _modbusConnect = modbusConnect;
             _parameterWindowViewModel = parameterWindowViewModel;
 
@@ -243,15 +238,11 @@ namespace Mvvm.ViewModels
 
             OpenExcelCommand = new DelegateCommand(OpenExcelFile);
             SaveExcelCommand = new DelegateCommand(ExecuteSaveExcel);
-
-         
         }
-
-   
 
         private void InitializeParameterWindowViewModel()
         {
-           // _parameterWindowViewModel.UpdateParameters();
+            // 필요한 초기화 로직
         }
 
         private void ShowMessage()
@@ -265,16 +256,9 @@ namespace Mvvm.ViewModels
 
             if (_modbusConnect.IsConnected())
             {
-
-           //  _modbusConnect.ReadModbusData(0, 10);
-
-
-
                 BottomMessageQueue.Enqueue("포트 연결 성공", "OK", () => { });
-
-                _modbusDataViewPageViewModel.InitializeWithPlot(new WpfPlot());
-                _modbusDataViewPageViewModel.IsRealTimeUpdate = true;
-                //NavigateToModbusDataViewPage();
+                _parameterWindowViewModel.InitializeWithPlot(new WpfPlot());
+                _parameterWindowViewModel.IsRealTimeUpdate = true;
             }
             else
             {
@@ -286,14 +270,17 @@ namespace Mvvm.ViewModels
         {
             _regionManager.RequestNavigate("ContentRegion", "HomePage");
         }
+
         private void NavigateToModbusDataViewPage()
         {
             _regionManager.RequestNavigate("ContentRegion", "ModbusDataViewPage");
         }
+
         private void NavigateToParameterWindow()
         {
             _regionManager.RequestNavigate("ContentRegion", "ParameterWindow");
         }
+
         private void NavigateToSettingWindow()
         {
             _regionManager.RequestNavigate("ContentRegion", "SettingPage");
@@ -325,7 +312,6 @@ namespace Mvvm.ViewModels
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
 
-        // Methods from SettingPageViewModel
         private void InitializeCollections()
         {
             ConnectionOptions = new ObservableCollection<string> { "SerialPort", "TCP/IP", "Option3" };
@@ -334,8 +320,6 @@ namespace Mvvm.ViewModels
             ParityOptions = new ObservableCollection<string> { "None", "Odd", "Even" };
             StopBitOptions = new ObservableCollection<string> { "1", "1.5", "2" };
         }
-
-
 
         private void ShowError(string message)
         {
@@ -379,14 +363,13 @@ namespace Mvvm.ViewModels
             }
         }
 
-        private void LogModbusParameters(Dictionary<int, (string Size, string Description, string Unit, double DefaultValue, string Func, string Note)> modbusData)  
+        private void LogModbusParameters(Dictionary<int, (string Size, string Description, string Unit, double DefaultValue, string Func, string Note)> modbusData)
         {
             foreach (var kvp in modbusData)
             {
                 Logger.Info($"Index: {kvp.Key}, Size: {kvp.Value.Size}, Description: {kvp.Value.Description}, Unit: {kvp.Value.Unit}, DefaultValue: {kvp.Value.DefaultValue}, Note: {kvp.Value.Note}");
             }
         }
-
 
         private void LoadExcelData()
         {
@@ -395,12 +378,8 @@ namespace Mvvm.ViewModels
             if (File.Exists(defaultPath))
             {
                 var modbusData = ExcelSettingsManager.LoadModbusParameters(defaultPath);
-                //LoadParametersFromModbusData(modbusData);
             }
         }
-
-
-
 
         private void ExecuteSaveExcel()
         {
@@ -418,15 +397,10 @@ namespace Mvvm.ViewModels
             MessageBox.Show("설정을 성공적으로 저장했습니다.");
         }
 
-
         private void UpdateSerialPortConfig()
         {
             if (SelectedConnection == "SerialPort")
             {
-            //    _serialPortConfig.BaudRate = int.Parse(SelectedBaud ?? "115200");
-             //   _serialPortConfig.DataBits = int.Parse(SelectedDataBit ?? "8");
-              //  _serialPortConfig.Parity = (Parity)Enum.Parse(typeof(Parity), SelectedParity ?? "None");
-                //_serialPortConfig.StopBits = (StopBits)Enum.Parse(typeof(StopBits), SelectedStopBit ?? "One");
                 _serialPortConfig.startAddress = StartAddress;
                 _serialPortConfig.numberOfPoints = (ushort)(EndAddress - StartAddress + 1);
             }

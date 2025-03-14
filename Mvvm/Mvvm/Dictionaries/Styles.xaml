@@ -82,6 +82,7 @@
 
     <!--  공통 스타일  -->
     <Style x:Key="ModbusValueTextBlock" TargetType="TextBlock">
+        <Setter Property="Background" Value="Transparent" />
         <Style.Triggers>
             <DataTrigger Binding="{Binding IsValueChanged}" Value="True">
                 <DataTrigger.EnterActions>

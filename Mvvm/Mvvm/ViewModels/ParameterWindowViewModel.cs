@@ -1,294 +1,407 @@
-﻿// ParameterWindowViewModel.cs
-
-using Prism.Commands;
-using Prism.Mvvm;
-using System;
+﻿using System;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Windows;
 using System.Timers;
+using Prism.Commands;
+using Prism.Mvvm;
+using ScottPlot;
+using ScottPlot.WPF;
 using System.Collections.Generic;
+using System.Diagnostics;
+using DryIoc;
 using Mvvm.Model;
-using System.ComponentModel;
-using Mvvm.Model.IniFileRead;
-
 using System.Threading;
-using System.Threading.Tasks;
-using System.Windows.Controls;
 using NLog;
+
+using Timer = System.Timers.Timer;
+
 
 namespace Mvvm.ViewModels
 {
     public class ParameterWindowViewModel : BindableBase
     {
-
-        private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
-
         #region Fields
+        private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
         private readonly ModbusConnect _modbusConnect;
-        private readonly System.Timers.Timer _updateTimer;
+        private readonly Timer _updateTimer;
         private readonly Dictionary<int, (string Description, string Unit, double DefaultValue, string Note)> _modbusData;
-        private bool _isCardView;
         private int _columns = 1;
-        private int _startAddress;
-        private int _endAddress;
+        private CancellationTokenSource _cancellationTokenSource;
+        private readonly Timer _dataUpdateTimer;
+        private bool _isRealTimeUpdate;
+        private ParameterModel _selectedParameter;
+        private double _currentValue;
+        private readonly int _maxDataPoints = 1000;
+        private readonly Queue<double> _timeData = new();
+        private readonly Queue<double> _valueData = new();
+        private WpfPlot _wpfPlot;
+        private readonly object _lockObject = new();
+        private IPlottable _dataPlot;
+        private bool _autoScale;
+        private string _selectedChartType;
+        private string _statistics;
 
-        private CancellationTokenSource _cancellationTokenSource; // 추가된 필드
+        private bool _isCardView;
+        private ObservableCollection<string> _chartTypes;
+        private ObservableCollection<string> _communicationLog;
         #endregion
 
+        private string _startAddress;
+        public string StartAddress
+        {
+            get => _startAddress;
+            set => SetProperty(ref _startAddress, value);
+        }
+
+        private string _endAddress;
+        public string EndAddress
+        {
+            get => _endAddress;
+            set => SetProperty(ref _endAddress, value);
+        }
+
+        private bool _isListView = true;
+        public bool IsListView
+        {
+            get => _isListView;
+            set => SetProperty(ref _isListView, value);
+        }
+
+
+
+
         #region Properties
-        public Action RefreshTemplateAction { get; set; }
+        public object LockObject => _lockObject;
+        public Queue<double> TimeData => _timeData;
+        public Queue<double> ValueData => _valueData;
+        public int MaxDataPoints => _maxDataPoints;
+
+        public bool IsRealTimeUpdate
+        {
+            get => _isRealTimeUpdate;
+            set
+            {
+                if (SetProperty(ref _isRealTimeUpdate, value))
+                {
+                    if (value) StartDataCollection();
+                    else StopDataCollection();
+                }
+            }
+        }
 
         public bool IsCardView
         {
             get => _isCardView;
+            set => SetProperty(ref _isCardView, value);
+        }
+
+        public double CurrentValue
+        {
+            get => _currentValue;
+            set => SetProperty(ref _currentValue, value);
+        }
+
+        public ParameterModel SelectedParameter
+        {
+            get => _selectedParameter;
             set
             {
-                SetProperty(ref _isCardView, value);
-                UpdateTemplate();
+                if (SetProperty(ref _selectedParameter, value))
+                {
+                    ResetChart();
+                }
             }
         }
 
-        public bool IsListView
+        public bool AutoScale
         {
-            get => !_isCardView;
-            set
-            {
-                IsCardView = !value;
-            }
+            get => _autoScale;
+            set => SetProperty(ref _autoScale, value);
         }
 
-        public int Columns
+        public string SelectedChartType
         {
-            get => _columns;
-            set => SetProperty(ref _columns, value);
+            get => _selectedChartType;
+            set => SetProperty(ref _selectedChartType, value);
         }
 
-        public const int MAX_ADDRESS = 65535; // ushort의 최대값
-
-        public int StartAddress
+        public string Statistics
         {
-            get => _startAddress;
-            set
-            {
-                if (value < 0)
-                {
-                    ShowError("시작 주소는 0보다 작을 수 없습니다.");
-                    return;
-                }
-                if (value > MAX_ADDRESS)
-                {
-                    ShowError($"시작 주소는 {MAX_ADDRESS}보다 클 수 없습니다.");
-                    return;
-                }
-                if (value > EndAddress)
-                {
-                    ShowError("시작 주소는 끝 주소보다 클 수 없습니다.");
-                    return;
-                }
-
-                SetProperty(ref _startAddress, value);
-               // UpdateAddressCount();
-            }
+            get => _statistics;
+            set => SetProperty(ref _statistics, value);
         }
 
-        public int EndAddress
+        private DelegateCommand _generateParametersCommand;
+        public DelegateCommand GenerateParametersCommand =>
+            _generateParametersCommand ?? (_generateParametersCommand = new DelegateCommand(ExecuteGenerateParameters));
+
+        private DelegateCommand<ParameterModel> _writeCommand;
+        public DelegateCommand<ParameterModel> WriteCommand =>
+            _writeCommand ?? (_writeCommand = new DelegateCommand<ParameterModel>(ExecuteWrite));
+
+        private ObservableCollection<ParameterModel> _availableParameters;
+        public ObservableCollection<ParameterModel> AvailableParameters
         {
-            get => _endAddress;
-            set
-            {
-                if (value < 0)
-                {
-                    ShowError("끝 주소는 0보다 작을 수 없습니다.");
-                    return;
-                }
-                if (value > MAX_ADDRESS)
-                {
-                    ShowError($"끝 주소는 {MAX_ADDRESS}보다 클 수 없습니다.");
-                    return;
-                }
-                if (StartAddress > value)
-                {
-                    ShowError("끝 주소는 시작 주소보다 작을 수 없습니다.");
-                    return;
-                }
-
-                if (value - StartAddress > 125)  // Modbus 프로토콜 제한
-                {
-                    ShowError("한 번에 읽을 수 있는 최대 레지스터 수는 125개입니다.");
-                    return;
-                }
-
-                SetProperty(ref _endAddress, value);
-               // UpdateAddressCount();
-            }
-        }
-  
-
-
-        private void ShowError(string message)
-        {
-            Application.Current.Dispatcher.Invoke(() =>
-            {
-                MessageBox.Show(message, "오류", MessageBoxButton.OK, MessageBoxImage.Error);
-            });
+            get => _availableParameters;
+            set => SetProperty(ref _availableParameters, value);
         }
 
-        public ObservableCollection<ParameterModel> Parameters { get; } = new();
-
-        public ObservableCollection<ParameterModel> ModbusDataViewParameters { get; } = new();
-        #endregion
-
-        #region Commands
-        public DelegateCommand GenerateParametersCommand { get; }
-        public DelegateCommand UpdateTemplateCommand { get; }
-        public DelegateCommand<ParameterModel> WriteCommand { get; }
-        #endregion
-
-        #region Constructor
-        public ParameterWindowViewModel(ModbusConnect modbusConnect)
+        private async void ExecuteGenerateParameters()
         {
-            _modbusConnect = modbusConnect;
-            _modbusData = new Dictionary<int, (string, string, double, string)>();
-
-            GenerateParametersCommand = new DelegateCommand(UpdateParameters);
-            UpdateTemplateCommand = new DelegateCommand(UpdateTemplate);
-            WriteCommand = new DelegateCommand<ParameterModel>(ExecuteWrite);
-
-            _updateTimer = new System.Timers.Timer(100);
-            _updateTimer.Elapsed += OnTimedEvent;
-            _updateTimer.AutoReset = false;
-
-            _modbusConnect.ConnectionStatusChanged += OnConnectionStatusChanged;
-
             try
             {
-                string excelPath = System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Data", "ModbusParameters.xlsx");
-              //  _modbusData = ExcelSettingsManager.LoadModbusParameters(excelPath);
+                if (!int.TryParse(StartAddress, out int start) || !int.TryParse(EndAddress, out int end))
+                {
+                    MessageBox.Show("시작 주소와 끝 주소는 숫자여야 합니다.", "입력 오류", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    return;
+                }
+
+                if (start > end)
+                {
+                    MessageBox.Show("시작 주소는 끝 주소보다 작아야 합니다.", "입력 오류", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    return;
+                }
+
+                int numberOfPoints = end - start + 1;
+
+                // 기존 파라미터 초기화
+                Parameters.Clear();
+
+                // 새로운 파라미터 데이터 로드
+                var parameters = await _modbusConnect.ReadModbusData(start, numberOfPoints);
+
+                // UI 업데이트는 Dispatcher를 통해 수행
+                await Application.Current.Dispatcher.InvokeAsync(() =>
+                {
+                    foreach (var parameter in parameters)
+                    {
+                        Parameters.Add(parameter);
+                    }
+                });
+
+                Logger.Info($"파라미터 생성 완료: {start}부터 {end}까지 {parameters.Count}개 생성됨");
             }
             catch (Exception ex)
             {
-                ShowError($"엑셀 데이터 로드 실패: {ex.Message}");
+                Logger.Error(ex, "파라미터 생성 중 오류 발생");
+                MessageBox.Show($"파라미터 생성 중 오류가 발생했습니다: {ex.Message}",
+                    "오류", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        private async void ExecuteWrite(ParameterModel parameter)
+        {
+            if (parameter == null)
+            {
+                Logger.Warn("WriteCommand: 파라미터가 null입니다.");
+                return;
             }
 
-            // 백그라운드 작업 시작
-            StartBackgroundTask();
+            try
+            {
+                if (string.IsNullOrWhiteSpace(parameter.NewValue))
+                {
+                    MessageBox.Show("설정값을 입력해주세요.", "입력 오류",
+                        MessageBoxButton.OK, MessageBoxImage.Warning);
+                    return;
+                }
+
+                if (!int.TryParse(parameter.NewValue, out int newValue))
+                {
+                    MessageBox.Show("설정값은 숫자여야 합니다.", "입력 오류",
+                        MessageBoxButton.OK, MessageBoxImage.Warning);
+                    return;
+                }
+
+                // 확인 메시지 표시
+                var result = MessageBox.Show(
+                    $"다음 값을 설정하시겠습니까?\n\n주소: {parameter.Address}\n설명: {parameter.Description}\n현재값: {parameter.DefaultActual}\n설정값: {newValue}",
+                    "설정 확인",
+                    MessageBoxButton.YesNo,
+                    MessageBoxImage.Question);
+
+                if (result == MessageBoxResult.Yes)
+                {
+                    await _modbusConnect.WriteRegister(parameter, newValue);
+                    parameter.DefaultActual = newValue;
+                    parameter.NewValue = string.Empty;  // 입력값 초기화
+
+                    Logger.Info($"파라미터 쓰기 완료 - 주소: {parameter.Address}, 값: {newValue}");
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.Error(ex, $"파라미터 쓰기 중 오류 발생 - 주소: {parameter.Address}");
+                MessageBox.Show($"값 설정 중 오류가 발생했습니다: {ex.Message}",
+                    "오류", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        public ObservableCollection<string> ChartTypes
+        {
+            get => _chartTypes;
+            set => SetProperty(ref _chartTypes, value);
+        }
+
+        public ObservableCollection<string> CommunicationLog
+        {
+            get => _communicationLog;
+            set => SetProperty(ref _communicationLog, value);
+        }
+
+        private ObservableCollection<ParameterModel> _parameters;
+        public ObservableCollection<ParameterModel> Parameters
+        {
+            get => _parameters;
+            set => SetProperty(ref _parameters, value);
+        }
+
+        public DelegateCommand ResetChartCommand { get; }
+        public DelegateCommand ExportDataCommand { get; }
+        public DelegateCommand ResetStatisticsCommand { get; }
+        #endregion
+
+        #region Constructor
+        public Action RefreshTemplateAction { get; set; }
+
+        public void RefreshTemplate()
+        {
+            RefreshTemplateAction?.Invoke();
+            RaisePropertyChanged(nameof(IsCardView));
+            LoadModbusData();
+        }
+
+        public ParameterWindowViewModel(ModbusConnect modbusConnect)
+        {
+            _modbusConnect = modbusConnect;
+
+            Parameters = new ObservableCollection<ParameterModel>();
+            ResetChartCommand = new DelegateCommand(ResetChart);
+            ExportDataCommand = new DelegateCommand(ExportData);
+            ResetStatisticsCommand = new DelegateCommand(ResetStatistics);
+
+            // 데이터 업데이트용 타이머
+            _dataUpdateTimer = new System.Timers.Timer(1000); // 1초마다 업데이트
+            _dataUpdateTimer.Elapsed += OnDataUpdateTimerElapsed;
+            _dataUpdateTimer.AutoReset = true;
+            _dataUpdateTimer.Start();
+            _updateTimer = new Timer(1000);
+            _modbusConnect.ConnectionStatusChanged += OnConnectionStatusChanged;
+
+            InitializeChart();
+            InitializeChartTypes();
+            LoadModbusData();
         }
         #endregion
 
         #region Private Methods
-
-        private void UpdateTemplate()
-        {
-            Columns = IsCardView ? 3 : 1;
-            RefreshTemplateAction?.Invoke();
-        }
-        public async void UpdateParameters()
+        private async void LoadModbusData()
         {
             try
             {
-                if (EndAddress < StartAddress || StartAddress < 0)
+                var modbusData = await _modbusConnect.ReadModbusData(1, 10);
+                await Application.Current.Dispatcher.InvokeAsync(() =>
                 {
-                    ShowError("유효하지 않은 주소 범위입니다.");
-                    return;
-                }
-
-                var modbusData = await _modbusConnect.ReadModbusData(StartAddress, EndAddress - StartAddress + 1);
-                if (Application.Current?.Dispatcher != null)
-                {
-                    Application.Current.Dispatcher.Invoke(() =>
+                    foreach (var parameter in modbusData)
                     {
-                        Parameters.Clear();
-                        ModbusDataViewParameters.Clear();
-
-                        var indexList = Properties.Settings.Default.Index;
-                        var descriptionList = Properties.Settings.Default.Description;
-                        var unitList = Properties.Settings.Default.Unit;
-                        var defaultValueList = Properties.Settings.Default.DefaultValue;
-
-                        if (indexList != null && descriptionList != null && unitList != null && defaultValueList != null)
+                        var existingParameter = Parameters.FirstOrDefault(p => p.Address == parameter.Address);
+                        if (existingParameter != null)
                         {
-                            for (int i = 0; i < indexList.Count; i++)
+                            if (existingParameter.DefaultActual != parameter.DefaultActual)
                             {
-                                int index = int.Parse(indexList[i]);
-                                if (index < StartAddress || index > EndAddress) continue;
-
-                                var defaultValue = double.Parse(defaultValueList[i]);
-
-                                var parameter = new ParameterModel
-                                {
-                                    Address = index,
-                                    Description = descriptionList[i],
-                                    ModbusUnit = unitList[i],
-                                    DefaultValue = defaultValue.ToString(),
-                                    Index = index
-                                };
-                                Parameters.Add(parameter);
-
-                                // NLog로 출력
-                                Logger.Info($"Loaded Parameter - Description: {parameter.Description}, ModbusUnit: {parameter.ModbusUnit}, DefaultValue: {parameter.DefaultValue}");
-                            }
-                        }
-
-                        foreach (var parameter in modbusData)
-                        {
-                            if (_modbusData != null && _modbusData.TryGetValue(parameter.Address, out var data))
-                            {
-                                parameter.Description = data.Description;
-                                parameter.ModbusUnit = data.Unit;
-                                parameter.DefaultValue = data.DefaultValue.ToString();
-                                parameter.DefaultActual = double.Parse(parameter.DefaultValue);
-                            }
-
-                            // 중복 추가 방지 및 값 덮어쓰기
-                            var existingParameter = Parameters.FirstOrDefault(p => p.Address == parameter.Address);
-                            if (existingParameter != null)
-                            {
-                                existingParameter.Description = parameter.Description;
-                                existingParameter.ModbusUnit = parameter.ModbusUnit;
-                                existingParameter.DefaultValue = parameter.DefaultValue;
                                 existingParameter.DefaultActual = parameter.DefaultActual;
+                                existingParameter.IsValueChanged = true;
                             }
-                            else
-                            {
-                                Parameters.Add(parameter);
-                            }
-                            ModbusDataViewParameters.Add(parameter);
                         }
-                    });
-                }
-                else
-                {
-                    ShowError("Dispatcher is not available.");
-                }
+                        else
+                        {
+                            var indexList = Properties.Settings.Default.Index;
+                            var descriptionList = Properties.Settings.Default.Description;
+                            var unitList = Properties.Settings.Default.Unit;
+                            var defaultValueList = Properties.Settings.Default.DefaultValue;
+
+                            var newParameter = new ParameterModel
+                            {
+                                Address = parameter.Address,
+                                DefaultActual = parameter.DefaultActual,
+                                Description = $"Register {parameter.Address}",
+                                Label = $"Register {parameter.Address}",
+                                ModbusUnit = "Raw"
+                            };
+
+                            if (indexList != null)
+                            {
+                                var settingsIndex = indexList.Cast<string>()
+                                    .Select((indexStr, i) => new { Index = int.Parse(indexStr), Position = i })
+                                    .FirstOrDefault(x => x.Index == parameter.Address);
+
+                                if (settingsIndex != null)
+                                {
+                                    newParameter.Description = descriptionList[settingsIndex.Position];
+                                    newParameter.Label = descriptionList[settingsIndex.Position];
+                                    newParameter.ModbusUnit = unitList[settingsIndex.Position];
+                                    newParameter.DefaultValue = defaultValueList[settingsIndex.Position];
+                                }
+                            }
+
+                            Parameters.Add(newParameter);
+                        }
+                    }
+
+                    RaisePropertyChanged(nameof(Parameters));
+                });
             }
             catch (Exception ex)
             {
-                ShowError($"파라미터 업데이트 실패: {ex.Message}");
+                Debug.WriteLine($"Modbus 데이터 로드 실패: {ex.Message}");
             }
         }
 
+        private void OnDataUpdateTimerElapsed(object sender, ElapsedEventArgs e)
+        {
+            LoadModbusData();
+        }
 
-
-
-
-        private async void ExecuteWrite(ParameterModel parameter)
+        private async void OnUpdateTimerElapsed(object sender, ElapsedEventArgs e)
         {
             try
             {
-                if (int.TryParse(parameter.NewValue, out int value))
+                if (SelectedParameter == null) return;
+
+                var data = await _modbusConnect.ReadModbusData(SelectedParameter.Address, 1);
+                if (data.Any())
                 {
-                    await _modbusConnect.WriteRegister(parameter, value);
-                    parameter.UpdateStatus(true, "쓰기 성공");
-                }
-                else
-                {
-                    parameter.UpdateStatus(false, "잘못된 값 형식");
+                    var value = data[0].DefaultActual;
+                    var time = (DateTime.Now - DateTime.Today).TotalSeconds;
+
+                    lock (_lockObject)
+                    {
+                        _timeData.Enqueue(time);
+                        _valueData.Enqueue(value);
+
+                        if (_timeData.Count > _maxDataPoints)
+                        {
+                            _timeData.Dequeue();
+                            _valueData.Dequeue();
+                        }
+
+                        Application.Current.Dispatcher.Invoke(() =>
+                        {
+                            CurrentValue = value;
+                            UpdatePlot();
+                        });
+                    }
                 }
             }
-            catch (Exception ex)
+            finally
             {
-                parameter.UpdateStatus(false, ex.Message);
+                if (IsRealTimeUpdate)
+                {
+
+
+                    _updateTimer.Start();
+                }
             }
         }
 
@@ -296,77 +409,143 @@ namespace Mvvm.ViewModels
         {
             Application.Current.Dispatcher.Invoke(() =>
             {
-                foreach (var parameter in Parameters)
-                {
-                    parameter.UpdateStatus(isConnected, isConnected ? "연결됨" : "연결 끊김");
-                }
-
                 if (isConnected)
-                    _updateTimer.Start();
+                {
+                    _dataUpdateTimer?.Start();
+                    LoadModbusData();
+                }
                 else
-                    _updateTimer.Stop();
+                {
+                    _dataUpdateTimer?.Stop();
+                    IsRealTimeUpdate = false;
+                }
             });
         }
 
-        private async void OnTimedEvent(object sender, ElapsedEventArgs e)
+        private void StartDataCollection()
         {
-            try
-            {
-                _updateTimer.Stop();
-                var monitoringParameters = Parameters.Where(p => p.IsMonitoring).ToList();
+            _updateTimer.Start();
+        }
 
-                if (monitoringParameters.Any())
+        private void StopDataCollection()
+        {
+            _updateTimer.Stop();
+        }
+        #endregion
+
+        #region Public Methods
+        public void InitializeWithPlot(WpfPlot plot)
+        {
+            _wpfPlot = plot;
+            InitializeChart();
+        }
+
+        public void UpdatePlot()
+        {
+            if (_wpfPlot == null) return;
+
+            var times = _timeData.ToArray();
+            var values = _valueData.ToArray();
+
+            if (times.Length > 0)
+            {
+                var plt = _wpfPlot.Plot;
+                plt.Clear();
+                _dataPlot = plt.Add.ScatterLine(times, values);
+
+                double timeSpan = 10;
+                double latestTime = times.Last();
+                plt.Axes.SetLimits(
+                    left: Math.Max(latestTime - timeSpan, times[0]),
+                    right: latestTime,
+                    bottom: values.Min() - 1,
+                    top: values.Max() + 1
+                );
+
+                // 텍스트 추가
+                for (int i = 0; i < times.Length; i++)
                 {
-        
+                    plt.Add.Text(values[i].ToString(), times[i], values[i]);
                 }
             }
-            finally
+
+            _wpfPlot.Refresh();
+        }
+
+        public void UpdateCommunicationStatus()
+        {
+            bool isConnected = _modbusConnect.IsConnected();
+            OnConnectionStatusChanged(isConnected);
+        }
+
+        public void Cleanup()
+        {
+            StopDataCollection();
+            _dataUpdateTimer?.Stop();
+            _dataUpdateTimer?.Dispose();
+            if (_modbusConnect != null)
             {
-                _updateTimer.Start();
+                _modbusConnect.ConnectionStatusChanged -= OnConnectionStatusChanged;
+            }
+        }
+        #endregion
+
+        #region Helper Methods
+        private void InitializeChart()
+        {
+            if (_wpfPlot == null) return;
+
+            var plt = _wpfPlot.Plot;
+            plt.Clear();
+            plt.Font.Set("맑은 고딕");
+            plt.Title("Real Time ", 16);
+            plt.XLabel("시간 (초)");
+            plt.YLabel("값");
+
+            double[] initialData = { 0 };
+            double[] initialTimes = { 0 };
+            _dataPlot = plt.Add.ScatterLine(initialTimes, initialData);
+
+            plt.Axes.SetLimits(left: -10, right: 0, bottom: -10, top: 10);
+            _wpfPlot.Refresh();
+        }
+
+        private void InitializeChartTypes()
+        {
+            ChartTypes = new ObservableCollection<string> { "Line", "Bar", "Scatter" };
+            SelectedChartType = ChartTypes.First();
+        }
+
+        private void ResetChart()
+        {
+            if (_wpfPlot == null) return;
+
+            lock (_lockObject)
+            {
+                _timeData.Clear();
+                _valueData.Clear();
+
+                var plt = _wpfPlot.Plot;
+                plt.Clear();
+                double[] initialData = { 0 };
+                double[] initialTimes = { 0 };
+                _dataPlot = plt.Add.ScatterLine(initialTimes, initialData);
+
+                plt.Axes.SetLimits(left: -10, right: 0, bottom: -10, top: 10);
+                _wpfPlot.Refresh();
             }
         }
 
-
-#if DEBUG 
-
-        #endif
-
-
-
-
-        private void OnExcelDataLoaded(List<ParameterModel> parameters)
+        private void ExportData()
         {
-            Application.Current.Dispatcher.Invoke(() =>
-            {
-                Parameters.Clear();
-                foreach (var param in parameters)
-                {
-                    Parameters.Add(param);
-                }
-                UpdateTemplate();
-            });
+            // 데이터 내보내기 로직
         }
 
-        private void StartBackgroundTask()
+        private void ResetStatistics()
         {
-            _cancellationTokenSource = new CancellationTokenSource();
-            var token = _cancellationTokenSource.Token;
-
-            Task.Run(async () =>
-            {
-                while (!token.IsCancellationRequested)
-                {
-                    UpdateParameters();
-                    await Task.Delay(Properties.Settings.Default.ReadTimeout);  
-                }
-            }, token);
+            // 통계 초기화 로직
         }
-
-        public void StopBackgroundTask()
-        {
-            _cancellationTokenSource?.Cancel();
-        }
-
         #endregion
     }
 }
+

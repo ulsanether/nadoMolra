@@ -1,5 +1,4 @@
-﻿// ModbusDataViewPage.xaml.cs
-using System.Windows.Controls;
+﻿using System.Windows.Controls;
 using System.Windows.Threading;
 using Mvvm.ViewModels;
 using Mvvm.Model;
@@ -11,17 +10,15 @@ namespace Mvvm.Views
 {
     public partial class ModbusDataViewPage : UserControl
     {
-        private readonly ModbusDataViewPageViewModel _viewModel;
+        private readonly ParameterWindowViewModel _viewModel;
         private readonly DispatcherTimer _statusUpdateTimer;
-        private readonly ParameterWindowViewModel _parameterWindowViewModel;
 
         public ModbusDataViewPage()
         {
             InitializeComponent();
             var modbusConnect = new ModbusConnect();
-            _parameterWindowViewModel = new ParameterWindowViewModel(modbusConnect);
-
-            _viewModel = new ModbusDataViewPageViewModel(modbusConnect, _parameterWindowViewModel, WpfPlot);
+            _viewModel = new ParameterWindowViewModel(modbusConnect);
+            _viewModel.InitializeWithPlot(WpfPlot);
             DataContext = _viewModel;
 
             // 타이머 초기화 및 설정
@@ -33,17 +30,13 @@ namespace Mvvm.Views
             _statusUpdateTimer.Start();
         }
 
-
-
-
-
         private void StatusUpdateTimer_Tick(object sender, EventArgs e)
         {
             // 통신 상태 갱신
             _viewModel.UpdateCommunicationStatus();
         }
 
-        private void UserControl_Unloaded(object sender, System.Windows.RoutedEventArgs e)
+        private void UserControl_Unloaded(object sender, RoutedEventArgs e)
         {
             _viewModel.Cleanup();
             _statusUpdateTimer.Stop();
@@ -74,8 +67,5 @@ namespace Mvvm.Views
                 MessageBox.Show("유효한 숫자를 입력하세요.", "오류", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
-
-
-
     }
 }

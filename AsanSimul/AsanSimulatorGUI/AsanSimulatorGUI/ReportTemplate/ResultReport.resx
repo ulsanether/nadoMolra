@@ -1,0 +1,211 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <!-- 
+    Microsoft ResX Schema 
+    
+    Version 2.0
+    
+    The primary goals of this format is to allow a simple XML format 
+    that is mostly human readable. The generation and parsing of the 
+    various data types are done through the TypeConverter classes 
+    associated with the data types.
+    
+    Example:
+    
+    ... ado.net/XML headers & schema ...
+    <resheader name="resmimetype">text/microsoft-resx</resheader>
+    <resheader name="version">2.0</resheader>
+    <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, ...</resheader>
+    <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, ...</resheader>
+    <data name="Name1"><value>this is my long string</value><comment>this is a comment</comment></data>
+    <data name="Color1" type="System.Drawing.Color, System.Drawing">Blue</data>
+    <data name="Bitmap1" mimetype="application/x-microsoft.net.object.binary.base64">
+        <value>[base64 mime encoded serialized .NET Framework object]</value>
+    </data>
+    <data name="Icon1" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+        <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
+        <comment>This is a comment</comment>
+    </data>
+                
+    There are any number of "resheader" rows that contain simple 
+    name/value pairs.
+    
+    Each data row contains a name, and value. The row also contains a 
+    type or mimetype. Type corresponds to a .NET class that support 
+    text/value conversion through the TypeConverter architecture. 
+    Classes that don't support this are serialized and stored with the 
+    mimetype set.
+    
+    The mimetype is used for serialized objects, and tells the 
+    ResXResourceReader how to depersist the object. This is currently not 
+    extensible. For a given mimetype the value must be set accordingly:
+    
+    Note - application/x-microsoft.net.object.binary.base64 is the format 
+    that the ResXResourceWriter will generate, however the reader can 
+    read any of the formats listed below.
+    
+    mimetype: application/x-microsoft.net.object.binary.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
+            : and then encoded with base64 encoding.
+    
+    mimetype: application/x-microsoft.net.object.soap.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
+            : and then encoded with base64 encoding.
+
+    mimetype: application/x-microsoft.net.object.bytearray.base64
+    value   : The object must be serialized into a byte array 
+            : using a System.ComponentModel.TypeConverter
+            : and then encoded with base64 encoding.
+    -->
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="xrTableCell29.ExpressionBindings" xml:space="preserve">
+    <value>Iif(InRange([test_index], 0, 8),
+'[설정]' + NewLine()
++ 'H(+) ↔ F(-) : DC28V(±0.5)' + NewLine()
++ 'G(+) ↔ D(-) : DC' + ToStr([voltage_set] / 100) + 'V(±1)' + NewLine()
++ 'A(S) ↔ E(S) : ' +
+Iif(
+    [resistor_set] == 0, '정상 설정',
+    [resistor_set] == 2000, '2.0kΩ',
+    [resistor_set] == 2200, '2.2kΩ',
+    [resistor_set] == 2400, '2.4kΩ',
+    [resistor_set] == 10000, '단선 설정',
+    [resistor_set] == 20000, '2.2kΩ',
+    ['']
+) + NewLine()
++ '[기준]' + NewLine()
++ [SMALL_TESTs][[small_tag]== 'Fault 전압'].Single(ToStr(ToFloat([ref_L]) / 100) + ' ≤ Fault 전압 ≤ '+ ToStr(ToFloat([ref_R]) / 100) + NewLine())
++ [SMALL_TESTs][[small_tag]== 'Fire 전압'].Single(ToStr(ToFloat([ref_L]) / 100) + ' ≤ Fire 전압 ≤ '+ ToStr(ToFloat([ref_R]) / 100) + NewLine())
++ [SMALL_TESTs][[small_tag]== '반응시간'].Single('Time ≤ 5ms' + NewLine())
++ [SMALL_TESTs][[small_tag]== '알람 점등'].Single('알람 ' + Iif([ref_R] == 1, '점등', '미점등') + NewLine())
++ [SMALL_TESTs][[small_tag]== '화재 점등'].Single('화재 ' + Iif([ref_R] == 1, '점등', '미점등') + NewLine())
++ [SMALL_TESTs][[small_tag]== '소비전류'].Single('Current ≤ 135mA' + NewLine())
++ [SMALL_TESTs][[small_tag]== '소비전력'].Single('Power ≤ 3.78W' + NewLine())
+, [''])
+</value>
+  </data>
+  <data name="xrTableCell15.ExpressionBindings" xml:space="preserve">
+    <value>Iif(InRange([test_index], 0, 8),
+[SMALL_TESTs][[small_tag]== 'Fault 전압'].Single(ToStr(ToFloat([value_min]) / 100) + ' ≤ Fault ≤ '+ ToStr(ToFloat([value_max]) / 100) + NewLine()) +
+[SMALL_TESTs][[small_tag]== 'Fire 전압'].Single(ToStr(ToFloat([value_min]) / 100) + ' ≤ Fire ≤ '+ ToStr(ToFloat([value_max]) / 100) + NewLine())
+ +
+[SMALL_TESTs][[small_tag]== '반응시간'].Single('반응시간 :'+ ToStr(ToFloat([measure_value]) / 100) + NewLine())
+ +
+[SMALL_TESTs][[small_tag]== '소비전류'].Single('측정전류 최대값 :'+ ToStr(ToFloat([value_max]) / 100) + NewLine())
+ +
+[SMALL_TESTs][[small_tag]== '소비전력'].Single('측정전력 최대값 : '+ ToStr(ToFloat([value_max]) / 100) + NewLine())
+ +
+[SMALL_TESTs][[small_tag]== '알람 점등'].Single('알람 램프 : '+ Iif([measure_value] == 1, '점등', '미점등') + NewLine())
+ +
+[SMALL_TESTs][[small_tag]== '화재 점등'].Single('화재 램프 : '+ Iif([measure_value] == 1, '점등', '미점등') + NewLine())
+, [''])
+</value>
+  </data>
+  <data name="xrTableCell16.ExpressionBindings" xml:space="preserve">
+    <value>
+Iif(InRange([test_index], 0, 8),
+Iif(
+(InRange([test_index], 0, 3)
+ And (([test_result1]=='Pass'))
+ And (([test_result2]=='Pass'))
+ And (([test_result3]=='Pass'))
+ And (([test_result4]=='Pass')))
+,'Pass'
+,(InRange([test_index], 3, 4)
+ And (([test_result1]=='Pass')))
+ , '첨부 1' + NewLine() + 'Pass'
+,(InRange([test_index], 4, 5)
+ And (([test_result1]=='Pass'))
+ And (([test_result2]=='Pass')))
+, 'Pass'
+,(InRange([test_index], 5, 8)
+ And (([test_result1]=='Pass'))
+ And (([test_result2]=='Pass'))
+ And (([test_result3]=='Pass')))
+,'첨부 ' + ToStr([test_index] - 3) + NewLine() + 'Pass'
+, 'Fail'), [''])</value>
+  </data>
+  <data name="xrTableCell14.ExpressionBindings" xml:space="preserve">
+    <value>
+Iif(InRange([test_index], 0, 8),
+Iif(
+(InRange([test_index], 0, 3)
+ And (([test_result1]=='Pass'))
+ And (([test_result2]=='Pass'))
+ And (([test_result3]=='Pass'))
+ And (([test_result4]=='Pass')))
+Or
+(InRange([test_index], 3, 4)
+ And (([test_result1]=='Pass')))
+Or
+(InRange([test_index], 4, 5)
+ And (([test_result1]=='Pass'))
+ And (([test_result2]=='Pass')))
+Or
+(InRange([test_index], 5, 8)
+ And (([test_result1]=='Pass'))
+ And (([test_result2]=='Pass'))
+ And (([test_result3]=='Pass')))
+,'Pass', 'Fail'), [''])
+</value>
+  </data>
+</root>
