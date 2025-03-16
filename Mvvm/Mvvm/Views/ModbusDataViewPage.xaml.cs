@@ -12,6 +12,7 @@ namespace Mvvm.Views
     {
         private readonly ParameterWindowViewModel _viewModel;
         private readonly DispatcherTimer _statusUpdateTimer;
+
         public ModbusDataViewPage(ParameterWindowViewModel viewModel)
         {
             InitializeComponent();
@@ -20,17 +21,27 @@ namespace Mvvm.Views
             _viewModel.RefreshTemplateAction = RefreshTemplate;
             DataContext = _viewModel;
 
-            // 상태 업데이트 타이머 설정
             _statusUpdateTimer = new DispatcherTimer
             {
-                Interval = TimeSpan.FromMilliseconds(1000) // 100ms로 설정
+                Interval = TimeSpan.FromMilliseconds(100)
             };
             _statusUpdateTimer.Tick += StatusUpdateTimer_Tick;
             _statusUpdateTimer.Start();
+
+            // 차트 초기 설정
+            WpfPlot.Plot.YLabel("값");
+            WpfPlot.Plot.XLabel("시간 (초)");
+            WpfPlot.Refresh();
         }
 
+        private void StatusUpdateTimer_Tick(object sender, EventArgs e)
+        {
+            // 통신 상태 갱신
+            _viewModel.UpdateCommunicationStatus();
+        }
         private void RefreshTemplate()
         {
+            // UI 스레드에서 실행되도록 보장
             Dispatcher.Invoke(() =>
             {
                 // Parameters DataGrid 새로고침
@@ -51,15 +62,11 @@ namespace Mvvm.Views
                 {
                     CommunicationLogListView.Items.Refresh();
                 }
+
+                // 통신 상태 업데이트
+                _viewModel.UpdateCommunicationStatus();
             });
         }
-
-        private void StatusUpdateTimer_Tick(object sender, EventArgs e)
-        {
-            // 통신 상태 갱신
-            _viewModel.UpdateCommunicationStatus();
-        }
-     
         private void UserControl_Unloaded(object sender, RoutedEventArgs e)
         {
             _viewModel.Cleanup();
@@ -68,11 +75,13 @@ namespace Mvvm.Views
 
         private void OnAddButtonClick(object sender, RoutedEventArgs e)
         {
-            if (double.TryParse(ValueInputTextBox.Text, out double newValue))
+            if (_viewModel.SelectedParameter != null)
             {
                 lock (_viewModel.LockObject)
                 {
                     var time = (DateTime.Now - DateTime.Today).TotalSeconds;
+                    var newValue = _viewModel.SelectedParameter.DefaultActual;
+
                     _viewModel.TimeData.Enqueue(time);
                     _viewModel.ValueData.Enqueue(newValue);
 
@@ -88,8 +97,10 @@ namespace Mvvm.Views
             }
             else
             {
-                MessageBox.Show("유효한 숫자를 입력하세요.", "오류", MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show("파라미터를 선택하세요.", "오류", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
+
     }
 }
+

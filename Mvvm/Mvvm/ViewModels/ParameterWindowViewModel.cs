@@ -17,7 +17,6 @@ using NLog;
 using Timer = System.Timers.Timer;
 using System.Threading.Tasks;
 
-
 namespace Mvvm.ViewModels
 {
     public class ParameterWindowViewModel : BindableBase
@@ -49,8 +48,6 @@ namespace Mvvm.ViewModels
         // 필드 선언 부분 수정
         private ObservableCollection<CommunicationLogItem> _communicationLog;
 
-
-
         #endregion
 
         private string _startAddress;
@@ -73,9 +70,6 @@ namespace Mvvm.ViewModels
             get => _isListView;
             set => SetProperty(ref _isListView, value);
         }
-
-
-
 
         #region Properties
         public object LockObject => _lockObject;
@@ -116,6 +110,14 @@ namespace Mvvm.ViewModels
                 if (SetProperty(ref _selectedParameter, value))
                 {
                     ResetChart();
+                    if (value != null)
+                    {
+                        CurrentValue = value.DefaultActual;
+                        if (IsRealTimeUpdate)
+                        {
+                            StartDataCollection();
+                        }
+                    }
                 }
             }
         }
@@ -158,7 +160,6 @@ namespace Mvvm.ViewModels
             get => _communicationLog;
             set => SetProperty(ref _communicationLog, value);
         }
-
 
         private async void ExecuteGenerateParameters()
         {
@@ -253,7 +254,6 @@ namespace Mvvm.ViewModels
             set => SetProperty(ref _chartTypes, value);
         }
 
-    
         private ObservableCollection<ParameterModel> _parameters;
         public ObservableCollection<ParameterModel> Parameters
         {
@@ -276,9 +276,6 @@ namespace Mvvm.ViewModels
             LoadModbusData();
         }
 
-
-
-
         public ParameterWindowViewModel(ModbusConnect modbusConnect)
         {
             _modbusConnect = modbusConnect;
@@ -289,13 +286,16 @@ namespace Mvvm.ViewModels
             ExportDataCommand = new DelegateCommand(ExportData);
             ResetStatisticsCommand = new DelegateCommand(ResetStatistics);
 
-            // 데이터 업데이트용 타이머 간격을 100ms로 변경
-            _dataUpdateTimer = new System.Timers.Timer(1000); // 100ms마다 업데이트
+            // 데이터 업데이트용 타이머 간격을 2초로 변경
+            _dataUpdateTimer = new System.Timers.Timer(2000); // 2초마다 업데이트
             _dataUpdateTimer.Elapsed += OnDataUpdateTimerElapsed;
             _dataUpdateTimer.AutoReset = true;
             _dataUpdateTimer.Start();
 
-            _updateTimer = new Timer(1000); // 이것도 100ms로 변경
+            _updateTimer = new Timer(2000); // 2초로 변경
+            _updateTimer.Elapsed += OnUpdateTimerElapsed;
+            _updateTimer.AutoReset = false;
+
             _modbusConnect.ConnectionStatusChanged += OnConnectionStatusChanged;
 
             AddLog("초기화", "ParameterWindow 초기화 완료");
@@ -303,8 +303,6 @@ namespace Mvvm.ViewModels
             InitializeChartTypes();
             LoadModbusData();
         }
-
-
         #endregion
 
         #region Private Methods
@@ -386,8 +384,6 @@ namespace Mvvm.ViewModels
             }
         }
 
-
-
         private void AddLog(string eventName, string details)
         {
             Application.Current.Dispatcher.Invoke(() =>
@@ -408,11 +404,6 @@ namespace Mvvm.ViewModels
                 RaisePropertyChanged(nameof(CommunicationLog));
             });
         }
-
-
-
-
-
 
         private void InitializeParameter(ParameterModel parameter)
         {
@@ -449,7 +440,6 @@ namespace Mvvm.ViewModels
             Parameters.Add(newParameter);
         }
 
-
         private void OnDataUpdateTimerElapsed(object sender, ElapsedEventArgs e)
         {
             LoadModbusData();
@@ -480,6 +470,8 @@ namespace Mvvm.ViewModels
 
                         Application.Current.Dispatcher.Invoke(() =>
                         {
+                            // SelectedParameter의 DefaultActual 값을 업데이트
+                            SelectedParameter.DefaultActual = value;
                             CurrentValue = value;
                             UpdatePlot();
                         });
@@ -490,8 +482,6 @@ namespace Mvvm.ViewModels
             {
                 if (IsRealTimeUpdate)
                 {
-
-
                     _updateTimer.Start();
                 }
             }
@@ -543,21 +533,40 @@ namespace Mvvm.ViewModels
             {
                 var plt = _wpfPlot.Plot;
                 plt.Clear();
+
+                if (SelectedParameter != null)
+                {
+                    plt.Title($"{SelectedParameter.Label} 실시간 데이터");
+                    plt.YLabel($"값 ({SelectedParameter.ModbusUnit})");
+                }
+
                 _dataPlot = plt.Add.ScatterLine(times, values);
 
-                double timeSpan = 10;
-                double latestTime = times.Last();
-                plt.Axes.SetLimits(
-                    left: Math.Max(latestTime - timeSpan, times[0]),
-                    right: latestTime,
-                    bottom: values.Min() - 1,
-                    top: values.Max() + 1
-                );
-
-                // 텍스트 추가
-                for (int i = 0; i < times.Length; i++)
+                if (AutoScale)
                 {
-                    plt.Add.Text(values[i].ToString(), times[i], values[i]);
+                    // 자동 스케일링 적용
+                    plt.Axes.AutoScale(); // AxisAuto() 대신 AutoScale() 사용
+                }
+                else
+                {
+                    double timeSpan = 10;
+                    double latestTime = times.Last();
+                    plt.Axes.SetLimits(
+                        left: Math.Max(latestTime - timeSpan, times[0]),
+                        right: latestTime,
+                        bottom: values.Min() - 1,
+                        top: values.Max() + 1
+                    );
+                }
+
+                // 마지막 값 텍스트 추가 (size 파라미터 제거)
+                if (values.Length > 0)
+                {
+                    plt.Add.Text(
+                        text: values.Last().ToString("F2"),
+                        x: times.Last(),
+                        y: values.Last()
+                    );
                 }
             }
 
@@ -624,7 +633,8 @@ namespace Mvvm.ViewModels
                 _dataPlot = plt.Add.ScatterLine(initialTimes, initialData);
 
                 plt.Axes.SetLimits(left: -10, right: 0, bottom: -10, top: 10);
-                _wpfPlot.Refresh();
+              
+                                _wpfPlot.Refresh();
             }
         }
 
@@ -653,8 +663,4 @@ namespace Mvvm.ViewModels
             Details = details;
         }
     }
-
-
 }
-
-

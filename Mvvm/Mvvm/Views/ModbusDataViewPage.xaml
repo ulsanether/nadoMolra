@@ -5,6 +5,7 @@
     xmlns:ScottPlot="clr-namespace:ScottPlot.WPF;assembly=ScottPlot.WPF"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:local="clr-namespace:Mvvm.Views"
+    xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:vm="clr-namespace:Mvvm.ViewModels"
     d:DesignHeight="520"
@@ -28,46 +29,67 @@
                         Grid.Row="0"
                         Margin="5"
                         Orientation="Horizontal">
+                        <!--  실시간 업데이트 토글  -->
                         <ToggleButton
                             Width="100"
                             Margin="5"
                             Content="실시간 업데이트"
-                            IsChecked="{Binding IsRealTimeUpdate}" />
+                            IsChecked="{Binding IsRealTimeUpdate}"
+                            Style="{StaticResource MaterialDesignSwitchToggleButton}" />
 
+                        <!--  초기화 버튼  -->
                         <Button
                             Width="80"
                             Margin="5"
                             Command="{Binding ResetChartCommand}"
-                            Content="초기화" />
+                            Content="초기화"
+                            Style="{StaticResource MaterialDesignFlatButton}" />
 
+                        <!--  파라미터 선택 콤보박스  -->
+                        <!--  파라미터 선택 콤보박스와 현재값 표시 부분 수정  -->
                         <ComboBox
                             Width="200"
                             Margin="5"
+                            materialDesign:HintAssist.Hint="파라미터 선택"
                             DisplayMemberPath="Label"
-                            ItemsSource="{Binding AvailableParameters}"
-                            SelectedItem="{Binding SelectedParameter}" />
+                            ItemsSource="{Binding Parameters}"
+                            SelectedItem="{Binding SelectedParameter, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                            Style="{StaticResource MaterialDesignComboBox}" />
+
 
                         <TextBlock
                             Margin="5"
                             VerticalAlignment="Center"
-                            Text="{Binding CurrentValue, StringFormat=현재값: {0:F2}}" />
+                            Style="{StaticResource MaterialDesignBody1TextBlock}"
+                            Text="{Binding SelectedParameter.DefaultActual, StringFormat=현재값: {0:F2}}" />
 
+
+                        <!--  차트 타입 선택  -->
                         <ComboBox
                             Width="120"
                             Margin="5"
+                            materialDesign:HintAssist.Hint="차트 타입"
                             ItemsSource="{Binding ChartTypes}"
-                            SelectedItem="{Binding SelectedChartType}" />
+                            SelectedItem="{Binding SelectedChartType}"
+                            Style="{StaticResource MaterialDesignComboBox}" />
 
+                        <!--  자동 스케일 체크박스  -->
                         <CheckBox
                             Margin="5"
                             VerticalAlignment="Center"
                             Content="자동 스케일"
-                            IsChecked="{Binding AutoScale}" />
+                            IsChecked="{Binding AutoScale}"
+                            Style="{StaticResource MaterialDesignCheckBox}" />
+
+                        <!--  값 추가 컨트롤  -->
                         <Button
                             Width="100"
+                            Margin="5"
                             Click="OnAddButtonClick"
-                            Content="추가" />
-                        <TextBox x:Name="ValueInputTextBox" Width="200" />
+                            Content="추가"
+                            Style="{StaticResource MaterialDesignRaisedButton}" />
+
+
                     </StackPanel>
 
                     <!--  차트  -->
@@ -81,42 +103,50 @@
             <!--  Set Point Table 탭  -->
             <TabItem Header="Set Point Table">
                 <Grid>
-                    <DataGrid x:Name="ParametersDataGrid"
-          Margin="5"
-          AutoGenerateColumns="False"
-          EnableRowVirtualization="True"
-          IsSynchronizedWithCurrentItem="True"
-          ItemsSource="{Binding Parameters, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}">
+                    <DataGrid
+                        x:Name="ParametersDataGrid"
+                        Margin="5"
+                        AutoGenerateColumns="False"
+                        EnableRowVirtualization="True"
+                        IsReadOnly="False"
+                        ItemsSource="{Binding Parameters, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                        Style="{StaticResource MaterialDesignDataGrid}">
                         <DataGrid.Columns>
-                            <DataGridTextColumn Width="80"
-                            Binding="{Binding Address, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                            Header="주소" />
-                            <DataGridTextColumn Width="150"
-                            Binding="{Binding Label, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                            Header="레이블" />
-                            <DataGridTextColumn Width="200"
-                            Binding="{Binding Description, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                            Header="설명" />
-                            <DataGridTextColumn Width="100"
-                            Binding="{Binding DefaultActual, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, StringFormat=F2}"
-                            Header="현재값">
-                                <DataGridTextColumn.CellStyle>
-                                    <Style TargetType="DataGridCell">
+                            <DataGridTextColumn
+                                Width="80"
+                                Binding="{Binding Address}"
+                                Header="주소"
+                                IsReadOnly="True" />
+                            <DataGridTextColumn
+                                Width="150"
+                                Binding="{Binding Label}"
+                                Header="레이블" />
+                            <DataGridTextColumn
+                                Width="200"
+                                Binding="{Binding Description}"
+                                Header="설명" />
+                            <DataGridTextColumn
+                                Width="100"
+                                Binding="{Binding DefaultActual, StringFormat=F2}"
+                                Header="현재값"
+                                IsReadOnly="True">
+                                <DataGridTextColumn.ElementStyle>
+                                    <Style TargetType="TextBlock">
                                         <Style.Triggers>
                                             <DataTrigger Binding="{Binding IsValueChanged}" Value="True">
                                                 <Setter Property="Background" Value="Yellow" />
+                                                <Setter Property="Opacity" Value="0.7" />
                                             </DataTrigger>
                                         </Style.Triggers>
                                     </Style>
-                                </DataGridTextColumn.CellStyle>
+                                </DataGridTextColumn.ElementStyle>
                             </DataGridTextColumn>
-                            <DataGridTextColumn Width="80"
-                            Binding="{Binding ModbusUnit, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                            Header="단위" />
+                            <DataGridTextColumn
+                                Width="80"
+                                Binding="{Binding ModbusUnit}"
+                                Header="단위" />
                         </DataGrid.Columns>
                     </DataGrid>
-
-
                 </Grid>
             </TabItem>
 
@@ -133,7 +163,8 @@
                     <GroupBox
                         Grid.Row="0"
                         Margin="0,0,0,10"
-                        Header="통신 상태">
+                        Header="통신 상태"
+                        Style="{StaticResource MaterialDesignGroupBox}">
                         <Grid>
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="Auto" />
@@ -147,6 +178,7 @@
                                 <RowDefinition Height="Auto" />
                             </Grid.RowDefinitions>
 
+                            <!--  통신 상태 정보  -->
                             <TextBlock
                                 Grid.Column="0"
                                 Margin="5"
@@ -198,34 +230,48 @@
                         </Grid>
                     </GroupBox>
 
-                    <!--  차트 설정  -->
+                    <!--  데이터 관리  -->
                     <GroupBox
                         Grid.Row="1"
                         Margin="0,0,0,10"
-                        Header="데이터 관리">
+                        Header="데이터 관리"
+                        Style="{StaticResource MaterialDesignGroupBox}">
                         <StackPanel Orientation="Horizontal">
                             <Button
                                 Width="120"
                                 Margin="5"
                                 Command="{Binding ExportDataCommand}"
-                                Content="데이터 내보내기" />
+                                Content="데이터 내보내기"
+                                Style="{StaticResource MaterialDesignRaisedButton}" />
                             <Button
                                 Width="100"
                                 Margin="5"
                                 Command="{Binding ResetStatisticsCommand}"
-                                Content="통계 초기화" />
+                                Content="통계 초기화"
+                                Style="{StaticResource MaterialDesignRaisedButton}" />
                         </StackPanel>
                     </GroupBox>
 
                     <!--  통신 로그  -->
-                    <GroupBox Grid.Row="2" Header="통신 로그">
-                        <ListView x:Name="CommunicationLogListView" ItemsSource="{Binding CommunicationLog}">
+                    <GroupBox
+                        Grid.Row="2"
+                        Header="통신 로그"
+                        Style="{StaticResource MaterialDesignGroupBox}">
+                        <ListView
+                            x:Name="CommunicationLogListView"
+                            ItemsSource="{Binding CommunicationLog}"
+                            ScrollViewer.VerticalScrollBarVisibility="Auto"
+                            VirtualizingPanel.IsVirtualizing="True"
+                            VirtualizingPanel.VirtualizationMode="Recycling">
                             <ListView.View>
                                 <GridView>
-                                    <GridViewColumn
-                                        Width="150"
-                                        DisplayMemberBinding="{Binding Timestamp}"
-                                        Header="시간" />
+                                    <GridViewColumn Width="150" Header="시간">
+                                        <GridViewColumn.CellTemplate>
+                                            <DataTemplate>
+                                                <TextBlock Text="{Binding Timestamp, StringFormat=HH:mm:ss.fff}" />
+                                            </DataTemplate>
+                                        </GridViewColumn.CellTemplate>
+                                    </GridViewColumn>
                                     <GridViewColumn
                                         Width="200"
                                         DisplayMemberBinding="{Binding Event}"
@@ -237,7 +283,6 @@
                                 </GridView>
                             </ListView.View>
                         </ListView>
-
                     </GroupBox>
                 </Grid>
             </TabItem>
