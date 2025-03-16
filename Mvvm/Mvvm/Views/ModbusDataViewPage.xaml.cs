@@ -12,22 +12,46 @@ namespace Mvvm.Views
     {
         private readonly ParameterWindowViewModel _viewModel;
         private readonly DispatcherTimer _statusUpdateTimer;
-
-        public ModbusDataViewPage()
+        public ModbusDataViewPage(ParameterWindowViewModel viewModel)
         {
             InitializeComponent();
-            var modbusConnect = new ModbusConnect();
-            _viewModel = new ParameterWindowViewModel(modbusConnect);
+            _viewModel = viewModel;
             _viewModel.InitializeWithPlot(WpfPlot);
+            _viewModel.RefreshTemplateAction = RefreshTemplate;
             DataContext = _viewModel;
 
-            // 타이머 초기화 및 설정
+            // 상태 업데이트 타이머 설정
             _statusUpdateTimer = new DispatcherTimer
             {
-                Interval = TimeSpan.FromMilliseconds(100)
+                Interval = TimeSpan.FromMilliseconds(1000) // 100ms로 설정
             };
             _statusUpdateTimer.Tick += StatusUpdateTimer_Tick;
             _statusUpdateTimer.Start();
+        }
+
+        private void RefreshTemplate()
+        {
+            Dispatcher.Invoke(() =>
+            {
+                // Parameters DataGrid 새로고침
+                if (ParametersDataGrid != null)
+                {
+                    ParametersDataGrid.Items.Refresh();
+                }
+
+                // Plot 업데이트
+                if (WpfPlot != null)
+                {
+                    _viewModel.UpdatePlot();
+                    WpfPlot.Refresh();
+                }
+
+                // CommunicationLog ListView 새로고침
+                if (CommunicationLogListView != null)
+                {
+                    CommunicationLogListView.Items.Refresh();
+                }
+            });
         }
 
         private void StatusUpdateTimer_Tick(object sender, EventArgs e)
@@ -35,7 +59,7 @@ namespace Mvvm.Views
             // 통신 상태 갱신
             _viewModel.UpdateCommunicationStatus();
         }
-
+     
         private void UserControl_Unloaded(object sender, RoutedEventArgs e)
         {
             _viewModel.Cleanup();

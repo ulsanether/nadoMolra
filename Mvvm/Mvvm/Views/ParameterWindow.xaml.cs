@@ -10,10 +10,11 @@ namespace Mvvm.Views
     {
         private readonly ParameterWindowViewModel _viewModel;
 
-        public ParameterWindow(ModbusConnect modbusConnect)
+        // ParameterWindow.xaml.cs
+        public ParameterWindow(ParameterWindowViewModel viewModel)
         {
             InitializeComponent();
-            _viewModel = new ParameterWindowViewModel(modbusConnect);
+            _viewModel = viewModel;
             DataContext = _viewModel;
             _viewModel.RefreshTemplateAction = RefreshTemplate;
         }

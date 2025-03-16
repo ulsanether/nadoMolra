@@ -38,7 +38,8 @@ namespace Mvvm
             // EventAggregator 등록
             containerRegistry.RegisterSingleton<IEventAggregator, EventAggregator>();
             // ViewModels 등록
-            containerRegistry.RegisterForNavigation<ParameterWindowViewModel>();
+
+            containerRegistry.RegisterSingleton<ParameterWindowViewModel>();
             containerRegistry.RegisterSingleton<HomePageViewModel>();
             containerRegistry.RegisterSingleton<MainBottomBarViewModel>();
             // Views 등록
@@ -48,6 +49,10 @@ namespace Mvvm
             containerRegistry.RegisterForNavigation<ModbusDataViewPage>();
             containerRegistry.RegisterForNavigation<MainBottomBar>();
         }
+
+
+
+
 
         protected override void InitializeModules()
         {

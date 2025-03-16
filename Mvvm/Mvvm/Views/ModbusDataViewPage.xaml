@@ -1,5 +1,4 @@
-﻿<!--  ModbusDataViewPage.xaml  -->
-<UserControl
+﻿<UserControl
     x:Class="Mvvm.Views.ModbusDataViewPage"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -14,7 +13,7 @@
     mc:Ignorable="d">
 
     <Grid>
-        <TabControl>
+        <TabControl x:Name="MainTabControl">
             <!--  실시간 차트 탭  -->
             <TabItem Header="실시간 차트">
                 <Grid>
@@ -23,10 +22,9 @@
                         <RowDefinition Height="*" />
                     </Grid.RowDefinitions>
 
-                    <StackPanel Orientation="Vertical" />
-
                     <!--  컨트롤 패널  -->
                     <StackPanel
+                        x:Name="ChartControlPanel"
                         Grid.Row="0"
                         Margin="5"
                         Orientation="Horizontal">
@@ -80,51 +78,47 @@
                 </Grid>
             </TabItem>
 
+            <!--  Set Point Table 탭  -->
             <TabItem Header="Set Point Table">
                 <Grid>
-                    <DataGrid 
-    Margin="5"
-    AutoGenerateColumns="False"
-    ItemsSource="{Binding AvailableParameters, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-    EnableRowVirtualization="True"
-    IsSynchronizedWithCurrentItem="True">
+                    <DataGrid x:Name="ParametersDataGrid"
+          Margin="5"
+          AutoGenerateColumns="False"
+          EnableRowVirtualization="True"
+          IsSynchronizedWithCurrentItem="True"
+          ItemsSource="{Binding Parameters, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}">
                         <DataGrid.Columns>
-                            <DataGridTextColumn 
-            Width="80"
-            Binding="{Binding Address, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-            Header="주소" />
-                            <DataGridTextColumn 
-            Width="150"
-            Binding="{Binding Label, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-            Header="레이블" />
-                            <DataGridTextColumn 
-            Width="200"
-            Binding="{Binding Description, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-            Header="설명" />
-                            <DataGridTextColumn 
-            Width="100"
-            Binding="{Binding DefaultActual, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, StringFormat=F2}"
-            Header="현재값">
+                            <DataGridTextColumn Width="80"
+                            Binding="{Binding Address, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                            Header="주소" />
+                            <DataGridTextColumn Width="150"
+                            Binding="{Binding Label, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                            Header="레이블" />
+                            <DataGridTextColumn Width="200"
+                            Binding="{Binding Description, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                            Header="설명" />
+                            <DataGridTextColumn Width="100"
+                            Binding="{Binding DefaultActual, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, StringFormat=F2}"
+                            Header="현재값">
                                 <DataGridTextColumn.CellStyle>
                                     <Style TargetType="DataGridCell">
                                         <Style.Triggers>
                                             <DataTrigger Binding="{Binding IsValueChanged}" Value="True">
-                                                <Setter Property="Background" Value="Yellow"/>
+                                                <Setter Property="Background" Value="Yellow" />
                                             </DataTrigger>
                                         </Style.Triggers>
                                     </Style>
                                 </DataGridTextColumn.CellStyle>
                             </DataGridTextColumn>
-                            <DataGridTextColumn 
-            Width="80"
-            Binding="{Binding ModbusUnit, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-            Header="단위" />
+                            <DataGridTextColumn Width="80"
+                            Binding="{Binding ModbusUnit, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                            Header="단위" />
                         </DataGrid.Columns>
                     </DataGrid>
 
+
                 </Grid>
             </TabItem>
-
 
             <!--  통신 상태 탭  -->
             <TabItem Header="통신 상태">
@@ -136,7 +130,10 @@
                     </Grid.RowDefinitions>
 
                     <!--  통신 상태 표시  -->
-                    <GroupBox Margin="0,0,0,10" Header="통신 상태">
+                    <GroupBox
+                        Grid.Row="0"
+                        Margin="0,0,0,10"
+                        Header="통신 상태">
                         <Grid>
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="Auto" />
@@ -150,12 +147,14 @@
                                 <RowDefinition Height="Auto" />
                             </Grid.RowDefinitions>
 
-                            <TextBlock Margin="5" Text="성공률:" />
+                            <TextBlock
+                                Grid.Column="0"
+                                Margin="5"
+                                Text="성공률:" />
                             <TextBlock
                                 Grid.Column="1"
                                 Margin="5"
                                 Text="{Binding Statistics.SuccessRate, StringFormat={}{0:F2}%}" />
-
                             <TextBlock
                                 Grid.Column="2"
                                 Margin="5"
@@ -167,6 +166,7 @@
 
                             <TextBlock
                                 Grid.Row="1"
+                                Grid.Column="0"
                                 Margin="5"
                                 Text="마지막 성공:" />
                             <TextBlock
@@ -174,7 +174,6 @@
                                 Grid.Column="1"
                                 Margin="5"
                                 Text="{Binding Statistics.LastSuccessfulRead}" />
-
                             <TextBlock
                                 Grid.Row="1"
                                 Grid.Column="2"
@@ -188,6 +187,7 @@
 
                             <TextBlock
                                 Grid.Row="2"
+                                Grid.Column="0"
                                 Margin="5"
                                 Text="재연결 성공률:" />
                             <TextBlock
@@ -209,7 +209,6 @@
                                 Margin="5"
                                 Command="{Binding ExportDataCommand}"
                                 Content="데이터 내보내기" />
-
                             <Button
                                 Width="100"
                                 Margin="5"
@@ -220,7 +219,7 @@
 
                     <!--  통신 로그  -->
                     <GroupBox Grid.Row="2" Header="통신 로그">
-                        <ListView ItemsSource="{Binding CommunicationLog}">
+                        <ListView x:Name="CommunicationLogListView" ItemsSource="{Binding CommunicationLog}">
                             <ListView.View>
                                 <GridView>
                                     <GridViewColumn
@@ -238,10 +237,10 @@
                                 </GridView>
                             </ListView.View>
                         </ListView>
+
                     </GroupBox>
                 </Grid>
             </TabItem>
         </TabControl>
     </Grid>
 </UserControl>
-

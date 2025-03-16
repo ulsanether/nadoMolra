@@ -21,11 +21,16 @@ namespace Mvvm.Model
         private SolidColorBrush _statusColor;
         private int _index;
         private string _unit;
+        private string _newValue;
 
         public int Address { get; set; }
         public string Label { get; set; }
         public string Description { get; set; }
-        public double DefaultActual { get; set; }
+        public double DefaultActual
+        {
+            get => _defaultActual;
+            set => SetProperty(ref _defaultActual, value);
+        }
         public string DefaultValue { get; set; }
         public string ModbusUnit { get; set; }
         public bool IsValueChanged
@@ -59,7 +64,6 @@ namespace Mvvm.Model
             get => _unit;
             set => SetProperty(ref _unit, value);
         }
-        private string _newValue;
         public string NewValue
         {
             get => _newValue;
@@ -84,4 +88,3 @@ namespace Mvvm.Model
         }
     }
 }
-

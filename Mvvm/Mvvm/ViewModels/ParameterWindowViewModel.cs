@@ -15,6 +15,7 @@ using System.Threading;
 using NLog;
 
 using Timer = System.Timers.Timer;
+using System.Threading.Tasks;
 
 
 namespace Mvvm.ViewModels
@@ -44,7 +45,12 @@ namespace Mvvm.ViewModels
 
         private bool _isCardView;
         private ObservableCollection<string> _chartTypes;
-        private ObservableCollection<string> _communicationLog;
+
+        // 필드 선언 부분 수정
+        private ObservableCollection<CommunicationLogItem> _communicationLog;
+
+
+
         #endregion
 
         private string _startAddress;
@@ -147,6 +153,13 @@ namespace Mvvm.ViewModels
             set => SetProperty(ref _availableParameters, value);
         }
 
+        public ObservableCollection<CommunicationLogItem> CommunicationLog
+        {
+            get => _communicationLog;
+            set => SetProperty(ref _communicationLog, value);
+        }
+
+
         private async void ExecuteGenerateParameters()
         {
             try
@@ -165,13 +178,10 @@ namespace Mvvm.ViewModels
 
                 int numberOfPoints = end - start + 1;
 
-                // 기존 파라미터 초기화
                 Parameters.Clear();
 
-                // 새로운 파라미터 데이터 로드
                 var parameters = await _modbusConnect.ReadModbusData(start, numberOfPoints);
 
-                // UI 업데이트는 Dispatcher를 통해 수행
                 await Application.Current.Dispatcher.InvokeAsync(() =>
                 {
                     foreach (var parameter in parameters)
@@ -214,7 +224,6 @@ namespace Mvvm.ViewModels
                     return;
                 }
 
-                // 확인 메시지 표시
                 var result = MessageBox.Show(
                     $"다음 값을 설정하시겠습니까?\n\n주소: {parameter.Address}\n설명: {parameter.Description}\n현재값: {parameter.DefaultActual}\n설정값: {newValue}",
                     "설정 확인",
@@ -244,12 +253,7 @@ namespace Mvvm.ViewModels
             set => SetProperty(ref _chartTypes, value);
         }
 
-        public ObservableCollection<string> CommunicationLog
-        {
-            get => _communicationLog;
-            set => SetProperty(ref _communicationLog, value);
-        }
-
+    
         private ObservableCollection<ParameterModel> _parameters;
         public ObservableCollection<ParameterModel> Parameters
         {
@@ -272,27 +276,35 @@ namespace Mvvm.ViewModels
             LoadModbusData();
         }
 
+
+
+
         public ParameterWindowViewModel(ModbusConnect modbusConnect)
         {
             _modbusConnect = modbusConnect;
+            _communicationLog = new ObservableCollection<CommunicationLogItem>();
 
             Parameters = new ObservableCollection<ParameterModel>();
             ResetChartCommand = new DelegateCommand(ResetChart);
             ExportDataCommand = new DelegateCommand(ExportData);
             ResetStatisticsCommand = new DelegateCommand(ResetStatistics);
 
-            // 데이터 업데이트용 타이머
-            _dataUpdateTimer = new System.Timers.Timer(1000); // 1초마다 업데이트
+            // 데이터 업데이트용 타이머 간격을 100ms로 변경
+            _dataUpdateTimer = new System.Timers.Timer(1000); // 100ms마다 업데이트
             _dataUpdateTimer.Elapsed += OnDataUpdateTimerElapsed;
             _dataUpdateTimer.AutoReset = true;
             _dataUpdateTimer.Start();
-            _updateTimer = new Timer(1000);
+
+            _updateTimer = new Timer(1000); // 이것도 100ms로 변경
             _modbusConnect.ConnectionStatusChanged += OnConnectionStatusChanged;
 
+            AddLog("초기화", "ParameterWindow 초기화 완료");
             InitializeChart();
             InitializeChartTypes();
             LoadModbusData();
         }
+
+
         #endregion
 
         #region Private Methods
@@ -300,63 +312,143 @@ namespace Mvvm.ViewModels
         {
             try
             {
-                var modbusData = await _modbusConnect.ReadModbusData(1, 10);
-                await Application.Current.Dispatcher.InvokeAsync(() =>
+                if (!_modbusConnect.IsConnected())
                 {
-                    foreach (var parameter in modbusData)
+                    AddLog("연결 상태", "ModBus 연결되지 않음");
+                    return;
+                }
+
+                AddLog("데이터 요청", "ModBus 데이터 읽기 시작");
+
+                if (!Parameters.Any())
+                {
+                    var initialData = await _modbusConnect.ReadModbusData(1, 10);
+                    AddLog("초기 데이터", $"레지스터 수: {initialData.Count}");
+
+                    await Application.Current.Dispatcher.InvokeAsync(() =>
                     {
-                        var existingParameter = Parameters.FirstOrDefault(p => p.Address == parameter.Address);
-                        if (existingParameter != null)
+                        foreach (var parameter in initialData)
                         {
-                            if (existingParameter.DefaultActual != parameter.DefaultActual)
-                            {
-                                existingParameter.DefaultActual = parameter.DefaultActual;
-                                existingParameter.IsValueChanged = true;
-                            }
+                            InitializeParameter(parameter);
                         }
-                        else
+                    });
+                }
+                else
+                {
+                    var startAddress = Parameters.Min(p => p.Address);
+                    var endAddress = Parameters.Max(p => p.Address);
+                    var count = endAddress - startAddress + 1;
+
+                    var updatedData = await _modbusConnect.ReadModbusData(startAddress, count);
+                    AddLog("데이터 갱신", $"주소 범위: {startAddress}-{endAddress}, 개수: {count}");
+
+                    await Application.Current.Dispatcher.InvokeAsync(() =>
+                    {
+                        foreach (var parameter in updatedData)
                         {
-                            var indexList = Properties.Settings.Default.Index;
-                            var descriptionList = Properties.Settings.Default.Description;
-                            var unitList = Properties.Settings.Default.Unit;
-                            var defaultValueList = Properties.Settings.Default.DefaultValue;
-
-                            var newParameter = new ParameterModel
-                            {
-                                Address = parameter.Address,
-                                DefaultActual = parameter.DefaultActual,
-                                Description = $"Register {parameter.Address}",
-                                Label = $"Register {parameter.Address}",
-                                ModbusUnit = "Raw"
-                            };
-
-                            if (indexList != null)
-                            {
-                                var settingsIndex = indexList.Cast<string>()
-                                    .Select((indexStr, i) => new { Index = int.Parse(indexStr), Position = i })
-                                    .FirstOrDefault(x => x.Index == parameter.Address);
-
-                                if (settingsIndex != null)
-                                {
-                                    newParameter.Description = descriptionList[settingsIndex.Position];
-                                    newParameter.Label = descriptionList[settingsIndex.Position];
-                                    newParameter.ModbusUnit = unitList[settingsIndex.Position];
-                                    newParameter.DefaultValue = defaultValueList[settingsIndex.Position];
-                                }
-                            }
-
-                            Parameters.Add(newParameter);
+                            UpdateExistingParameter(parameter);
                         }
-                    }
-
-                    RaisePropertyChanged(nameof(Parameters));
-                });
+                        RaisePropertyChanged(nameof(Parameters));
+                        RaisePropertyChanged(nameof(AvailableParameters));
+                    });
+                }
             }
             catch (Exception ex)
             {
-                Debug.WriteLine($"Modbus 데이터 로드 실패: {ex.Message}");
+                AddLog("오류", $"ModBus 데이터 로드 실패: {ex.Message}");
+                Logger.Error(ex, "Modbus 데이터 로드 실패");
             }
         }
+
+        private void UpdateExistingParameter(ParameterModel updatedParameter)
+        {
+            var existingParameter = Parameters.FirstOrDefault(p => p.Address == updatedParameter.Address);
+            if (existingParameter != null)
+            {
+                if (Math.Abs(existingParameter.DefaultActual - updatedParameter.DefaultActual) > 0.001)
+                {
+                    var oldValue = existingParameter.DefaultActual;
+                    existingParameter.DefaultActual = updatedParameter.DefaultActual;
+                    existingParameter.IsValueChanged = true;
+
+                    AddLog("값 변경", $"주소: {existingParameter.Address}, " +
+                                   $"이전 값: {oldValue:F2}, " +
+                                   $"새 값: {updatedParameter.DefaultActual:F2}");
+
+                    Task.Delay(3000).ContinueWith(_ =>
+                    {
+                        Application.Current.Dispatcher.Invoke(() =>
+                        {
+                            existingParameter.IsValueChanged = false;
+                        });
+                    });
+                }
+            }
+        }
+
+
+
+        private void AddLog(string eventName, string details)
+        {
+            Application.Current.Dispatcher.Invoke(() =>
+            {
+                var logItem = new CommunicationLogItem(eventName, details);
+                _communicationLog.Insert(0, logItem);
+
+                // 최대 로그 수 제한
+                while (_communicationLog.Count > 1000)
+                {
+                    _communicationLog.RemoveAt(_communicationLog.Count - 1);
+                }
+
+                // NLog를 통한 로깅
+                Logger.Info($"{eventName}: {details}");
+
+                // UI 업데이트를 위한 속성 변경 알림
+                RaisePropertyChanged(nameof(CommunicationLog));
+            });
+        }
+
+
+
+
+
+
+        private void InitializeParameter(ParameterModel parameter)
+        {
+            var newParameter = new ParameterModel
+            {
+                Address = parameter.Address,
+                DefaultActual = parameter.DefaultActual,
+                Description = $"Register {parameter.Address}",
+                Label = $"Register {parameter.Address}",
+                ModbusUnit = "Raw"
+            };
+
+            // Settings에서 파라미터 정보 가져오기
+            var indexList = Properties.Settings.Default.Index;
+            var descriptionList = Properties.Settings.Default.Description;
+            var unitList = Properties.Settings.Default.Unit;
+            var defaultValueList = Properties.Settings.Default.DefaultValue;
+
+            if (indexList != null)
+            {
+                var settingsIndex = indexList.Cast<string>()
+                    .Select((indexStr, i) => new { Index = int.Parse(indexStr), Position = i })
+                    .FirstOrDefault(x => x.Index == parameter.Address);
+
+                if (settingsIndex != null)
+                {
+                    newParameter.Description = descriptionList[settingsIndex.Position];
+                    newParameter.Label = descriptionList[settingsIndex.Position];
+                    newParameter.ModbusUnit = unitList[settingsIndex.Position];
+                    newParameter.DefaultValue = defaultValueList[settingsIndex.Position];
+                }
+            }
+
+            Parameters.Add(newParameter);
+        }
+
 
         private void OnDataUpdateTimerElapsed(object sender, ElapsedEventArgs e)
         {
@@ -547,5 +639,22 @@ namespace Mvvm.ViewModels
         }
         #endregion
     }
+
+    public class CommunicationLogItem
+    {
+        public DateTime Timestamp { get; }
+        public string Event { get; }
+        public string Details { get; }
+
+        public CommunicationLogItem(string eventName, string details)
+        {
+            Timestamp = DateTime.Now;
+            Event = eventName;
+            Details = details;
+        }
+    }
+
+
 }
+
 
