@@ -84,8 +84,6 @@ namespace Mvvm.Model.IniFileRead
         }
 
 
-
-
         public interface IIniFileReaderFactory
         {
             IIniFileReader CreateIniFileReader(string path);

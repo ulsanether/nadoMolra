@@ -44,38 +44,36 @@ namespace Mvvm.ViewModels
 
         private bool _isCardView;
         private ObservableCollection<string> _chartTypes;
-
-        // 필드 선언 부분 수정
+        private string _startAddress;
+        private string _endAddress;
+        private bool _isListView = true;
         private ObservableCollection<CommunicationLogItem> _communicationLog;
-
+        private DelegateCommand _generateParametersCommand;
+        private DelegateCommand<ParameterModel> _writeCommand;
         #endregion
 
-        private string _startAddress;
-        public string StartAddress
-        {
-            get => _startAddress;
-            set => SetProperty(ref _startAddress, value);
-        }
-
-        private string _endAddress;
-        public string EndAddress
-        {
-            get => _endAddress;
-            set => SetProperty(ref _endAddress, value);
-        }
-
-        private bool _isListView = true;
-        public bool IsListView
-        {
-            get => _isListView;
-            set => SetProperty(ref _isListView, value);
-        }
 
         #region Properties
         public object LockObject => _lockObject;
         public Queue<double> TimeData => _timeData;
         public Queue<double> ValueData => _valueData;
         public int MaxDataPoints => _maxDataPoints;
+
+        public string StartAddress
+        {
+            get => _startAddress;
+            set => SetProperty(ref _startAddress, value);
+        }
+        public string EndAddress
+        {
+            get => _endAddress;
+            set => SetProperty(ref _endAddress, value);
+        }
+        public bool IsListView
+        {
+            get => _isListView;
+            set => SetProperty(ref _isListView, value);
+        }
 
         public bool IsRealTimeUpdate
         {
@@ -140,11 +138,11 @@ namespace Mvvm.ViewModels
             set => SetProperty(ref _statistics, value);
         }
 
-        private DelegateCommand _generateParametersCommand;
+
         public DelegateCommand GenerateParametersCommand =>
             _generateParametersCommand ?? (_generateParametersCommand = new DelegateCommand(ExecuteGenerateParameters));
 
-        private DelegateCommand<ParameterModel> _writeCommand;
+
         public DelegateCommand<ParameterModel> WriteCommand =>
             _writeCommand ?? (_writeCommand = new DelegateCommand<ParameterModel>(ExecuteWrite));
 

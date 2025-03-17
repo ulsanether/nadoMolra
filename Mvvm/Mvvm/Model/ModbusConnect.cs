@@ -99,7 +99,7 @@ namespace Mvvm.Model
 
             try
             {
-                MessageBox.Show("포트 연결 시도 중...", "연결", MessageBoxButton.OK, MessageBoxImage.Information);
+             //   MessageBox.Show("포트 연결 시도 중...", "연결", MessageBoxButton.OK, MessageBoxImage.Information);
                 await DisconnectIfConnected();
                 await OpenNewConnection(_portName);
                 ConnectionStatusChanged?.Invoke(true);
@@ -131,6 +131,10 @@ namespace Mvvm.Model
                 ReadTimeout = serialPortConfig.ReadTimeout,
                 WriteTimeout = serialPortConfig.WriteTimeout
             };
+
+            MessageBox.Show(serialPortConfig.BaudRate.ToString(), "BaudRate", MessageBoxButton.OK, MessageBoxImage.Information);
+
+
 
             await Task.Run(() => 
             

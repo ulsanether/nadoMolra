@@ -207,29 +207,7 @@ namespace Mvvm.ViewModels
         {
             _regionManager = regionManager;
             _mainBottomBarViewModel = mainBottomBarViewModel;
-            _modbusConnect = modbusConnect;
-            _parameterWindowViewModel = parameterWindowViewModel;
-
-            ShowMessageCommand = new DelegateCommand(ShowMessage);
-
-            NavigateToParameterWindowCommand = new DelegateCommand(NavigateToParameterWindow);
-            NavigateToSettingWindowCommand = new DelegateCommand(NavigateToSettingWindow);
-            NavigateToModbusDataViewPageCommand = new DelegateCommand(NavigateToModbusDataViewPage);
-            NavigateToHomePageCommand = new DelegateCommand(HomePageLoad);
-            PortConnectButton = new DelegateCommand(ConnectPorts);
-
-            BottomMessageQueue = new SnackbarMessageQueue();
-
-            _timer = new Timer(1000);
-            _timer.Elapsed += (sender, e) => LoadAvailablePorts(_portComBox);
-            _timer.Start();
-            BottomMessageQueue.Enqueue("애플리케이션 시작", "OK", () => { });
-
-            InitializeParameterWindowViewModel();
-
-            // Initialize fields from SettingPageViewModel
-            _serialPortConfig = new SerialPortConfig();
-            _settingsManager = new ExcelSettingsManager();
+         
 
             Parameters = new ObservableCollection<ParameterModel>();
             InitializeCollections();
@@ -265,6 +243,9 @@ namespace Mvvm.ViewModels
                 BottomMessageQueue.Enqueue("포트 연결 실패", "OK", () => { });
             }
         }
+
+
+
 
         public void HomePageLoad()
         {

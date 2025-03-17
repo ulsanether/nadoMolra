@@ -51,9 +51,6 @@ namespace Mvvm
         }
 
 
-
-
-
         protected override void InitializeModules()
         {
             base.InitializeModules();

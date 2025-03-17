@@ -71,7 +71,7 @@ namespace Mvvm.Model
         }
         public ParameterModel()
         {
-            // 기본 생성자
+   
         }
 
         private async void ResetValueChangedFlag()
