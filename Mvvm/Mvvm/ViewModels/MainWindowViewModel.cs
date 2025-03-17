@@ -200,14 +200,36 @@ namespace Mvvm.ViewModels
         }
 
         public DelegateCommand OpenExcelCommand { get; }
-
+        public DelegateCommand<ParameterModel> SomeCommand { get; private set; }
         public event Action<List<ParameterModel>> ExcelDataLoaded;
 
         public MainWindowViewModel(IRegionManager regionManager, MainBottomBarViewModel mainBottomBarViewModel, ModbusConnect modbusConnect, ParameterWindowViewModel parameterWindowViewModel)
         {
             _regionManager = regionManager;
             _mainBottomBarViewModel = mainBottomBarViewModel;
-         
+            _modbusConnect = modbusConnect;
+            _parameterWindowViewModel = parameterWindowViewModel;
+
+            ShowMessageCommand = new DelegateCommand(ShowMessage);
+            SomeCommand = new DelegateCommand<ParameterModel>(ExecuteMethod, CanExecuteMethod);
+            NavigateToParameterWindowCommand = new DelegateCommand(NavigateToParameterWindow);
+            NavigateToSettingWindowCommand = new DelegateCommand(NavigateToSettingWindow);
+            NavigateToModbusDataViewPageCommand = new DelegateCommand(NavigateToModbusDataViewPage);
+            NavigateToHomePageCommand = new DelegateCommand(HomePageLoad);
+            PortConnectButton = new DelegateCommand(ConnectPorts);
+
+            BottomMessageQueue = new SnackbarMessageQueue();
+
+            _timer = new Timer(1000);
+            _timer.Elapsed += (sender, e) => LoadAvailablePorts(_portComBox);
+            _timer.Start();
+            BottomMessageQueue.Enqueue("애플리케이션 시작", "OK", () => { });
+
+            InitializeParameterWindowViewModel();
+
+            // Initialize fields from SettingPageViewModel
+            _serialPortConfig = new SerialPortConfig();
+            _settingsManager = new ExcelSettingsManager();
 
             Parameters = new ObservableCollection<ParameterModel>();
             InitializeCollections();
@@ -360,6 +382,17 @@ namespace Mvvm.ViewModels
             {
                 var modbusData = ExcelSettingsManager.LoadModbusParameters(defaultPath);
             }
+        }
+
+
+        private void ExecuteMethod(ParameterModel parameter)
+        {
+            // 실행 로직
+        }
+
+        private bool CanExecuteMethod(ParameterModel parameter)
+        {
+            return parameter != null;
         }
 
         private void ExecuteSaveExcel()
