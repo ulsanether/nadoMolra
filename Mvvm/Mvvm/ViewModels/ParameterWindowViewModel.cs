@@ -303,6 +303,8 @@ namespace Mvvm.ViewModels
         }
         #endregion
 
+
+
         #region Private Methods
         private async void LoadModbusData()
         {
@@ -318,7 +320,7 @@ namespace Mvvm.ViewModels
 
                 if (!Parameters.Any())
                 {
-                    var initialData = await _modbusConnect.ReadModbusData(1, 10);
+                    var initialData = await _modbusConnect.ReadModbusData(0, 1);
                     AddLog("초기 데이터", $"레지스터 수: {initialData.Count}");
 
                     await Application.Current.Dispatcher.InvokeAsync(() =>
@@ -331,9 +333,8 @@ namespace Mvvm.ViewModels
                 }
                 else
                 {
-                    var startAddress = Parameters.Min(p => p.Address);
-                    var endAddress = Parameters.Max(p => p.Address);
-                    var count = endAddress - startAddress + 1;
+                    int startAddress, endAddress, count;
+                    ModbusCount(out startAddress, out endAddress, out count);
 
                     var updatedData = await _modbusConnect.ReadModbusData(startAddress, count);
                     AddLog("데이터 갱신", $"주소 범위: {startAddress}-{endAddress}, 개수: {count}");
@@ -356,6 +357,13 @@ namespace Mvvm.ViewModels
             }
         }
 
+        private void ModbusCount(out int startAddress, out int endAddress, out int count)
+        {
+            startAddress = Parameters.Min(p => p.Address);
+            endAddress = Parameters.Max(p => p.Address);
+            count = endAddress - startAddress + 1;
+        }
+
         private void UpdateExistingParameter(ParameterModel updatedParameter)
         {
             var existingParameter = Parameters.FirstOrDefault(p => p.Address == updatedParameter.Address);
@@ -364,7 +372,7 @@ namespace Mvvm.ViewModels
                 if (Math.Abs(existingParameter.DefaultActual - updatedParameter.DefaultActual) > 0.001)
                 {
                     var oldValue = existingParameter.DefaultActual;
-                    existingParameter.DefaultActual = updatedParameter.DefaultActual;
+             
                     existingParameter.IsValueChanged = true;
 
                     AddLog("값 변경", $"주소: {existingParameter.Address}, " +
