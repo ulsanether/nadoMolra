@@ -18,6 +18,7 @@ using ScottPlot.WPF;
 using System.Collections.Generic;
 using System.IO;
 using Mvvm.Model.IniFileRead;
+using MaterialDesignThemes.Wpf.Transitions;
 
 namespace Mvvm.ViewModels
 {
@@ -220,6 +221,9 @@ namespace Mvvm.ViewModels
 
             BottomMessageQueue = new SnackbarMessageQueue();
 
+            _mainBottomBarViewModel.AdvancedModeChanged += OpenRightBar;
+
+
             _timer = new Timer(1000);
             _timer.Elapsed += (sender, e) => LoadAvailablePorts(_portComBox);
             _timer.Start();
@@ -238,6 +242,15 @@ namespace Mvvm.ViewModels
 
             OpenExcelCommand = new DelegateCommand(OpenExcelFile);
             SaveExcelCommand = new DelegateCommand(ExecuteSaveExcel);
+        }
+
+        private void OpenRightBar(object sender, EventArgs e) {
+            var mainWindow = Application.Current.MainWindow as MainWindow;
+            if (mainWindow != null)
+            {
+            MessageBox.Show("Advanced Mode Changed", "알림", MessageBoxButton.OK, MessageBoxImage.Information);
+                DrawerHost.OpenDrawerCommand.Execute(Dock.Right, mainWindow.DrawerHost);
+            }
         }
 
         private void InitializeParameterWindowViewModel()
@@ -288,6 +301,12 @@ namespace Mvvm.ViewModels
         {
             _regionManager.RequestNavigate("ContentRegion", "SettingPage");
         }
+
+
+
+
+        
+
 
         public void LoadAvailablePorts(ComboBox portComBox)
         {

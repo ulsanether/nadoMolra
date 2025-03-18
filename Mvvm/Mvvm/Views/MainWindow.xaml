@@ -11,6 +11,7 @@
     Width="800"
     Height="640"
     prism:ViewModelLocator.AutoWireViewModel="True"
+    Background="{StaticResource MainBackground}"
     Loaded="MainWindow_Loaded"
     mc:Ignorable="av">
 
@@ -18,7 +19,7 @@
 
     <Grid Height="600" VerticalAlignment="Top">
         <Grid.RowDefinitions>
-            <RowDefinition Height="80" />
+            <RowDefinition Height="60" />
             <RowDefinition />
             <RowDefinition Height="43" />
         </Grid.RowDefinitions>
@@ -27,6 +28,7 @@
             Padding="10"
             VerticalAlignment="Stretch"
             materialDesign:ElevationAssist.Elevation="Dp4"
+            Background="#FF009BD1"
             ClipToBounds="False"
             CornerRadius="10"
             Mode="PrimaryDark">
@@ -42,7 +44,8 @@
         <Button
             Grid.Row="0"
             Width="100"
-            Margin="560,24,0,24"
+            Height="60"
+            Margin="560,0,0,0"
             HorizontalAlignment="Left"
             Command="{Binding NavigateToParameterWindowCommand}"
             Content="Data"
@@ -51,29 +54,58 @@
             ToolTip="데이터 확인" />
 
 
+        <Button
+            Grid.Row="0"
+            Width="100"
+            Height="60"
+            HorizontalAlignment="Right"
+            Command="{Binding NavigateToModbusDataViewPageCommand}"
+            Style="{StaticResource ModbusDataButton}">
+            <StackPanel>
+                <TextBlock
+                    HorizontalAlignment="Right"
+                    FontSize="22"
+                    Text="데이터" />
+                <TextBlock
+                    HorizontalAlignment="Right"
+                    FontSize="12"
+                    Foreground="Gainsboro"
+                    Text="모드버스 데이터" />
+            </StackPanel>
+        </Button>
+
 
         <Button
             Grid.Row="0"
             Width="100"
-            Margin="440,24,0,24"
+            Height="60"
+            Margin="437,0,0,0"
+            Padding="16,0,16,0"
             HorizontalAlignment="Left"
+            VerticalContentAlignment="Center"
+            Background="{StaticResource AccentBackground}"
             Command="{Binding NavigateToModbusDataViewPageCommand}"
             Content="Modbus Data View"
+            FontSize="13"
+            Foreground="White"
             Style="{StaticResource MaterialDesignRaisedLightButton}"
             ToolTip="Modbus Data View" />
 
         <ContentControl Grid.Row="1" prism:RegionManager.RegionName="ContentRegion" />
 
         <Button
-            Width="56"
-            Margin="100,12,399,12"
-            HorizontalAlignment="Center"
+            Width="40"
+            Height="40"
+            Margin="222,-2,0,0"
+            HorizontalAlignment="Left"
+            VerticalAlignment="Center"
             Command="{Binding PortConnectButton}"
+            Foreground="White"
             Style="{StaticResource MaterialDesignFloatingActionLightButton}"
             ToolTip="MaterialDesignFloatingActionLightButton">
             <materialDesign:PackIcon
-                Width="30"
-                Height="30"
+                Width="20"
+                Height="20"
                 Kind="Network" />
         </Button>
         <ComboBox
@@ -94,6 +126,7 @@
             Height="600"
             HorizontalAlignment="Center"
             VerticalAlignment="Top"
+            av:IsHidden="True"
             BorderBrush="{DynamicResource MaterialDesignDivider}"
             BorderThickness="2"
             BottomDrawerBackground="{DynamicResource SecondaryHueLightBrush}"
@@ -137,7 +170,8 @@
             <Grid
                 Margin="0,18,70,0"
                 HorizontalAlignment="Right"
-                VerticalAlignment="Top">
+                VerticalAlignment="Top"
+                Visibility="Collapsed">
                 <Grid.RowDefinitions>
                     <RowDefinition />
                 </Grid.RowDefinitions>
@@ -166,7 +200,31 @@
             HorizontalAlignment="Right"
             VerticalAlignment="Bottom"
             IsActive="True"
-            MessageQueue="{Binding BottomMessageQueue}" />
+            MessageQueue="{Binding BottomMessageQueue}">
+            <materialDesign:Snackbar.Background>
+                <LinearGradientBrush StartPoint="0.5,0" EndPoint="0.5,1">
+                    <LinearGradientBrush.RelativeTransform>
+                        <TransformGroup>
+                            <ScaleTransform CenterX="0.5" CenterY="0.5" />
+                            <SkewTransform CenterX="0.5" CenterY="0.5" />
+                            <RotateTransform Angle="90" CenterX="0.5" CenterY="0.5" />
+                            <TranslateTransform />
+                        </TransformGroup>
+                    </LinearGradientBrush.RelativeTransform>
+                    <LinearGradientBrush.Transform>
+                        <TransformGroup>
+                            <ScaleTransform />
+                            <SkewTransform />
+                            <RotateTransform Angle="0" />
+                            <TranslateTransform />
+                        </TransformGroup>
+                    </LinearGradientBrush.Transform>
+                    <GradientStop Color="#FF009AD2" />
+                    <GradientStop Offset="1" Color="#FFB46FFE" />
+                    <GradientStop Offset="0.53" Color="#FF6C85E6" />
+                </LinearGradientBrush>
+            </materialDesign:Snackbar.Background>
+        </materialDesign:Snackbar>
 
     </Grid>
 

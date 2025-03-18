@@ -2,8 +2,11 @@
     x:Class="Mvvm.Views.HomePage"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:av="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
-    xmlns:prism="http://prismlibrary.com/">
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:prism="http://prismlibrary.com/"
+    mc:Ignorable="av">
 
     <Grid Width="686" Height="642">
         <Grid.ColumnDefinitions>
@@ -15,11 +18,89 @@
             <RowDefinition Height="*" />
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
+        <Border
+            Width="100"
+            Height="100"
+            Margin="25,60,218,161"
+            av:LayoutOverrides="Width, Height"
+            Background="#FFF2F2F2"
+            BorderBrush="#FFC0A9BA"
+            BorderThickness="1"
+            CornerRadius="6"
+            IsEnabled="False">
+            <Border.Effect>
 
-        <TextBlock
-            HorizontalAlignment="Center"
-            VerticalAlignment="Center"
-            FontSize="24" />
+                <DropShadowEffect
+                    BlurRadius="5"
+                    Direction="300"
+                    Opacity="0.195"
+                    RenderingBias="Performance" />
+            </Border.Effect>
+            <Label
+                HorizontalAlignment="Center"
+                Content="Label"
+                FontFamily="Yu Gothic UI Semibold"
+                Foreground="{StaticResource MainFontColor}" />
+        </Border>
+        <Border
+            Width="100"
+            Height="100"
+            Margin="172,60,71,161"
+            Background="#FFF2F2F2"
+            BorderBrush="#FFC0A9BA"
+            BorderThickness="1"
+            CornerRadius="6"
+            IsEnabled="False">
+            <Border.Effect>
+
+                <DropShadowEffect
+                    BlurRadius="5"
+                    Direction="300"
+                    Opacity="0.195"
+                    RenderingBias="Performance" />
+            </Border.Effect>
+            <Label
+                HorizontalAlignment="Center"
+                Content="Label"
+                FontFamily="Yu Gothic UI Semibold"
+                Foreground="{StaticResource MainFontColor}" />
+        </Border>
+        <Border
+            Height="100"
+            Margin="25,185,71,36"
+            av:LayoutOverrides="HorizontalAlignment"
+            BorderBrush="#FFC0A9BA"
+            BorderThickness="1"
+            CornerRadius="6"
+            IsEnabled="False">
+            <Border.Background>
+                <LinearGradientBrush StartPoint="0.5,0" EndPoint="0.5,1">
+                    <LinearGradientBrush.RelativeTransform>
+                        <TransformGroup>
+                            <ScaleTransform CenterX="0.5" CenterY="0.5" />
+                            <SkewTransform CenterX="0.5" CenterY="0.5" />
+                            <RotateTransform Angle="60" CenterX="0.5" CenterY="0.5" />
+                            <TranslateTransform />
+                        </TransformGroup>
+                    </LinearGradientBrush.RelativeTransform>
+                    <GradientStop Color="#FFC793F7" />
+                    <GradientStop Offset="1" Color="#FF4BB3D8" />
+                </LinearGradientBrush>
+            </Border.Background>
+            <Border.Effect>
+
+                <DropShadowEffect
+                    BlurRadius="5"
+                    Direction="300"
+                    Opacity="0.195"
+                    RenderingBias="Performance" />
+            </Border.Effect>
+            <Label
+                HorizontalAlignment="Center"
+                Content="Label"
+                FontFamily="Yu Gothic UI Semibold"
+                Foreground="{StaticResource SubOneFontColor}" />
+        </Border>
 
 
     </Grid>

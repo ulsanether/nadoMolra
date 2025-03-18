@@ -229,6 +229,28 @@
                 HorizontalAlignment="Left"
                 VerticalAlignment="Top"
                 Text="[ms]" />
+            <TextBlock
+                Grid.Column="0"
+                Width="106"
+                Height="16"
+                Margin="0,117,0,0"
+                HorizontalAlignment="Left"
+                VerticalAlignment="Top"
+                Text="Address" />
+            <TextBox
+                Width="120"
+                Margin="92,112,0,0"
+                HorizontalAlignment="Left"
+                VerticalAlignment="Top"
+                Text="{Binding SlaveId}"
+                TextWrapping="Wrap" />
+            <TextBox
+                Width="120"
+                Margin="281,117,0,0"
+                HorizontalAlignment="Left"
+                VerticalAlignment="Top"
+                Text="{Binding SlaveId}"
+                TextWrapping="Wrap" />
 
 
         </Grid>

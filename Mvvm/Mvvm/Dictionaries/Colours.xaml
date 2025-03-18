@@ -1,9 +1,18 @@
 ﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
 
+
+    <!--  Main Background color  -->
+
+    <SolidColorBrush x:Key="MainBackground" Color="#FFF2F2F2" />
+    <SolidColorBrush x:Key="BorderBrush" Color="#FFC0A9BA" />
+    <SolidColorBrush x:Key="MainFontColor" Color="#FF009BD1" />
+    <SolidColorBrush x:Key="SubOneFontColor" Color="White" />
+    <SolidColorBrush x:Key="SubTwoFontColor" Color="#FF009BD1" />
+
     <!--  App Accent Color  -->
 
-    <SolidColorBrush x:Key="AccentBackground" Color="#009BD1" />
+    <SolidColorBrush x:Key="AccentBackground" Color="#FF009BD1" />
     <SolidColorBrush x:Key="AccentOver" Color="#4FBBDF" />
     <SolidColorBrush x:Key="AccentClick" Color="#FF505050" />
 

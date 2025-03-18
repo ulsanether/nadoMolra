@@ -445,6 +445,17 @@ namespace Mvvm.ViewModels
 
         private void InitializeParameter(ParameterModel parameter)
         {
+            //접속 했을때 가장 초기값. 이것 역시 수정해야하고.
+            //고급 모드가 아니라면 이것 역시 엑셀에 수정 가능한 리스트 만큼 가져오게 할것
+            //settingview에서 값은 참조 할 것. 
+
+
+            // Settings에서 파라미터 정보 가져오기
+            var indexList = Properties.Settings.Default.Index;
+            var descriptionList = Properties.Settings.Default.Description;
+            var unitList = Properties.Settings.Default.Unit;
+            var defaultValueList = Properties.Settings.Default.DefaultValue;
+
             var newParameter = new ParameterModel
             {
                 Address = parameter.Address,
@@ -454,11 +465,7 @@ namespace Mvvm.ViewModels
                 ModbusUnit = "Raw"
             };
 
-            // Settings에서 파라미터 정보 가져오기
-            var indexList = Properties.Settings.Default.Index;
-            var descriptionList = Properties.Settings.Default.Description;
-            var unitList = Properties.Settings.Default.Unit;
-            var defaultValueList = Properties.Settings.Default.DefaultValue;
+
 
             if (indexList != null)
             {

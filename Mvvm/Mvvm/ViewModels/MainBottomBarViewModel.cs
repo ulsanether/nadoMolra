@@ -22,9 +22,7 @@ namespace Mvvm.ViewModels
 
         public ICommand AdvancedModeCommand => new DelegateCommand(OnAdvancedModeCommand);
 
-
-
-  
+        public event EventHandler AdvancedModeChanged;
 
         private bool _isConnected;
         public bool IsConnected
@@ -72,6 +70,9 @@ namespace Mvvm.ViewModels
         public void SubscribeToPortConnectedEvent(MainWindowViewModel mainWindowViewModel)
         {
             mainWindowViewModel.PortConnected += OnPortConnected;
+            
+
+
         }
 
         private void InitializeValues()
@@ -84,14 +85,16 @@ namespace Mvvm.ViewModels
 
         private void OnAdvancedModeCommand()
         {
-
             CountAdvanced++;
-
-
-            MessageBox.Show("Advanced Mode " + CountAdvanced.ToString());
-
-
+            if (CountAdvanced > 5) {
+               AdvancedModeChanged?.Invoke(this, EventArgs.Empty);
+                CountAdvanced = 0;
+            }
         }
+
+      
+
+        
 
         private void UpdatePortConfiguration()
         {
