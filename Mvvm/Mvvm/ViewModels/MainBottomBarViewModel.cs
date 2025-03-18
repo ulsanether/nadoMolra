@@ -2,12 +2,30 @@
 using Mvvm.Model;
 using System.Collections.ObjectModel;
 using System.Windows;
+using System.Windows.Input;
+using Prism.Commands;
+using System;
 
 namespace Mvvm.ViewModels
 {
     public class MainBottomBarViewModel : BindableBase
     {
+        #region 필드
         private readonly ModbusConnect _modbusConnect;
+
+        private int CountAdvanced = 0;
+
+
+        #endregion
+
+
+
+        public ICommand AdvancedModeCommand => new DelegateCommand(OnAdvancedModeCommand);
+
+
+
+  
+
         private bool _isConnected;
         public bool IsConnected
         {
@@ -61,6 +79,18 @@ namespace Mvvm.ViewModels
             IsConnected = _modbusConnect.IsConnected();
             UpdatePortState();
             UpdatePortConfiguration();
+        }
+
+
+        private void OnAdvancedModeCommand()
+        {
+
+            CountAdvanced++;
+
+
+            MessageBox.Show("Advanced Mode " + CountAdvanced.ToString());
+
+
         }
 
         private void UpdatePortConfiguration()

@@ -57,12 +57,18 @@
                 materialDesign:HintAssist.Hint="끝"
                 Text="{Binding EndAddress, UpdateSourceTrigger=PropertyChanged}" />
 
+
+
             <!--  생성 버튼  -->
             <Button
                 Grid.Column="4"
                 Margin="0,0,10,0"
                 Command="{Binding GenerateParametersCommand}"
                 Content="생성" />
+
+
+
+
 
             <!--  표시 방식 선택  -->
             <StackPanel

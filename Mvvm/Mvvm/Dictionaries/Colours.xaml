@@ -3,8 +3,8 @@
 
     <!--  App Accent Color  -->
 
-    <SolidColorBrush x:Key="AccentBackground" Color="AliceBlue" />
-    <SolidColorBrush x:Key="AccentOver" Color="#FFFF5D00" />
+    <SolidColorBrush x:Key="AccentBackground" Color="#009BD1" />
+    <SolidColorBrush x:Key="AccentOver" Color="#4FBBDF" />
     <SolidColorBrush x:Key="AccentClick" Color="#FF505050" />
 
 

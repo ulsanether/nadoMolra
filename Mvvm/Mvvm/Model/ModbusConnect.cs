@@ -150,10 +150,11 @@ namespace Mvvm.Model
         {
             if (!IsConnected())
             {
-                var lastValues = dataBuffer.GetLastValues(numberOfPoints);
+
+            //연결 안될경우에는 가장 최근값 가져올것
+                var lastValues = dataBuffer.GetLastValues(numberOfPoints);  
                 return lastValues;
             }
-
             try
             {
                 var registers = await Task.Run(() =>
@@ -165,7 +166,11 @@ namespace Mvvm.Model
                 statistics.RecordSuccessfulRead();
                 lastDataReceived = DateTime.Now;
 
+
+
                 var parameters = ConvertToParameters(registers, startAddress);
+
+
                 dataBuffer.StoreValues(parameters);
 
                 var lastValues = dataBuffer.GetLastValues(numberOfPoints);
@@ -237,66 +242,47 @@ namespace Mvvm.Model
             return master != null && port != null && port.IsOpen;
         }
 
-        private struct IndexInfo
-        {
-            public int Index { get; set; }
-            public int Position { get; set; }
-        }
+      
 
+     
         private List<ParameterModel> ConvertToParameters(ushort[] registers, int startAddress)
         {
+            List<ParameterModel> result = new List<ParameterModel>();
+
             var indexList = Properties.Settings.Default.Index;
             var descriptionList = Properties.Settings.Default.Description;
             var unitList = Properties.Settings.Default.Unit;
             var defaultValueList = Properties.Settings.Default.DefaultValue;
 
-            return registers.Select((value, index) =>
+
+
+            for (int i = 0; i < registers.Length; i++)
             {
-                var address = startAddress + index;
+                ushort value = registers[i]; 
+                int address = startAddress + i;
+
                 DataType dataType = DataType.UInt16;
                 dataTypeMap.TryGetValue((ushort)address, out dataType);
 
-                // Settings에서 해당 주소에 맞는 인덱스 찾기
-                IndexInfo? settingsIndex = null;
-                if (indexList != null)
-                {
-                    var matches = indexList.Cast<string>()
-                        .Select((indexStr, i) => new IndexInfo { Index = int.Parse(indexStr), Position = i })
-                        .Where(x => x.Index == address)
-                        .ToList();
-
-                    if (matches.Any())
-                    {
-                        settingsIndex = matches.First();
-                    }
-                }
-
-                return new ParameterModel
+                ParameterModel parameter = new ParameterModel
                 {
                     Address = address,
-                    Label = settingsIndex.HasValue ? descriptionList[settingsIndex.Value.Position] : $"Register {address}",
-                    Description = settingsIndex.HasValue ? descriptionList[settingsIndex.Value.Position] : $"Register {address}",
+                    Label = $"Register {address}",
+                    Description =  descriptionList.Cast<string>().ElementAt(indexList.IndexOf(address.ToString())),
                     DefaultActual = value,
-                    DefaultValue = settingsIndex.HasValue ? defaultValueList[settingsIndex.Value.Position] : value.ToString(),
-                    ModbusUnit = settingsIndex.HasValue ? unitList[settingsIndex.Value.Position] : "Raw",
+                    DefaultValue = defaultValueList.Cast<string>().ElementAt(indexList.IndexOf(address.ToString())),
+                    ModbusUnit = unitList.Cast<string>().ElementAt(indexList.IndexOf(address.ToString())),
                     Index = address
                 };
-            }).ToList();
+
+                result.Add(parameter);
+            }
+
+            return result;
         }
 
 
-        private List<ParameterModel> CreateDummyData(int count)
-        {
-            return Enumerable.Range(0, count)
-                .Select(i => new ParameterModel
-                {
-                    Label = $"Offline {i + 1}",
-                    DefaultValue = "N/A",
-                    DefaultActual = 0,
-                    ModbusUnit = "N/A"
-                }).ToList();
-        }
-
+      
         public void RegisterDataType(ushort address, DataType dataType)
         {
             dataTypeMap[address] = dataType;

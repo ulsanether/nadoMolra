@@ -16,6 +16,8 @@ using NLog;
 
 using Timer = System.Timers.Timer;
 using System.Threading.Tasks;
+using System.Windows.Input;
+using System.Collections.Specialized;
 
 namespace Mvvm.ViewModels
 {
@@ -54,6 +56,13 @@ namespace Mvvm.ViewModels
 
 
         #region Properties
+
+
+
+        public ICommand ModbosWritCommand => new DelegateCommand(OnModbusWrite);
+
+   
+
         public object LockObject => _lockObject;
         public Queue<double> TimeData => _timeData;
         public Queue<double> ValueData => _valueData;
@@ -159,6 +168,11 @@ namespace Mvvm.ViewModels
             set => SetProperty(ref _communicationLog, value);
         }
 
+
+        private async void OnModbusWrite(){
+            MessageBox.Show("Modbus Write 쓸곳");
+        }
+
         private async void ExecuteGenerateParameters()
         {
             try
@@ -181,10 +195,23 @@ namespace Mvvm.ViewModels
 
                 var parameters = await _modbusConnect.ReadModbusData(start, numberOfPoints);
 
+
+              
+
+    
+
                 await Application.Current.Dispatcher.InvokeAsync(() =>
                 {
                     foreach (var parameter in parameters)
-                    {
+                    {   //parameters.Count
+
+                        //갱신 해야할 데터 순서 
+                        //1. index
+                        //2. description
+                        //3. unit
+                        //4. default value
+
+                        
                         Parameters.Add(parameter);
                     }
                 });
@@ -199,6 +226,11 @@ namespace Mvvm.ViewModels
             }
         }
 
+
+
+
+
+        //모드버스 쓰기 커맨드 
         private async void ExecuteWrite(ParameterModel parameter)
         {
             if (parameter == null)
@@ -417,7 +449,7 @@ namespace Mvvm.ViewModels
             {
                 Address = parameter.Address,
                 DefaultActual = parameter.DefaultActual,
-                Description = $"Register {parameter.Address}",
+                Description = "Description",
                 Label = $"Register {parameter.Address}",
                 ModbusUnit = "Raw"
             };

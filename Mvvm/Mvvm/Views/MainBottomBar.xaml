@@ -46,10 +46,16 @@
 
             <!--  Baud Rate 표시  -->
             <Border
+                x:Name="ClickAdvancedMode"
                 Margin="2"
                 Padding="5,2"
                 BorderBrush="Gray"
                 BorderThickness="1">
+
+                <Border.InputBindings>
+                    <MouseBinding Command="{Binding AdvancedModeCommand}" MouseAction="LeftClick" />
+                </Border.InputBindings>
+
                 <StackPanel Orientation="Horizontal">
                     <TextBlock VerticalAlignment="Center" Text="전송속도: " />
                     <TextBlock VerticalAlignment="Center" Text="{Binding BaudRate, UpdateSourceTrigger=PropertyChanged}" />
