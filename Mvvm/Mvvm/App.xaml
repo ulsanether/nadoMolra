@@ -3,9 +3,11 @@
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:converters="clr-namespace:Mvvm.Converters"
+    xmlns:fluent="using:Microsoft.UI.Xaml.Controls"
     xmlns:local="clr-namespace:Mvvm"
     xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
-    xmlns:prism="http://prismlibrary.com/">
+    xmlns:prism="http://prismlibrary.com/"
+    xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml">
     <Application.Resources>
         <ResourceDictionary>
 

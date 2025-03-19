@@ -18,21 +18,21 @@
                         CornerRadius="1">
                         <Grid>
                             <Path
-                                Width="25"
-                                Height="30"
+                                Width="15"
+                                Height="20"
                                 Margin="0,0,0,15"
                                 HorizontalAlignment="Center"
-                                Data="{StaticResource NewTaskIcon}"
+                                Data="{StaticResource ExcelOpenIcon}"
                                 Fill="Black"
                                 Opacity="0.2"
                                 Stretch="Fill" />
                             <Path
                                 x:Name="PathIcon"
-                                Width="25"
-                                Height="30"
+                                Width="15"
+                                Height="20"
                                 Margin="0,0,0,15"
                                 HorizontalAlignment="Center"
-                                Data="{StaticResource NewTaskIcon}"
+                                Data="{StaticResource ExcelOpenIcon}"
                                 Fill="{StaticResource MainButtonPath}"
                                 Stretch="Fill" />
 
