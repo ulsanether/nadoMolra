@@ -4,12 +4,8 @@
     xmlns:local="clr-namespace:Mvvm.Views"
     xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes">
 
-
-
-
-
-    <Style x:Key="ModbusDataButton" TargetType="{x:Type Button}">
-        <Setter Property="Background" Value="Wheat" />
+    <Style x:Key="NavigateToParameterWindow" TargetType="{x:Type Button}">
+        <Setter Property="Background" Value="{StaticResource MainButtonFontColor}" />
         <Setter Property="Foreground" Value="White" />
         <Setter Property="FontSize" Value="15" />
         <Setter Property="SnapsToDevicePixels" Value="True" />
@@ -18,47 +14,28 @@
                 <ControlTemplate TargetType="{x:Type Button}">
                     <Border
                         Background="{TemplateBinding Background}"
-                        BorderBrush="Black"
-                        BorderThickness="0.5"
-                        CornerRadius="4">
-                        <Border.Effect>
-                            <DropShadowEffect BlurRadius="2" ShadowDepth="0" />
-                        </Border.Effect>
-
+                        BorderBrush="White"
+                        CornerRadius="1">
                         <Grid>
                             <Path
-                                Width="9"
-                                Height="16.5"
-                                Margin="16.5,0,0,0"
-                                HorizontalAlignment="Left"
-                                Data="F1 M 30.0833,22.1667L 50.6665,37.6043L 50.6665,38.7918L 30.0833,53.8333L 30.0833,22.1667 Z "
-                                Fill="#000"
+                                Width="25"
+                                Height="30"
+                                Margin="0,0,0,15"
+                                HorizontalAlignment="Center"
+                                Data="{StaticResource NewTaskIcon}"
+                                Fill="Black"
                                 Opacity="0.2"
                                 Stretch="Fill" />
                             <Path
                                 x:Name="PathIcon"
-                                Width="20"
-                                Height="20"
-                                Margin="10,0,0,0"
-                                HorizontalAlignment="Left"
-                                Data="{StaticResource SettingIcon}"
-                                Fill="{StaticResource AccentBackground}"
-                                Stretch="Fill">
-                                <Path.Effect>
-                                    <DropShadowEffect BlurRadius="5" ShadowDepth="0" />
-                                </Path.Effect>
-                            </Path>
+                                Width="25"
+                                Height="30"
+                                Margin="0,0,0,15"
+                                HorizontalAlignment="Center"
+                                Data="{StaticResource NewTaskIcon}"
+                                Fill="{StaticResource MainButtonPath}"
+                                Stretch="Fill" />
 
-                            <Line
-                                Name="line4"
-                                Width="2"
-                                Margin="40,0,0,0"
-                                HorizontalAlignment="Left"
-                                VerticalAlignment="Top"
-                                Opacity="0.5"
-                                Stroke="Black"
-                                Y1="0"
-                                Y2="640" />
                             <ContentPresenter
                                 x:Name="MyContentPresenter"
                                 Margin="0,0,5,0"
@@ -70,13 +47,71 @@
 
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsMouseOver" Value="True">
-                            <Setter Property="Background" Value="#E59400" />
+                            <Setter Property="Background" Value="{StaticResource MainButtonOverOneColor}" />
                             <Setter Property="Foreground" Value="White" />
-                            <Setter TargetName="PathIcon" Property="Fill" Value="Black" />
+                            <Setter TargetName="PathIcon" Property="Fill" Value="Transparent" />
                         </Trigger>
 
                         <Trigger Property="IsPressed" Value="True">
-                            <Setter Property="Background" Value="OrangeRed" />
+                            <Setter Property="Background" Value="{StaticResource MainButtonClickColor}" />
+                            <Setter Property="Foreground" Value="White" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style x:Key="ModbusDataButton" TargetType="{x:Type Button}">
+        <Setter Property="Background" Value="{StaticResource MainButtonFontColor}" />
+        <Setter Property="Foreground" Value="White" />
+        <Setter Property="FontSize" Value="15" />
+        <Setter Property="SnapsToDevicePixels" Value="True" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="{x:Type Button}">
+                    <Border
+                        Background="{TemplateBinding Background}"
+                        BorderBrush="White"
+                        CornerRadius="1">
+                        <Grid>
+                            <Path
+                                Width="25"
+                                Height="30"
+                                Margin="0,0,0,15"
+                                HorizontalAlignment="Center"
+                                Data="{StaticResource ExcelOpenIcon}"
+                                Fill="Black"
+                                Opacity="0.2"
+                                Stretch="Fill" />
+                            <Path
+                                x:Name="PathIcon"
+                                Width="25"
+                                Height="30"
+                                Margin="0,0,0,15"
+                                HorizontalAlignment="Center"
+                                Data="{StaticResource ExcelOpenIcon}"
+                                Fill="{StaticResource MainButtonPath}"
+                                Stretch="Fill" />
+
+                            <ContentPresenter
+                                x:Name="MyContentPresenter"
+                                Margin="0,0,5,0"
+                                HorizontalAlignment="Right"
+                                VerticalAlignment="Center"
+                                Content="{TemplateBinding Content}" />
+                        </Grid>
+                    </Border>
+
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter Property="Background" Value="{StaticResource MainButtonOverOneColor}" />
+                            <Setter Property="Foreground" Value="White" />
+                            <Setter TargetName="PathIcon" Property="Fill" Value="Transparent" />
+                        </Trigger>
+
+                        <Trigger Property="IsPressed" Value="True">
+                            <Setter Property="Background" Value="{StaticResource MainButtonClickColor}" />
                             <Setter Property="Foreground" Value="White" />
                         </Trigger>
                     </ControlTemplate.Triggers>

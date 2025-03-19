@@ -10,6 +10,17 @@
     <SolidColorBrush x:Key="SubOneFontColor" Color="White" />
     <SolidColorBrush x:Key="SubTwoFontColor" Color="#FF009BD1" />
 
+
+    <!--  MainBar Button color  -->
+    <SolidColorBrush x:Key="MainButtonFontColor" Color="#FF009BD1" />
+    <SolidColorBrush x:Key="MainButtonOverOneColor" Color="#FF6EC6FF" />
+    <SolidColorBrush x:Key="MainButtonOverColor" Color="#FF6C85E6" />
+    <SolidColorBrush x:Key="MainButtonClickColor" Color="#FFB46FFE" />
+    <SolidColorBrush x:Key="MainButtonPath" Color="#FFF2F2F2" />
+
+
+
+
     <!--  App Accent Color  -->
 
     <SolidColorBrush x:Key="AccentBackground" Color="#FF009BD1" />

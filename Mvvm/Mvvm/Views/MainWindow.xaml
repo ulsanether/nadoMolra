@@ -43,53 +43,39 @@
 
         <Button
             Grid.Row="0"
-            Width="100"
+            Width="80"
             Height="60"
-            Margin="560,0,0,0"
-            HorizontalAlignment="Left"
+            Margin="0,0,100,0"
+            HorizontalAlignment="Right"
             Command="{Binding NavigateToParameterWindowCommand}"
-            Content="Data"
-            Cursor="Hand"
-            Style="{StaticResource MaterialDesignRaisedLightButton}"
-            ToolTip="데이터 확인" />
-
+            Style="{StaticResource NavigateToParameterWindow}">
+            <StackPanel>
+                <TextBlock
+                    Width="80"
+                    Margin="5,40,0,0"
+                    FontSize="9"
+                    Foreground="White"
+                    Text="모드버스 데이터" />
+            </StackPanel>
+        </Button>
 
         <Button
             Grid.Row="0"
-            Width="100"
+            Width="80"
             Height="60"
+            Margin="0,0,260,0"
             HorizontalAlignment="Right"
             Command="{Binding NavigateToModbusDataViewPageCommand}"
             Style="{StaticResource ModbusDataButton}">
             <StackPanel>
                 <TextBlock
-                    HorizontalAlignment="Right"
-                    FontSize="22"
-                    Text="데이터" />
-                <TextBlock
-                    HorizontalAlignment="Right"
-                    FontSize="12"
-                    Foreground="Gainsboro"
+                    Width="80"
+                    Margin="5,40,0,0"
+                    FontSize="9"
+                    Foreground="White"
                     Text="모드버스 데이터" />
             </StackPanel>
         </Button>
-
-
-        <Button
-            Grid.Row="0"
-            Width="100"
-            Height="60"
-            Margin="437,0,0,0"
-            Padding="16,0,16,0"
-            HorizontalAlignment="Left"
-            VerticalContentAlignment="Center"
-            Background="{StaticResource AccentBackground}"
-            Command="{Binding NavigateToModbusDataViewPageCommand}"
-            Content="Modbus Data View"
-            FontSize="13"
-            Foreground="White"
-            Style="{StaticResource MaterialDesignRaisedLightButton}"
-            ToolTip="Modbus Data View" />
 
         <ContentControl Grid.Row="1" prism:RegionManager.RegionName="ContentRegion" />
 
@@ -99,6 +85,7 @@
             Margin="222,-2,0,0"
             HorizontalAlignment="Left"
             VerticalAlignment="Center"
+            Background="#FF009BD1"
             Command="{Binding PortConnectButton}"
             Foreground="White"
             Style="{StaticResource MaterialDesignFloatingActionLightButton}"
@@ -116,6 +103,7 @@
             HorizontalAlignment="Left"
             materialDesign:HintAssist.Hint="포트 연결"
             materialDesign:TextFieldAssist.HasClearButton="True"
+            Foreground="Black"
             ItemsSource="{Binding ShortStringList}"
             SelectedItem="{Binding SelectPort}"
             Style="{StaticResource MaterialDesignOutlinedComboBox}" />
@@ -128,7 +116,7 @@
             VerticalAlignment="Top"
             av:IsHidden="True"
             BorderBrush="{DynamicResource MaterialDesignDivider}"
-            BorderThickness="2"
+            BorderThickness="1"
             BottomDrawerBackground="{DynamicResource SecondaryHueLightBrush}"
             BottomDrawerCornerRadius="20 20 0 0">
             <materialDesign:DrawerHost.Style>
