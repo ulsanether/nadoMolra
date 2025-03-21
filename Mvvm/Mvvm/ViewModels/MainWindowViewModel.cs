@@ -447,11 +447,11 @@ namespace Mvvm.ViewModels
             }
         }
 
-        private void LogModbusParameters(Dictionary<int, (string Size, string Description, string Unit, double DefaultValue, string Func, string Note)> modbusData)
+        private void LogModbusParameters(Dictionary<int, (string Size, string Description, string Unit, double DefaultValue, string Func, string Note, string Endian)> modbusData)
         {
             foreach (var kvp in modbusData)
             {
-                Logger.Info($"Index: {kvp.Key}, Size: {kvp.Value.Size}, Description: {kvp.Value.Description}, Unit: {kvp.Value.Unit}, DefaultValue: {kvp.Value.DefaultValue}, Note: {kvp.Value.Note}");
+                Logger.Info($"Index: {kvp.Key}, Size: {kvp.Value.Size}, Description: {kvp.Value.Description}, Unit: {kvp.Value.Unit}, DefaultValue: {kvp.Value.DefaultValue}, Note: {kvp.Value.Note}, 엔디안 {kvp.Value.Endian}");
             }
         }
 

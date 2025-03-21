@@ -16,9 +16,9 @@ namespace Mvvm.Model.IniFileRead
         }
 
         #region Public Methods
-        public static Dictionary<int, (string Size, string Description, string Unit, double DefaultValue, string Func, string Note)> LoadModbusParameters(string filePath)
+        public static Dictionary<int, (string Size, string Description, string Unit, double DefaultValue, string Func, string Note, string Endian)> LoadModbusParameters(string filePath)
         {
-            var modbusData = new Dictionary<int, (string Size, string Description, string Unit, double DefaultValue, string Func, string Note)>();
+            var modbusData = new Dictionary<int, (string Size, string Description, string Unit, double DefaultValue, string Func, string Note, string Endian)>();
 
             try
             {
@@ -45,21 +45,23 @@ namespace Mvvm.Model.IniFileRead
                         var defaultValue = ParseDefaultValue(GetCellValue(worksheet, row, 5));
                         var func = GetCellValue(worksheet, row, 7);
                         var note = GetCellValue(worksheet, row, 8);
+                        var endian = GetCellValue(worksheet, row, 9);
+
                         if (!string.IsNullOrWhiteSpace(description))
-                            modbusData.Add(index, (size, description, unit, defaultValue, func, note));
+                            modbusData.Add(index, (size, description, unit, defaultValue, func, note,endian));
                     }
                 }
             }
             catch (Exception ex)
             {
                 MessageBox.Show($"엑셀 파일 로드 중 오류 발생: {ex.Message}", "오류", MessageBoxButton.OK, MessageBoxImage.Error);
-                return new Dictionary<int, (string Size, string Description, string Unit, double DefaultValue, string Func, string Note)>();
+                return new Dictionary<int, (string Size, string Description, string Unit, double DefaultValue, string Func, string Note, string Endian)>();
             }
 
             return modbusData;
         }
 
-        public static void SaveModbusParametersToSettings(Dictionary<int, (string Size, string Description, string Unit, double DefaultValue, string Func, string Note)> modbusData)
+        public static void SaveModbusParametersToSettings(Dictionary<int, (string Size, string Description, string Unit, double DefaultValue, string Func, string Note, string Endian)> modbusData)
         {
             try
             {
@@ -70,6 +72,8 @@ namespace Mvvm.Model.IniFileRead
                 var defaultValueList = new StringCollection();
                 var noteList = new StringCollection();
                 var funcList = new StringCollection();
+                var endianList = new StringCollection();
+
 
                 foreach (var kvp in modbusData)
                 {
@@ -80,6 +84,7 @@ namespace Mvvm.Model.IniFileRead
                     defaultValueList.Add(kvp.Value.DefaultValue.ToString());
                     funcList.Add(kvp.Value.Func);
                     noteList.Add(kvp.Value.Note);
+                    endianList.Add(kvp.Value.Endian);
                 }
 
                 Properties.Settings.Default.Index = indexList;
@@ -89,7 +94,7 @@ namespace Mvvm.Model.IniFileRead
                 Properties.Settings.Default.DefaultValue = defaultValueList;
                 Properties.Settings.Default.Note = noteList;
                 Properties.Settings.Default.Func = funcList;
-
+                Properties.Settings.Default.Endian = endianList;
                 Properties.Settings.Default.Save();
             }
             catch (Exception ex)

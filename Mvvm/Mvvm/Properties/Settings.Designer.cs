@@ -243,5 +243,16 @@ namespace Mvvm.Properties {
                 this["Func"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        public global::System.Collections.Specialized.StringCollection Endian {
+            get {
+                return ((global::System.Collections.Specialized.StringCollection)(this["Endian"]));
+            }
+            set {
+                this["Endian"] = value;
+            }
+        }
     }
 }
