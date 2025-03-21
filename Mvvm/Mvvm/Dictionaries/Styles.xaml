@@ -203,19 +203,31 @@
                 <!--  설정값 입력  -->
                 <TextBox
                     Grid.Column="5"
+                    Width="100"
                     Margin="6,0"
                     HorizontalAlignment="Center"
                     VerticalAlignment="Center"
                     Text="{Binding NewValue, UpdateSourceTrigger=PropertyChanged}" />
 
-                <!--  저장 버튼  -->
                 <Button
                     Grid.Column="6"
+                    Width="100"
                     Margin="5,0"
                     Command="{Binding DataContext.WriteCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
-                    CommandParameter="{Binding ModbosWritCommand}">
-                    <materialDesign:PackIcon Kind="ContentSave" />
+                    CommandParameter="{Binding}">
+                    <StackPanel Orientation="Horizontal">
+                        <materialDesign:PackIcon VerticalAlignment="Center" Kind="ContentSave" />
+                        <TextBlock
+                            Width="0"
+                            MaxWidth="0"
+                            Margin="0,0,0,0"
+                            VerticalAlignment="Center"
+                            Foreground="Transparent"
+                            Text="{Binding Index}" />
+                    </StackPanel>
                 </Button>
+
+
             </Grid>
         </materialDesign:Card>
     </DataTemplate>
@@ -245,7 +257,9 @@
                         FontWeight="Bold"
                         Text="{Binding Index}" />
                     <TextBlock
-                        Margin="8,4"
+                        Width="0"
+                        MaxWidth="100"
+                        Margin="0,0,0,0"
                         Text="{Binding Description}"
                         TextWrapping="Wrap" />
                 </DockPanel>
@@ -281,20 +295,30 @@
                     <!--  설정값  -->
                     <TextBox
                         Grid.Column="5"
+                        Width="100"
                         Margin="6,0"
                         HorizontalAlignment="Center"
                         VerticalAlignment="Center"
                         Text="{Binding NewValue, UpdateSourceTrigger=PropertyChanged}" />
                 </Grid>
 
-                <!--  저장 버튼  -->
+
                 <Button
-                    Grid.Row="4"
-                    Margin="0,8,0,0"
-                    HorizontalAlignment="Right"
+                    Grid.Column="6"
+                    Width="100"
+                    Margin="5,0"
                     Command="{Binding DataContext.WriteCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
                     CommandParameter="{Binding}">
-                    <materialDesign:PackIcon Kind="ContentSave" />
+                    <StackPanel Orientation="Horizontal">
+                        <materialDesign:PackIcon VerticalAlignment="Center" Kind="ContentSave" />
+                        <TextBlock
+                            Width="0"
+                            MaxWidth="0"
+                            Margin="0,0,0,0"
+                            VerticalAlignment="Center"
+                            Foreground="Transparent"
+                            Text="{Binding Index}" />
+                    </StackPanel>
                 </Button>
             </Grid>
         </materialDesign:Card>

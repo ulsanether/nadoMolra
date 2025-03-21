@@ -85,6 +85,8 @@ namespace Mvvm.Model
             serialPortConfig.ReadTimeout = Properties.Settings.Default.ReadTimeout;
             serialPortConfig.WriteTimeout = Properties.Settings.Default.WriteTimeout;
             serialPortConfig.slaveId = Properties.Settings.Default.SlaveId;
+
+
         }
 
         public void LoadAvailablePorts(ComboBox portComBox)
@@ -111,17 +113,22 @@ namespace Mvvm.Model
             }
         }
 
-        private async Task DisconnectIfConnected()
+        public async Task DisconnectIfConnected()
         {
             if (port != null && port.IsOpen)
             {
                 port.Close();
                 await Task.Delay(100);
             }
+
+
+
         }
 
         private async Task OpenNewConnection(string portName)
         {
+
+
             port = new SerialPort(portName)
             {
                 BaudRate = serialPortConfig.BaudRate,
@@ -132,12 +139,12 @@ namespace Mvvm.Model
                 WriteTimeout = serialPortConfig.WriteTimeout
             };
 
+
             MessageBox.Show(serialPortConfig.BaudRate.ToString(), "BaudRate", MessageBoxButton.OK, MessageBoxImage.Information);
 
 
+            await Task.Run(() =>
 
-            await Task.Run(() => 
-            
             port.Open());
 
             var factory = new ModbusFactory();
@@ -152,7 +159,7 @@ namespace Mvvm.Model
             {
 
             //연결 안될경우에는 가장 최근값 가져올것
-                var lastValues = dataBuffer.GetLastValues(numberOfPoints);  
+                var lastValues = dataBuffer.GetLastValues(numberOfPoints);
                 return lastValues;
             }
             try
@@ -186,7 +193,7 @@ namespace Mvvm.Model
             }
         }
 
-        public async Task WriteRegister(ParameterModel parameter, int value)
+        public async Task WriteRegister(ParameterModel parameter, int value, int addr)
         {
             if (!IsConnected())
                 throw new InvalidOperationException("연결되지 않았습니다.");
@@ -196,7 +203,7 @@ namespace Mvvm.Model
                 await Task.Run(() =>
                     master.WriteSingleRegister(
                         serialPortConfig.slaveId,
-                        (ushort)parameter.Address,
+                        (ushort)addr,
                         (ushort)value));
 
                 statistics.RecordSuccessfulRead();
@@ -242,9 +249,9 @@ namespace Mvvm.Model
             return master != null && port != null && port.IsOpen;
         }
 
-      
 
-     
+
+
         private List<ParameterModel> ConvertToParameters(ushort[] registers, int startAddress)
         {
             List<ParameterModel> result = new List<ParameterModel>();
@@ -258,7 +265,7 @@ namespace Mvvm.Model
 
             for (int i = 0; i < registers.Length; i++)
             {
-                ushort value = registers[i]; 
+                ushort value = registers[i];
                 int address = startAddress + i;
 
                 DataType dataType = DataType.UInt16;
@@ -282,7 +289,7 @@ namespace Mvvm.Model
         }
 
 
-      
+
         public void RegisterDataType(ushort address, DataType dataType)
         {
             dataTypeMap[address] = dataType;
@@ -296,11 +303,7 @@ namespace Mvvm.Model
                     isError ? MessageBoxImage.Error : MessageBoxImage.Information));
         }
 
-        public void Dispose()
-        {
-            master?.Dispose();
-            port?.Dispose();
-        }
+
     }
 }
 namespace Mvvm.Model
@@ -350,7 +353,7 @@ namespace Mvvm.Model
                     {
                         DefaultActual = dp.Value,
                      //   DefaultValue = dp.Value.ToString(),
-                        
+
                     })
                     .ToList();
             }

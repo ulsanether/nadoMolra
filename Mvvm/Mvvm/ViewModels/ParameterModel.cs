@@ -1,6 +1,7 @@
 ﻿using System;
 using System.ComponentModel;
 using System.Threading.Tasks;
+using System.Windows;
 using System.Windows.Media;
 using Prism.Mvvm;
 
@@ -24,7 +25,7 @@ namespace Mvvm.Model
         private string _newValue;
 
         public int Address { get; set; }
-        public string Label { get; set; }  //차트에 쓴다. 이걸 다른걸로 수정 할 것 
+        public string Label { get; set; }  //차트에 쓴다. 이걸 다른걸로 수정 할 것
         public string Description { get; set; }
         public double DefaultActual
         {
@@ -67,11 +68,20 @@ namespace Mvvm.Model
         public string NewValue
         {
             get => _newValue;
-            set => SetProperty(ref _newValue, value);
+            set { SetProperty(ref _newValue, value);
+             //   MessageBox.Show("New Value " +  _newValue);
+
+
+            }
         }
+
+
+
+
+
         public ParameterModel()
         {
-   
+
         }
 
         private async void ResetValueChangedFlag()

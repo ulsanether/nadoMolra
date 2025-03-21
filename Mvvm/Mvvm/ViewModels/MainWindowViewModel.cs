@@ -19,6 +19,8 @@ using System.Collections.Generic;
 using System.IO;
 using Mvvm.Model.IniFileRead;
 using MaterialDesignThemes.Wpf.Transitions;
+using System.Threading.Tasks;
+using System.Drawing;
 
 namespace Mvvm.ViewModels
 {
@@ -33,6 +35,28 @@ namespace Mvvm.ViewModels
         private ComboBox _portComBox;
         private string _selectPort;
         private SnackbarMessageQueue _bottomMessageQueue;
+
+
+
+        #region 연결 아이콘 컬러 바꾸려고 만들어 놓은것들
+
+        private string _icon = "Connector";
+        private string _iconColor = "White";
+
+        public string Icon
+        {
+            get => _icon;
+            set => SetProperty(ref _icon, value);
+        }
+
+        public string IconColor
+        {
+            get => _iconColor;
+            set => SetProperty(ref _iconColor, value);
+        }
+
+        #endregion
+
 
         private ObservableCollection<string> _shortStringList = new();
         public ObservableCollection<string> ShortStringList
@@ -237,7 +261,7 @@ namespace Mvvm.ViewModels
 
             Parameters = new ObservableCollection<ParameterModel>();
             InitializeCollections();
-
+            IconColor = "White";
             SetDefaultValues();
 
             OpenExcelCommand = new DelegateCommand(OpenExcelFile);
@@ -263,19 +287,47 @@ namespace Mvvm.ViewModels
             MessageBox.Show("버튼 클릭!", "알림", MessageBoxButton.OK, MessageBoxImage.Information);
         }
 
+        private bool _isConnected = false;
+
         private async void ConnectPorts()
         {
-            await _modbusConnect.ConnectToPort(SelectPort);
 
-            if (_modbusConnect.IsConnected())
+            _isConnected = !_isConnected;
+
+            if (_isConnected)
             {
-                BottomMessageQueue.Enqueue("포트 연결 성공", "OK", () => { });
-                _parameterWindowViewModel.InitializeWithPlot(new WpfPlot());
-                _parameterWindowViewModel.IsRealTimeUpdate = true;
+
+                await _modbusConnect.ConnectToPort(SelectPort);
+
+                if (_modbusConnect.IsConnected())
+                {
+                    BottomMessageQueue.Enqueue("포트 연결 성공", "OK", () => { });
+                    _parameterWindowViewModel.InitializeWithPlot(new WpfPlot());
+                    _parameterWindowViewModel.IsRealTimeUpdate = true;
+                    Icon = "Checkmark";
+                    IconColor = "#FFB46FFE";
+                    _portComBox.IsEnabled = false;
+                    _portComBox.Foreground = System.Windows.Media.Brushes.Gray;
+                }
+                else
+                {
+                    BottomMessageQueue.Enqueue("포트 연결 실패", "OK", () => { });
+                    Icon = "Error";
+                    IconColor = "Red";
+                }
             }
-            else
-            {
-                BottomMessageQueue.Enqueue("포트 연결 실패", "OK", () => { });
+            else {
+                await _modbusConnect.DisconnectIfConnected();
+                if (!_modbusConnect.IsConnected())
+                {
+                    BottomMessageQueue.Enqueue("포트 연결 해제", "OK", () => { });
+                    Icon = "Connector";
+                    IconColor = "White";
+                    //  _portComBox.IsEnabled = true;
+                }
+
+
+
             }
         }
 
@@ -305,19 +357,29 @@ namespace Mvvm.ViewModels
 
 
 
-        
 
 
-        public void LoadAvailablePorts(ComboBox portComBox)
+
+        public async Task LoadAvailablePorts(ComboBox portComBox)
         {
             if (portComBox == null) return;
 
             var ports = SerialPort.GetPortNames();
-            portComBox.Dispatcher.Invoke(() =>
+
+            try
             {
-                portComBox.ItemsSource = ports;
-                _portComBox = portComBox;
-            });
+                portComBox.Dispatcher.Invoke(() =>
+                {
+                    portComBox.ItemsSource = ports;
+                    _portComBox = portComBox;
+                });
+            }
+            catch (Exception e)
+            {
+            MessageBox.Show("에러내용 :" + e.Message);
+
+                throw;
+             }
 
             if (int.TryParse(Properties.Settings.Default.BaudRate, out int baudRate))
             {
@@ -424,10 +486,16 @@ namespace Mvvm.ViewModels
             Properties.Settings.Default.StartAddress = StartAddress;
             Properties.Settings.Default.EndAddress = EndAddress;
             Properties.Settings.Default.SlaveId = SlaveId;
+
+
             Properties.Settings.Default.DelayBetweenPolls = DelayBetweenPolls;
             Properties.Settings.Default.ResponseTimeout = ResponseTimeout;
             Properties.Settings.Default.Save();
+            SetDefaultValues();
+
             MessageBox.Show("설정을 성공적으로 저장했습니다.");
+
+
         }
 
         private void UpdateSerialPortConfig()

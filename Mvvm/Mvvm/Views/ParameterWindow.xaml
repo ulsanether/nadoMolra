@@ -69,7 +69,6 @@
 
 
 
-
             <!--  표시 방식 선택  -->
             <StackPanel
                 Grid.Column="6"

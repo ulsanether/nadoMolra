@@ -52,16 +52,17 @@ namespace Mvvm.ViewModels
         private ObservableCollection<CommunicationLogItem> _communicationLog;
         private DelegateCommand _generateParametersCommand;
         private DelegateCommand<ParameterModel> _writeCommand;
+
+
         #endregion
 
 
         #region Properties
+        public Action RefreshTemplateAction { get; set; }
 
 
 
-        public ICommand ModbosWritCommand => new DelegateCommand(OnModbusWrite);
 
-   
 
         public object LockObject => _lockObject;
         public Queue<double> TimeData => _timeData;
@@ -149,11 +150,39 @@ namespace Mvvm.ViewModels
 
 
         public DelegateCommand GenerateParametersCommand =>
-            _generateParametersCommand ?? (_generateParametersCommand = new DelegateCommand(ExecuteGenerateParameters));
+                                                                                                                                    _generateParametersCommand ?? (_generateParametersCommand = new DelegateCommand(ExecuteGenerateParameters));
+
+
+
+        public ICommand ModbosWritCommand => new DelegateCommand<ParameterModel>(OnModbusWrite);
+
+        private async void OnModbusWrite(ParameterModel parameter)
+        {
+            if (parameter == null)
+            {
+                MessageBox.Show("선택된 파라미터가 없습니다.", "오류", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
+            // Index 값 가져오기
+            Logger.Info($"Modbus 쓰기 시작 - 인덱스: {parameter.Index:D3}, 설명: {parameter.Description}");
+            MessageBox.Show($"인덱스: {parameter.Index:D3}, '{parameter.Description}' 파라미터 설정을 시작합니다.",
+            "Modbus Write", MessageBoxButton.OK, MessageBoxImage.Information);
+
+            // 기존 ExecuteWrite 메서드 호출
+            ExecuteWrite(parameter);
+        }
 
 
         public DelegateCommand<ParameterModel> WriteCommand =>
-            _writeCommand ?? (_writeCommand = new DelegateCommand<ParameterModel>(ExecuteWrite));
+                _writeCommand ?? (_writeCommand = new DelegateCommand<ParameterModel>(ExecuteWrite, CanExecuteWrite));
+
+        private bool CanExecuteWrite(ParameterModel parameter)
+        {
+            // 간단한 유효성 검사
+            return parameter != null;
+        }
+
 
         private ObservableCollection<ParameterModel> _availableParameters;
         public ObservableCollection<ParameterModel> AvailableParameters
@@ -169,12 +198,11 @@ namespace Mvvm.ViewModels
         }
 
 
-        private async void OnModbusWrite(){
-            MessageBox.Show("Modbus Write 쓸곳");
-        }
 
         private async void ExecuteGenerateParameters()
         {
+            MessageBox.Show("Generate Parameters");
+
             try
             {
                 if (!int.TryParse(StartAddress, out int start) || !int.TryParse(EndAddress, out int end))
@@ -192,29 +220,28 @@ namespace Mvvm.ViewModels
                 int numberOfPoints = end - start + 1;
 
                 Parameters.Clear();
+                var parameters = await GetReadModbusData(start, numberOfPoints);
 
-                var parameters = await _modbusConnect.ReadModbusData(start, numberOfPoints);
+                // Queue 대신 Stack 사용
+                var stackParameterModels = new Stack<ParameterModel>(parameters);
 
-
-              
-
-    
+                var Description = Properties.Settings.Default.Description;
+                var Unit = Properties.Settings.Default.Unit;
+                var DefaultValue = Properties.Settings.Default.DefaultValue;
 
                 await Application.Current.Dispatcher.InvokeAsync(() =>
-                {
-                    foreach (var parameter in parameters)
-                    {   //parameters.Count
-
-                        //갱신 해야할 데터 순서 
-                        //1. index
-                        //2. description
-                        //3. unit
-                        //4. default value
-
-                        
-                        Parameters.Add(parameter);
-                    }
-                });
+                                                                                                                                                                                                        {
+                                                                                                                                                                                                            // Stack에서 항목을 꺼내 처리
+                                                                                                                                                                                                            while (stackParameterModels.Count > 0)
+                                                                                                                                                                                                            {
+                                                                                                                                                                                                                var parameter = stackParameterModels.Pop();
+                                                                                                                                                                                                                parameter.Index = start++;
+                                                                                                                                                                                                                parameter.Description = Description[parameter.Index];
+                                                                                                                                                                                                                parameter.Unit = Unit[parameter.Index];
+                                                                                                                                                                                                                parameter.DefaultValue = DefaultValue[parameter.Index];
+                                                                                                                                                                                                                Parameters.Add(parameter);
+                                                                                                                                                                                                            }
+                                                                                                                                                                                                        });
 
                 Logger.Info($"파라미터 생성 완료: {start}부터 {end}까지 {parameters.Count}개 생성됨");
             }
@@ -222,15 +249,18 @@ namespace Mvvm.ViewModels
             {
                 Logger.Error(ex, "파라미터 생성 중 오류 발생");
                 MessageBox.Show($"파라미터 생성 중 오류가 발생했습니다: {ex.Message}",
-                    "오류", MessageBoxButton.OK, MessageBoxImage.Error);
+                "오류", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 
+        private async Task<List<ParameterModel>> GetReadModbusData(int start, int numberOfPoints) =>
+                    await _modbusConnect.ReadModbusData(start, numberOfPoints);
 
 
 
 
-        //모드버스 쓰기 커맨드 
+        //모드버스 쓰기 커맨드
+        //모드버스 쓰기 커맨드
         private async void ExecuteWrite(ParameterModel parameter)
         {
             if (parameter == null)
@@ -241,42 +271,47 @@ namespace Mvvm.ViewModels
 
             try
             {
+                // Index 값 로깅 추가
+                Logger.Info($"저장 버튼 클릭 - 인덱스: {parameter.Index:D3}, 주소: {parameter.Address}");
+                AddLog("버튼 클릭", $"인덱스: {parameter.Index:D3}, 주소: {parameter.Address}");
+
                 if (string.IsNullOrWhiteSpace(parameter.NewValue))
                 {
                     MessageBox.Show("설정값을 입력해주세요.", "입력 오류",
-                        MessageBoxButton.OK, MessageBoxImage.Warning);
+                    MessageBoxButton.OK, MessageBoxImage.Warning);
                     return;
                 }
 
                 if (!int.TryParse(parameter.NewValue, out int newValue))
                 {
                     MessageBox.Show("설정값은 숫자여야 합니다.", "입력 오류",
-                        MessageBoxButton.OK, MessageBoxImage.Warning);
+                    MessageBoxButton.OK, MessageBoxImage.Warning);
                     return;
                 }
 
                 var result = MessageBox.Show(
-                    $"다음 값을 설정하시겠습니까?\n\n주소: {parameter.Address}\n설명: {parameter.Description}\n현재값: {parameter.DefaultActual}\n설정값: {newValue}",
-                    "설정 확인",
-                    MessageBoxButton.YesNo,
-                    MessageBoxImage.Question);
+                $"다음 값을 설정하시겠습니까?\n\n인덱스: {parameter.Index:D3}\n주소: {parameter.Address}\n설명: {parameter.Description}\n현재값: {parameter.DefaultActual:F3}\n설정값: {newValue}",
+                "설정 확인",
+                MessageBoxButton.YesNo,
+                MessageBoxImage.Question);
 
                 if (result == MessageBoxResult.Yes)
                 {
-                    await _modbusConnect.WriteRegister(parameter, newValue);
+                    await _modbusConnect.WriteRegister(parameter, newValue, parameter.Index);
                     parameter.DefaultActual = newValue;
-                    parameter.NewValue = string.Empty;  // 입력값 초기화
+                    parameter.NewValue = "";  // 입력값 초기화
 
-                    Logger.Info($"파라미터 쓰기 완료 - 주소: {parameter.Address}, 값: {newValue}");
+                    Logger.Info($"파라미터 쓰기 완료 - 인덱스: {parameter.Index:D3}, 주소: {parameter.Address}, 값: {newValue}");
                 }
             }
             catch (Exception ex)
             {
-                Logger.Error(ex, $"파라미터 쓰기 중 오류 발생 - 주소: {parameter.Address}");
+                Logger.Error(ex, $"파라미터 쓰기 중 오류 발생 - 인덱스: {parameter.Index:D3}, 주소: {parameter.Address}");
                 MessageBox.Show($"값 설정 중 오류가 발생했습니다: {ex.Message}",
-                    "오류", MessageBoxButton.OK, MessageBoxImage.Error);
+                "오류", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
+
 
         public ObservableCollection<string> ChartTypes
         {
@@ -297,14 +332,10 @@ namespace Mvvm.ViewModels
         #endregion
 
         #region Constructor
-        public Action RefreshTemplateAction { get; set; }
+        public Queue<ParameterModel> queuePparmameterModels = new Queue<ParameterModel>();
+        private List<ParameterModel> listParameterModels = new List<ParameterModel>();
 
-        public void RefreshTemplate()
-        {
-            RefreshTemplateAction?.Invoke();
-            RaisePropertyChanged(nameof(IsCardView));
-            LoadModbusData();
-        }
+
 
         public ParameterWindowViewModel(ModbusConnect modbusConnect)
         {
@@ -316,13 +347,14 @@ namespace Mvvm.ViewModels
             ExportDataCommand = new DelegateCommand(ExportData);
             ResetStatisticsCommand = new DelegateCommand(ResetStatistics);
 
-            // 데이터 업데이트용 타이머 간격을 2초로 변경
-            _dataUpdateTimer = new System.Timers.Timer(2000); // 2초마다 업데이트
+
+
+            _dataUpdateTimer = new System.Timers.Timer(2000);
             _dataUpdateTimer.Elapsed += OnDataUpdateTimerElapsed;
             _dataUpdateTimer.AutoReset = true;
             _dataUpdateTimer.Start();
 
-            _updateTimer = new Timer(2000); // 2초로 변경
+            _updateTimer = new Timer(2000);
             _updateTimer.Elapsed += OnUpdateTimerElapsed;
             _updateTimer.AutoReset = false;
 
@@ -338,6 +370,14 @@ namespace Mvvm.ViewModels
 
 
         #region Private Methods
+
+        public void RefreshTemplate()
+        {
+            RefreshTemplateAction?.Invoke();
+            RaisePropertyChanged(nameof(IsCardView));
+            LoadModbusData();
+        }
+
         private async void LoadModbusData()
         {
             try
@@ -356,12 +396,12 @@ namespace Mvvm.ViewModels
                     AddLog("초기 데이터", $"레지스터 수: {initialData.Count}");
 
                     await Application.Current.Dispatcher.InvokeAsync(() =>
-                    {
-                        foreach (var parameter in initialData)
-                        {
-                            InitializeParameter(parameter);
-                        }
-                    });
+                                                                                                                                                                                                                                                                                    {
+                                                                                                                                                                                                                                                                                        foreach (var parameter in initialData)
+                                                                                                                                                                                                                                                                                        {
+                                                                                                                                                                                                                                                                                            InitializeParameter(parameter);
+                                                                                                                                                                                                                                                                                        }
+                                                                                                                                                                                                                                                                                    });
                 }
                 else
                 {
@@ -372,14 +412,14 @@ namespace Mvvm.ViewModels
                     AddLog("데이터 갱신", $"주소 범위: {startAddress}-{endAddress}, 개수: {count}");
 
                     await Application.Current.Dispatcher.InvokeAsync(() =>
-                    {
-                        foreach (var parameter in updatedData)
-                        {
-                            UpdateExistingParameter(parameter);
-                        }
-                        RaisePropertyChanged(nameof(Parameters));
-                        RaisePropertyChanged(nameof(AvailableParameters));
-                    });
+                                                                                                                                                                                                                                                                                        {
+                                                                                                                                                                                                                                                                                            foreach (var parameter in updatedData)
+                                                                                                                                                                                                                                                                                            {
+                                                                                                                                                                                                                                                                                                UpdateExistingParameter(parameter);
+                                                                                                                                                                                                                                                                                            }
+                                                                                                                                                                                                                                                                                            RaisePropertyChanged(nameof(Parameters));
+                                                                                                                                                                                                                                                                                            RaisePropertyChanged(nameof(AvailableParameters));
+                                                                                                                                                                                                                                                                                        });
                 }
             }
             catch (Exception ex)
@@ -404,20 +444,20 @@ namespace Mvvm.ViewModels
                 if (Math.Abs(existingParameter.DefaultActual - updatedParameter.DefaultActual) > 0.001)
                 {
                     var oldValue = existingParameter.DefaultActual;
-             
+
                     existingParameter.IsValueChanged = true;
 
                     AddLog("값 변경", $"주소: {existingParameter.Address}, " +
-                                   $"이전 값: {oldValue:F2}, " +
-                                   $"새 값: {updatedParameter.DefaultActual:F2}");
+                    $"이전 값: {oldValue:F2}, " +
+                    $"새 값: {updatedParameter.DefaultActual:F2}");
 
                     Task.Delay(3000).ContinueWith(_ =>
-                    {
-                        Application.Current.Dispatcher.Invoke(() =>
-                        {
-                            existingParameter.IsValueChanged = false;
-                        });
-                    });
+                                                                                                                                                                                                                                                                                                            {
+                                                                                                                                                                                                                                                                                                                Application.Current.Dispatcher.Invoke(() =>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        {
+                                                                                                                                                                                                                                                                                                                    existingParameter.IsValueChanged = false;
+                                                                                                                                                                                                                                                                                                                });
+                                                                                                                                                                                                                                                                                                            });
                 }
             }
         }
@@ -425,29 +465,26 @@ namespace Mvvm.ViewModels
         private void AddLog(string eventName, string details)
         {
             Application.Current.Dispatcher.Invoke(() =>
-            {
-                var logItem = new CommunicationLogItem(eventName, details);
-                _communicationLog.Insert(0, logItem);
+                                                                                                                                                                                                                                                                                                            {
+                                                                                                                                                                                                                                                                                                                var logItem = new CommunicationLogItem(eventName, details);
+                                                                                                                                                                                                                                                                                                                _communicationLog.Insert(0, logItem);
 
-                // 최대 로그 수 제한
-                while (_communicationLog.Count > 1000)
-                {
-                    _communicationLog.RemoveAt(_communicationLog.Count - 1);
-                }
+                                                                                                                                                                                                                                                                                                                while (_communicationLog.Count > 1000)
+                                                                                                                                                                                                                                                                                                                {
+                                                                                                                                                                                                                                                                                                                    _communicationLog.RemoveAt(_communicationLog.Count - 1);
+                                                                                                                                                                                                                                                                                                                }
 
-                // NLog를 통한 로깅
-                Logger.Info($"{eventName}: {details}");
+                                                                                                                                                                                                                                                                                                                Logger.Info($"{eventName}: {details}");
 
-                // UI 업데이트를 위한 속성 변경 알림
-                RaisePropertyChanged(nameof(CommunicationLog));
-            });
+                                                                                                                                                                                                                                                                                                                RaisePropertyChanged(nameof(CommunicationLog));
+                                                                                                                                                                                                                                                                                                            });
         }
 
         private void InitializeParameter(ParameterModel parameter)
         {
             //접속 했을때 가장 초기값. 이것 역시 수정해야하고.
             //고급 모드가 아니라면 이것 역시 엑셀에 수정 가능한 리스트 만큼 가져오게 할것
-            //settingview에서 값은 참조 할 것. 
+            //settingview에서 값은 참조 할 것.
 
 
             // Settings에서 파라미터 정보 가져오기
@@ -456,9 +493,12 @@ namespace Mvvm.ViewModels
             var unitList = Properties.Settings.Default.Unit;
             var defaultValueList = Properties.Settings.Default.DefaultValue;
 
+
             var newParameter = new ParameterModel
             {
                 Address = parameter.Address,
+
+
                 DefaultActual = parameter.DefaultActual,
                 Description = "Description",
                 Label = $"Register {parameter.Address}",
@@ -470,8 +510,8 @@ namespace Mvvm.ViewModels
             if (indexList != null)
             {
                 var settingsIndex = indexList.Cast<string>()
-                    .Select((indexStr, i) => new { Index = int.Parse(indexStr), Position = i })
-                    .FirstOrDefault(x => x.Index == parameter.Address);
+.Select((indexStr, i) => new { Index = int.Parse(indexStr), Position = i })
+.FirstOrDefault(x => x.Index == parameter.Address);
 
                 if (settingsIndex != null)
                 {
@@ -514,12 +554,12 @@ namespace Mvvm.ViewModels
                         }
 
                         Application.Current.Dispatcher.Invoke(() =>
-                        {
-                            // SelectedParameter의 DefaultActual 값을 업데이트
-                            SelectedParameter.DefaultActual = value;
-                            CurrentValue = value;
-                            UpdatePlot();
-                        });
+                                                                                                                                                                                                                                                                                                                                                {
+                                                                                                                                                                                                                                                                                                                                                    // SelectedParameter의 DefaultActual 값을 업데이트
+                                                                                                                                                                                                                                                                                                                                                    SelectedParameter.DefaultActual = value;
+                                                                                                                                                                                                                                                                                                                                                    CurrentValue = value;
+                                                                                                                                                                                                                                                                                                                                                    UpdatePlot();
+                                                                                                                                                                                                                                                                                                                                                });
                     }
                 }
             }
@@ -535,18 +575,18 @@ namespace Mvvm.ViewModels
         private void OnConnectionStatusChanged(bool isConnected)
         {
             Application.Current.Dispatcher.Invoke(() =>
-            {
-                if (isConnected)
-                {
-                    _dataUpdateTimer?.Start();
-                    LoadModbusData();
-                }
-                else
-                {
-                    _dataUpdateTimer?.Stop();
-                    IsRealTimeUpdate = false;
-                }
-            });
+                                                                                                                                                                                                                                                                                                                                        {
+                                                                                                                                                                                                                                                                                                                                            if (isConnected)
+                                                                                                                                                                                                                                                                                                                                            {
+                                                                                                                                                                                                                                                                                                                                                _dataUpdateTimer?.Start();
+                                                                                                                                                                                                                                                                                                                                                LoadModbusData();
+                                                                                                                                                                                                                                                                                                                                            }
+                                                                                                                                                                                                                                                                                                                                            else
+                                                                                                                                                                                                                                                                                                                                            {
+                                                                                                                                                                                                                                                                                                                                                _dataUpdateTimer?.Stop();
+                                                                                                                                                                                                                                                                                                                                                IsRealTimeUpdate = false;
+                                                                                                                                                                                                                                                                                                                                            }
+                                                                                                                                                                                                                                                                                                                                        });
         }
 
         private void StartDataCollection()
@@ -597,10 +637,10 @@ namespace Mvvm.ViewModels
                     double timeSpan = 10;
                     double latestTime = times.Last();
                     plt.Axes.SetLimits(
-                        left: Math.Max(latestTime - timeSpan, times[0]),
-                        right: latestTime,
-                        bottom: values.Min() - 1,
-                        top: values.Max() + 1
+                    left: Math.Max(latestTime - timeSpan, times[0]),
+                    right: latestTime,
+                    bottom: values.Min() - 1,
+                    top: values.Max() + 1
                     );
                 }
 
@@ -608,9 +648,9 @@ namespace Mvvm.ViewModels
                 if (values.Length > 0)
                 {
                     plt.Add.Text(
-                        text: values.Last().ToString("F2"),
-                        x: times.Last(),
-                        y: values.Last()
+                    text: values.Last().ToString("F2"),
+                    x: times.Last(),
+                    y: values.Last()
                     );
                 }
             }
@@ -678,8 +718,8 @@ namespace Mvvm.ViewModels
                 _dataPlot = plt.Add.ScatterLine(initialTimes, initialData);
 
                 plt.Axes.SetLimits(left: -10, right: 0, bottom: -10, top: 10);
-              
-                                _wpfPlot.Refresh();
+
+                _wpfPlot.Refresh();
             }
         }
 

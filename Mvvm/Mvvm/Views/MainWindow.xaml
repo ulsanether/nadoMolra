@@ -21,7 +21,7 @@
     <Grid Height="600">
         <Grid.RowDefinitions>
             <RowDefinition Height="60" />
-            <RowDefinition Height="*" />
+            <RowDefinition Height="100*" />
             <RowDefinition
                 Height="43"
                 MinHeight="43"
@@ -90,12 +90,12 @@
             HorizontalAlignment="Right"
             VerticalAlignment="Center"
             Background="{x:Null}"
-            BorderBrush="White"
+            BorderBrush="{Binding IconColor}"
             Command="{Binding PortConnectButton}"
-            Foreground="White"
+            Foreground="{Binding IconColor}"
             Style="{StaticResource MaterialDesignFloatingActionLightButton}"
             ToolTip="MaterialDesignFloatingActionLightButton">
-            <Fluent:FluentIcon Icon="Connector" />
+            <Fluent:FluentIcon Icon="{Binding Icon}" />
 
         </Button>
         <ComboBox
@@ -116,10 +116,8 @@
         <materialDesign:DrawerHost
             x:Name="DrawerHost"
             Grid.RowSpan="3"
-            Width="800"
-            Height="600"
-            HorizontalAlignment="Center"
-            VerticalAlignment="Top"
+            HorizontalAlignment="Right"
+            VerticalAlignment="Center"
             av:IsHidden="True"
             BorderBrush="{DynamicResource MaterialDesignDivider}"
             BorderThickness="1"
