@@ -241,8 +241,7 @@ namespace Mvvm.ViewModels
             NavigateToSettingWindowCommand = new DelegateCommand(NavigateToSettingWindow);
             NavigateToModbusDataViewPageCommand = new DelegateCommand(NavigateToModbusDataViewPage);
             NavigateToHomePageCommand = new DelegateCommand(HomePageLoad);
-            PortConnectButton = new DelegateCommand(ConnectPorts);
-
+            PortConnectButton = new DelegateCommand(ConnectPorts, () => true);
             BottomMessageQueue = new SnackbarMessageQueue();
 
             _mainBottomBarViewModel.AdvancedModeChanged += OpenRightBar;
@@ -265,7 +264,7 @@ namespace Mvvm.ViewModels
             SetDefaultValues();
 
             OpenExcelCommand = new DelegateCommand(OpenExcelFile);
-            SaveExcelCommand = new DelegateCommand(ExecuteSaveExcel);
+            SaveExcelCommand = new DelegateCommand(SaveSetting);
         }
 
         private void OpenRightBar(object sender, EventArgs e) {
@@ -420,6 +419,8 @@ namespace Mvvm.ViewModels
             SelectedStopBit = Properties.Settings.Default.StopBits;
             StartAddress = Properties.Settings.Default.StartAddress;
             EndAddress = Properties.Settings.Default.EndAddress;
+            SlaveId = Properties.Settings.Default.SlaveId;
+
         }
 
         private void OpenExcelFile()
@@ -476,7 +477,7 @@ namespace Mvvm.ViewModels
             return parameter != null;
         }
 
-        private void ExecuteSaveExcel()
+        private void SaveSetting()
         {
             Properties.Settings.Default.SelectedConnection = SelectedConnection;
             Properties.Settings.Default.BaudRate = SelectedBaud;
@@ -487,11 +488,12 @@ namespace Mvvm.ViewModels
             Properties.Settings.Default.EndAddress = EndAddress;
             Properties.Settings.Default.SlaveId = SlaveId;
 
-
             Properties.Settings.Default.DelayBetweenPolls = DelayBetweenPolls;
             Properties.Settings.Default.ResponseTimeout = ResponseTimeout;
             Properties.Settings.Default.Save();
-            SetDefaultValues();
+
+            _modbusConnect.LoadDefaultConfig();
+
 
             MessageBox.Show("설정을 성공적으로 저장했습니다.");
 

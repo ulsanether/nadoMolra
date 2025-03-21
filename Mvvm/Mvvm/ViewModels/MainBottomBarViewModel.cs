@@ -5,6 +5,7 @@ using System.Windows;
 using System.Windows.Input;
 using Prism.Commands;
 using System;
+using System.Threading.Tasks;
 
 namespace Mvvm.ViewModels
 {
@@ -75,11 +76,11 @@ namespace Mvvm.ViewModels
 
         }
 
-        private void InitializeValues()
+        private async Task InitializeValues()
         {
             IsConnected = _modbusConnect.IsConnected();
             UpdatePortState();
-            UpdatePortConfiguration();
+            await UpdatePortConfiguration();
         }
 
 
@@ -96,7 +97,7 @@ namespace Mvvm.ViewModels
 
         
 
-        private void UpdatePortConfiguration()
+        private async  Task UpdatePortConfiguration()
         {
             if (_modbusConnect.serialPortConfig != null)
             {

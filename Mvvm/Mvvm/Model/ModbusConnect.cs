@@ -44,7 +44,7 @@ namespace Mvvm.Model
           LoadDefaultConfig();
         }
 
-        private void LoadDefaultConfig()
+        public void LoadDefaultConfig()
         {
             if (int.TryParse(Properties.Settings.Default.BaudRate, out int baudRate))
             {
