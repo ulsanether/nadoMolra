@@ -144,11 +144,11 @@ namespace Mvvm.ViewModels
             set => SetProperty(ref _statistics, value);
         }
 
-private DelegateCommand _generateParametersCommand;
+        private DelegateCommand _generateParametersCommand;
         public DelegateCommand GenerateParametersCommand =>
             _generateParametersCommand ??= new DelegateCommand(
                 ExecuteGenerateParameters,
-                () => true  // 항상 실행 가능한 상태
+                () => true
             );
 
 
@@ -161,6 +161,7 @@ private DelegateCommand _generateParametersCommand;
                 if (_modbusWriteCommand == null)
                 {
                     _modbusWriteCommand = new DelegateCommand<ParameterModel>(OnModbusWrite);
+
                 }
                 return _modbusWriteCommand;
             }
@@ -184,31 +185,29 @@ private DelegateCommand _generateParametersCommand;
         }
 
 
-        #region 필요 없는 코드들.
 
-        //public DelegateCommand<ParameterModel> WriteCommand
-        //{
-        //    get
-        //    {
-        ////        if (_writeCommand == null)
-        ////        {
-        ////            _writeCommand = new DelegateCommand<ParameterModel>(
-        ////            param => { if (param != null) ExecuteWrite(param); },
-        ////            param => param is ParameterModel && CanExecuteWrite(param)
-        ////        );
-        ////        }
-        ////        return _writeCommand;
-        ////    }
-        ////}
+        public DelegateCommand<ParameterModel> WriteCommand
+        {
+            get
+            {
+                if (_writeCommand == null)
+                {
+                    _writeCommand = new DelegateCommand<ParameterModel>(
+                    param => { if (param != null) ExecuteWrite(param); },
+                  param => param is ParameterModel && CanExecuteWrite(param)
+                );
+                }
+                return _writeCommand;
+            }
+        }
 
-        //private bool CanExecuteWrite(ParameterModel parameter)
-        //{
-        //    // 간단한 유효성 검사
-        //    return parameter != null;
-        //}
+        private bool CanExecuteWrite(ParameterModel parameter)
+        {
+
+            return parameter != null;
+        }
 
 
-        #endregion
 
 
         private ObservableCollection<ParameterModel> _availableParameters;
@@ -228,7 +227,7 @@ private DelegateCommand _generateParametersCommand;
 
         private async void ExecuteGenerateParameters()
         {
-            MessageBox.Show("Generate Parameters");
+
 
             try
             {
@@ -259,7 +258,7 @@ private DelegateCommand _generateParametersCommand;
                 var Note = Properties.Settings.Default.Note;
                 var Func = Properties.Settings.Default.Func;
                 var Endian = Properties.Settings.Default.Endian;
-                string[] Temp;
+                double[] Temp = { 0, 0 };
                 await Application.Current.Dispatcher.InvokeAsync(() =>
                 {
                     while (stackParameterModels.Count > 0)
@@ -278,56 +277,46 @@ private DelegateCommand _generateParametersCommand;
 
                         if (parameter.Endian == "H")
                         {
-                        }
-                        else
-
-                        if (parameter.Endian == "L")
-                        {
-
+                         //  MessageBox.Show(parameter.DefaultActual.ToString());
+                            if (Temp != null && Temp.Length > 0)
+                                Temp[0] = parameter.DefaultActual;
                             parameter.DefaultActual = 0;
-
-
-                            //       MessageBox.Show()
-
-                            //_modbusConnect.ReadRegisterAsType(, DataType.Int32).ContinueWith(task =>
-                            //{
-                            //    if (task.IsFaulted)
-                            //    {
-                            //        Logger.Error(task.Exception, "파라미터 생성 중 오류 발생");
-                            //        MessageBox.Show($"파라미터 생성 중 오류가 발생했습니다: {task.Exception.Message}",
-                            //        "오류", MessageBoxButton.OK, MessageBoxImage.Error);
-                            //        return;
-                            //    }
-                            //    var result = task.Result;
-
-                            //    MessageBox.Show("Result : " + result);
-
-                            //    //   parameter.DefaultValue = result;
-                            //    //  parameter.DefaultActual = result;
-                            //    //   Parameters.Add(parameter);
-                            //    //  return;
-                            //});
-
-
-
-
-
-
-
+                            //이 위치에 해당하는 열에 데한 데이터를 락 걸어 버려야함.
                         }
-                        else
+                        else if (parameter.Endian == "L")
                         {
+                            if (Temp != null && Temp.Length > 1)
+                                Temp[1] = parameter.DefaultActual;
+                      //      MessageBox.Show(Temp[0].ToString() + "  ||   " + Temp[1].ToString());
 
+                            var ushortTemp = ConvertToUShortArray(Temp);
+
+                            _modbusConnect.ReadRegisterAsType(ushortTemp, DataType.Int32).ContinueWith(task =>
+                            {
+                                if (task.IsFaulted)
+                                {
+                                    Logger.Error(task.Exception, "파라미터 생성 중 오류 발생");
+                                    MessageBox.Show($"파라미터 생성 중 오류가 발생했습니다: {task.Exception.Message}",
+                                    "오류", MessageBoxButton.OK, MessageBoxImage.Error);
+                                    return;
+                                }
+                                var result = task.Result;
+
+                             //   MessageBox.Show("Result : " + result);
+
+                                Application.Current.Dispatcher.Invoke(() =>
+                                {
+                                    parameter.DefaultActual = result;
+                                   //Parameters.Add(parameter);
+                                });
+                            });
                         }
 
-                        Parameters.Add(parameter);
+
+                            Parameters.Add(parameter);
+
                     }
-
-
-
                 });
-
-
 
                 Logger.Info($"파라미터 생성 완료: {start}부터 {end}까지 {parameters.Count}개 생성됨");
             }
@@ -339,14 +328,15 @@ private DelegateCommand _generateParametersCommand;
             }
         }
 
+
         private async Task<List<ParameterModel>> GetReadModbusData(int start, int numberOfPoints) =>
                     await _modbusConnect.ReadModbusData(start, numberOfPoints);
 
 
 
-        //모드버스 쓰기 커맨드
         private async void ExecuteWrite(ParameterModel parameter)
         {
+
             if (parameter == null)
             {
                 Logger.Warn("WriteCommand: 파라미터가 null입니다.");
@@ -355,7 +345,6 @@ private DelegateCommand _generateParametersCommand;
 
             try
             {
-                // Index 값 로깅 추가
                 Logger.Info($"저장 버튼 클릭 - 인덱스: {parameter.Index:D3}, 주소: {parameter.Address}");
                 AddLog("버튼 클릭", $"인덱스: {parameter.Index:D3}, 주소: {parameter.Address}");
 
@@ -381,12 +370,16 @@ private DelegateCommand _generateParametersCommand;
 
                 if (result == MessageBoxResult.Yes)
                 {
+
+               // MessageBox.Show(parameter.Index.ToString());
+
                     await _modbusConnect.WriteRegister(parameter, newValue, parameter.Index);
                     parameter.DefaultActual = newValue;
-                    parameter.NewValue = "";  // 입력값 초기화
-
+                    parameter.NewValue = "";
                     Logger.Info($"파라미터 쓰기 완료 - 인덱스: {parameter.Index:D3}, 주소: {parameter.Address}, 값: {newValue}");
                 }
+
+
             }
             catch (Exception ex)
             {
@@ -541,33 +534,35 @@ private DelegateCommand _generateParametersCommand;
 
                     Task.Delay(3000).ContinueWith(_ =>
                     {
-Application.Current.Dispatcher.Invoke(() =>
-{
-existingParameter.IsValueChanged = false;
-});
-});
+                        Application.Current.Dispatcher.Invoke(() =>
+                        {
+                            existingParameter.IsValueChanged = false;
+                        });
+                    });
                 }
             }
         }
 
         private void AddLog(string eventName, string details)
         {
-            Application.Current.Dispatcher.Invoke(() =>     {    var logItem = new CommunicationLogItem(eventName, details);
-            _communicationLog.Insert(0, logItem);
-
-            while (_communicationLog.Count > 1000)
-
+            Application.Current.Dispatcher.Invoke(() =>
             {
+                var logItem = new CommunicationLogItem(eventName, details);
+                _communicationLog.Insert(0, logItem);
 
-            _communicationLog.RemoveAt(_communicationLog.Count - 1);
+                while (_communicationLog.Count > 1000)
 
-            }
+                {
+
+                    _communicationLog.RemoveAt(_communicationLog.Count - 1);
+
+                }
 
 
-            Logger.Info($"{eventName}: {details}");
+                Logger.Info($"{eventName}: {details}");
 
 
-            RaisePropertyChanged(nameof(CommunicationLog));
+                RaisePropertyChanged(nameof(CommunicationLog));
 
             });
         }
@@ -595,7 +590,6 @@ existingParameter.IsValueChanged = false;
                 Label = $"Register {parameter.Address}",
                 ModbusUnit = "Raw"
             };
-
 
 
             if (indexList != null)
@@ -647,15 +641,13 @@ existingParameter.IsValueChanged = false;
                         Application.Current.Dispatcher.Invoke(() =>
                         {
 
-                        // SelectedParameter의 DefaultActual 값을 업데이트
+                            // SelectedParameter의 DefaultActual 값을 업데이트
 
-SelectedParameter.DefaultActual = value;
+                            SelectedParameter.DefaultActual = value;
+                            CurrentValue = value;
+                            UpdatePlot();
 
-CurrentValue = value;
-
-UpdatePlot();
-
-});
+                        });
                     }
                 }
             }
@@ -671,19 +663,17 @@ UpdatePlot();
         private void OnConnectionStatusChanged(bool isConnected)
         {
             Application.Current.Dispatcher.Invoke(() =>
-
-
             {
-            if (isConnected)
-            {
-            _dataUpdateTimer?.Start();
-            LoadModbusData();
-            }
-            else
-            {
-            _dataUpdateTimer?.Stop();
-            IsRealTimeUpdate = false;
-            }
+                if (isConnected)
+                {
+                    _dataUpdateTimer?.Start();
+                    LoadModbusData();
+                }
+                else
+                {
+                    _dataUpdateTimer?.Stop();
+                    IsRealTimeUpdate = false;
+                }
             });
         }
 
@@ -775,6 +765,14 @@ UpdatePlot();
         #endregion
 
         #region Helper Methods
+
+
+        private ushort[] ConvertToUShortArray(double[] input)
+        {
+            return input.Select(x => (ushort)x).ToArray();
+        }
+
+
         private void InitializeChart()
         {
             if (_wpfPlot == null) return;

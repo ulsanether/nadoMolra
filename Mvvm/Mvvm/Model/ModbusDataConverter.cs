@@ -45,13 +45,10 @@ namespace Mvvm.Model
 
 
 
-
-
         public static short ToInt16(ushort register)
         {
             return (short)register;
         }
-
 
 
         public static ushort[] FromFloat(float value)

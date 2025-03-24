@@ -7,13 +7,13 @@ namespace Mvvm.Views
     public partial class MainBottomBar : UserControl
     {
 
-
-
         public MainBottomBar(MainBottomBarViewModel viewModel)
         {
             InitializeComponent();
             DataContext = viewModel;
-
         }
+
     }
+
+
 }

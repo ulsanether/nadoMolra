@@ -78,21 +78,15 @@ namespace Mvvm.Model
         {
             get => _newValue;
             set { SetProperty(ref _newValue, value);
-             //   MessageBox.Show("New Value " +  _newValue);
 
 
             }
         }
 
 
-
-
-
         public ParameterModel()
         {
-
         }
-
         private async void ResetValueChangedFlag()
         {
             await Task.Delay(1000);

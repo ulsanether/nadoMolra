@@ -174,10 +174,7 @@ namespace Mvvm.Model
                 statistics.RecordSuccessfulRead();
                 lastDataReceived = DateTime.Now;
 
-
-
                 var parameters = ConvertToParameters(registers, startAddress);
-
 
                 dataBuffer.StoreValues(parameters);
 
@@ -216,42 +213,32 @@ namespace Mvvm.Model
             }
         }
 
-        public async Task<double> ReadRegisterAsType(ushort address, DataType dataType)
+
+
+
+        public async Task<double> ReadRegisterAsType(ushort[] temp, DataType dataType)
         {
             try
             {
                 switch (dataType)
                 {
                     case DataType.Float:
-                        var registers = await Task.Run(() =>
-                            master.ReadHoldingRegisters(serialPortConfig.slaveId, address, 2));
-                        return ModbusDataConverter.ToFloat(registers);
-
+                        return ModbusDataConverter.ToFloat(temp);
                     case DataType.Int32:
-                        registers = await Task.Run(() =>
-                            master.ReadHoldingRegisters(serialPortConfig.slaveId, address, 2));
-                        return ModbusDataConverter.ToInt32Big(registers);
-
-
+                        return ModbusDataConverter.ToInt32Big(temp);
                     default:
-                        var register = await Task.Run(() =>
-                            master.ReadHoldingRegisters(serialPortConfig.slaveId, address, 1));
-                        return register[0];
+                        throw new NotSupportedException($"Data type {dataType} is not supported.");
                 }
             }
             catch (Exception ex)
             {
                 statistics.RecordError();
-                throw new ModbusException($"레지스터 {address} 읽기 실패: {ex.Message}", ex);
+                throw new ModbusException($"레지스터 읽기 실패: {ex.Message}", ex);
             }
         }
 
+
         public async  void  ReadREgisterAsType(string Hi, string Lo, DataType dataType) {
-
-
-
-
-
 
             //return null;
 
@@ -365,9 +352,7 @@ namespace Mvvm.Model
                     .Take(count)
                     .Select(dp => new ParameterModel
                     {
-                        DefaultActual = dp.Value,
-                     //   DefaultValue = dp.Value.ToString(),
-
+                        DefaultActual = dp.Value,  
                     })
                     .ToList();
             }
