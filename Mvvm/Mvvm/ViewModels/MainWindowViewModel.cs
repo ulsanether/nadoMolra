@@ -78,6 +78,8 @@ namespace Mvvm.ViewModels
             set => SetProperty(ref _slaveId, value);
         }
 
+
+
         private int _delayBetweenPolls;
         public int DelayBetweenPolls
         {
@@ -123,8 +125,12 @@ namespace Mvvm.ViewModels
         private string _selectedDataBit;
         private string _selectedParity;
         private string _selectedStopBit;
-        private ushort _startAddress;
         private ushort _endAddress;
+        private ushort _startAddress;
+
+
+
+
 
         private readonly SerialPortConfig _serialPortConfig;
         private readonly ExcelSettingsManager _settingsManager;

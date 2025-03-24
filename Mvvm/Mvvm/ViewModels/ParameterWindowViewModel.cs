@@ -18,6 +18,7 @@ using Timer = System.Timers.Timer;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using System.Collections.Specialized;
+using ImTools;
 
 namespace Mvvm.ViewModels
 {
@@ -50,7 +51,7 @@ namespace Mvvm.ViewModels
         private string _endAddress;
         private bool _isListView = true;
         private ObservableCollection<CommunicationLogItem> _communicationLog;
-        private DelegateCommand _generateParametersCommand;
+
         private DelegateCommand<ParameterModel> _writeCommand;
 
 
@@ -59,11 +60,6 @@ namespace Mvvm.ViewModels
 
         #region Properties
         public Action RefreshTemplateAction { get; set; }
-
-
-
-
-
         public object LockObject => _lockObject;
         public Queue<double> TimeData => _timeData;
         public Queue<double> ValueData => _valueData;
@@ -148,13 +144,27 @@ namespace Mvvm.ViewModels
             set => SetProperty(ref _statistics, value);
         }
 
-
+private DelegateCommand _generateParametersCommand;
         public DelegateCommand GenerateParametersCommand =>
-_generateParametersCommand ?? (_generateParametersCommand = new DelegateCommand(ExecuteGenerateParameters));
+            _generateParametersCommand ??= new DelegateCommand(
+                ExecuteGenerateParameters,
+                () => true  // 항상 실행 가능한 상태
+            );
 
 
 
-        public ICommand ModbosWritCommand => new DelegateCommand<ParameterModel>(OnModbusWrite);
+        private DelegateCommand<ParameterModel> _modbusWriteCommand;
+        public ICommand ModbosWritCommand
+        {
+            get
+            {
+                if (_modbusWriteCommand == null)
+                {
+                    _modbusWriteCommand = new DelegateCommand<ParameterModel>(OnModbusWrite);
+                }
+                return _modbusWriteCommand;
+            }
+        }
 
         private async void OnModbusWrite(ParameterModel parameter)
         {
@@ -174,14 +184,31 @@ _generateParametersCommand ?? (_generateParametersCommand = new DelegateCommand(
         }
 
 
-        public DelegateCommand<ParameterModel> WriteCommand =>
-                _writeCommand ?? (_writeCommand = new DelegateCommand<ParameterModel>(ExecuteWrite, CanExecuteWrite));
+        #region 필요 없는 코드들.
 
-        private bool CanExecuteWrite(ParameterModel parameter)
-        {
-            // 간단한 유효성 검사
-            return parameter != null;
-        }
+        //public DelegateCommand<ParameterModel> WriteCommand
+        //{
+        //    get
+        //    {
+        ////        if (_writeCommand == null)
+        ////        {
+        ////            _writeCommand = new DelegateCommand<ParameterModel>(
+        ////            param => { if (param != null) ExecuteWrite(param); },
+        ////            param => param is ParameterModel && CanExecuteWrite(param)
+        ////        );
+        ////        }
+        ////        return _writeCommand;
+        ////    }
+        ////}
+
+        //private bool CanExecuteWrite(ParameterModel parameter)
+        //{
+        //    // 간단한 유효성 검사
+        //    return parameter != null;
+        //}
+
+
+        #endregion
 
 
         private ObservableCollection<ParameterModel> _availableParameters;
@@ -224,8 +251,6 @@ _generateParametersCommand ?? (_generateParametersCommand = new DelegateCommand(
 
                 //값은 전체를 읽고 가져 오는 것은 세팅된 값으로 가져오게 수정.
 
-
-
                 var stackParameterModels = new Stack<ParameterModel>(parameters);
                 var Description = Properties.Settings.Default.Description;
                 var Unit = Properties.Settings.Default.Unit;
@@ -234,7 +259,7 @@ _generateParametersCommand ?? (_generateParametersCommand = new DelegateCommand(
                 var Note = Properties.Settings.Default.Note;
                 var Func = Properties.Settings.Default.Func;
                 var Endian = Properties.Settings.Default.Endian;
-
+                string[] Temp;
                 await Application.Current.Dispatcher.InvokeAsync(() =>
                 {
                     while (stackParameterModels.Count > 0)
@@ -249,11 +274,60 @@ _generateParametersCommand ?? (_generateParametersCommand = new DelegateCommand(
                         parameter.Description = Description[parameter.Index];
                         parameter.Unit = Unit[parameter.Index];
                         parameter.DefaultValue = DefaultValue[parameter.Index];
-                        Parameters.Add(parameter);
+                        parameter.Endian += Endian[parameter.Index];
 
+                        if (parameter.Endian == "H")
+                        {
+                        }
+                        else
+
+                        if (parameter.Endian == "L")
+                        {
+
+                            parameter.DefaultActual = 0;
+
+
+                            //       MessageBox.Show()
+
+                            //_modbusConnect.ReadRegisterAsType(, DataType.Int32).ContinueWith(task =>
+                            //{
+                            //    if (task.IsFaulted)
+                            //    {
+                            //        Logger.Error(task.Exception, "파라미터 생성 중 오류 발생");
+                            //        MessageBox.Show($"파라미터 생성 중 오류가 발생했습니다: {task.Exception.Message}",
+                            //        "오류", MessageBoxButton.OK, MessageBoxImage.Error);
+                            //        return;
+                            //    }
+                            //    var result = task.Result;
+
+                            //    MessageBox.Show("Result : " + result);
+
+                            //    //   parameter.DefaultValue = result;
+                            //    //  parameter.DefaultActual = result;
+                            //    //   Parameters.Add(parameter);
+                            //    //  return;
+                            //});
+
+
+
+
+
+
+
+                        }
+                        else
+                        {
+
+                        }
+
+                        Parameters.Add(parameter);
                     }
 
+
+
                 });
+
+
 
                 Logger.Info($"파라미터 생성 완료: {start}부터 {end}까지 {parameters.Count}개 생성됨");
             }
@@ -270,8 +344,6 @@ _generateParametersCommand ?? (_generateParametersCommand = new DelegateCommand(
 
 
 
-
-        //모드버스 쓰기 커맨드
         //모드버스 쓰기 커맨드
         private async void ExecuteWrite(ParameterModel parameter)
         {
@@ -325,6 +397,8 @@ _generateParametersCommand ?? (_generateParametersCommand = new DelegateCommand(
         }
 
 
+
+
         public ObservableCollection<string> ChartTypes
         {
             get => _chartTypes;
@@ -337,6 +411,7 @@ _generateParametersCommand ?? (_generateParametersCommand = new DelegateCommand(
             get => _parameters;
             set => SetProperty(ref _parameters, value);
         }
+
 
         public DelegateCommand ResetChartCommand { get; }
         public DelegateCommand ExportDataCommand { get; }
@@ -358,7 +433,6 @@ _generateParametersCommand ?? (_generateParametersCommand = new DelegateCommand(
             ResetChartCommand = new DelegateCommand(ResetChart);
             ExportDataCommand = new DelegateCommand(ExportData);
             ResetStatisticsCommand = new DelegateCommand(ResetStatistics);
-
 
 
             _dataUpdateTimer = new System.Timers.Timer(2000);
@@ -466,32 +540,36 @@ _generateParametersCommand ?? (_generateParametersCommand = new DelegateCommand(
                     $"새 값: {updatedParameter.DefaultActual:F2}");
 
                     Task.Delay(3000).ContinueWith(_ =>
-                                                                                                                                                                                                                                                                                                            {
-                                                                                                                                                                                                                                                                                                                Application.Current.Dispatcher.Invoke(() =>
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        {
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            existingParameter.IsValueChanged = false;
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        });
-                                                                                                                                                                                                                                                                                                            });
+                    {
+Application.Current.Dispatcher.Invoke(() =>
+{
+existingParameter.IsValueChanged = false;
+});
+});
                 }
             }
         }
 
         private void AddLog(string eventName, string details)
         {
-            Application.Current.Dispatcher.Invoke(() =>
-                                                                                                                                                                                                                                                                                                            {
-                                                                                                                                                                                                                                                                                                                var logItem = new CommunicationLogItem(eventName, details);
-                                                                                                                                                                                                                                                                                                                _communicationLog.Insert(0, logItem);
+            Application.Current.Dispatcher.Invoke(() =>     {    var logItem = new CommunicationLogItem(eventName, details);
+            _communicationLog.Insert(0, logItem);
 
-                                                                                                                                                                                                                                                                                                                while (_communicationLog.Count > 1000)
-                                                                                                                                                                                                                                                                                                                {
-                                                                                                                                                                                                                                                                                                                    _communicationLog.RemoveAt(_communicationLog.Count - 1);
-                                                                                                                                                                                                                                                                                                                }
+            while (_communicationLog.Count > 1000)
 
-                                                                                                                                                                                                                                                                                                                Logger.Info($"{eventName}: {details}");
+            {
 
-                                                                                                                                                                                                                                                                                                                RaisePropertyChanged(nameof(CommunicationLog));
-                                                                                                                                                                                                                                                                                                            });
+            _communicationLog.RemoveAt(_communicationLog.Count - 1);
+
+            }
+
+
+            Logger.Info($"{eventName}: {details}");
+
+
+            RaisePropertyChanged(nameof(CommunicationLog));
+
+            });
         }
 
         private void InitializeParameter(ParameterModel parameter)
@@ -506,7 +584,6 @@ _generateParametersCommand ?? (_generateParametersCommand = new DelegateCommand(
             var descriptionList = Properties.Settings.Default.Description;
             var unitList = Properties.Settings.Default.Unit;
             var defaultValueList = Properties.Settings.Default.DefaultValue;
-
 
             var newParameter = new ParameterModel
             {
@@ -597,31 +674,16 @@ UpdatePlot();
 
 
             {
-
             if (isConnected)
-
             {
-
             _dataUpdateTimer?.Start();
-
             LoadModbusData();
-
-
             }
-
             else
-
             {
-
             _dataUpdateTimer?.Stop();
-
-
             IsRealTimeUpdate = false;
-
-
             }
-
-
             });
         }
 

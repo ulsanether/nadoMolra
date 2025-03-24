@@ -8,6 +8,7 @@ using System.Windows.Controls;
 using Mvvm.Model.ComPort;
 using Mvvm.Model.Exceptions;
 using Mvvm.ViewModels;
+using MySqlX.XDevAPI.Common;
 using NModbus;
 using NModbus.Serial;
 
@@ -28,7 +29,7 @@ namespace Mvvm.Model
         private DateTime lastDataReceived;
 
         public SerialPortConfig serialPortConfig { get; set; }
-        public CommunicationStatistics Statistics => statistics;
+
 
         protected virtual void OnConnectionStatusChanged(bool isConnected)
         {
@@ -229,7 +230,8 @@ namespace Mvvm.Model
                     case DataType.Int32:
                         registers = await Task.Run(() =>
                             master.ReadHoldingRegisters(serialPortConfig.slaveId, address, 2));
-                        return ModbusDataConverter.ToInt32(registers);
+                        return ModbusDataConverter.ToInt32Big(registers);
+
 
                     default:
                         var register = await Task.Run(() =>
@@ -243,6 +245,18 @@ namespace Mvvm.Model
                 throw new ModbusException($"레지스터 {address} 읽기 실패: {ex.Message}", ex);
             }
         }
+
+        public async  void  ReadREgisterAsType(string Hi, string Lo, DataType dataType) {
+
+
+
+
+
+
+            //return null;
+
+        }
+
 
         public bool IsConnected()
         {
@@ -440,6 +454,8 @@ namespace Mvvm.Model
         Int16,
         UInt32,
         Int32,
-        Float
+        Float,
+        Long
+
     }
 }

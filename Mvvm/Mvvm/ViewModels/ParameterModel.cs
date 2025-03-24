@@ -23,6 +23,15 @@ namespace Mvvm.Model
         private int _index;
         private string _unit;
         private string _newValue;
+        private string _endian;
+
+
+        public string Endian
+        {
+            get => _endian;
+            set => SetProperty(ref _endian, value);
+        }
+
 
         public int Address { get; set; }
         public string Label { get; set; }  //차트에 쓴다. 이걸 다른걸로 수정 할 것

@@ -63,6 +63,7 @@
             <Button
                 Grid.Column="4"
                 Margin="0,0,10,0"
+
                 Command="{Binding GenerateParametersCommand}"
                 Content="생성" />
 

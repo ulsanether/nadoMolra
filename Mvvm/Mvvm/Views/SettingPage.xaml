@@ -211,46 +211,52 @@
                 Grid.Column="0"
                 Width="106"
                 Height="16"
-                Margin="0,69,0,0"
+                Margin="0,34,0,0"
                 HorizontalAlignment="Left"
                 VerticalAlignment="Top"
                 Text="Slave ID" />
             <TextBox
                 Width="120"
-                Margin="127,69,0,0"
+                Margin="85,25,0,0"
                 HorizontalAlignment="Left"
                 VerticalAlignment="Top"
                 Text="{Binding SlaveId}"
                 TextWrapping="Wrap" />
             <TextBlock
-                Width="32"
-                Height="16"
-                Margin="301,69,0,0"
-                HorizontalAlignment="Left"
-                VerticalAlignment="Top"
-                Text="[ms]" />
-            <TextBlock
                 Grid.Column="0"
-                Width="106"
+                Width="124"
                 Height="16"
                 Margin="0,117,0,0"
                 HorizontalAlignment="Left"
                 VerticalAlignment="Top"
-                Text="Address" />
+                Text="Total Address Range" />
             <TextBox
-                Width="120"
-                Margin="92,112,0,0"
+                Width="100"
+                Margin="124,108,0,0"
                 HorizontalAlignment="Left"
                 VerticalAlignment="Top"
-                Text="{Binding SlaveId}"
+                Text="{Binding StartAddress}"
                 TextWrapping="Wrap" />
             <TextBox
-                Width="120"
-                Margin="281,117,0,0"
+                Width="100"
+                Margin="260,108,0,0"
                 HorizontalAlignment="Left"
                 VerticalAlignment="Top"
-                Text="{Binding SlaveId}"
+                Text="{Binding EndAddress}"
                 TextWrapping="Wrap" />
+            <TextBlock
+                Grid.Column="0"
+                Height="16"
+                Margin="165,87,165,0"
+                VerticalAlignment="Top"
+                Text="Start" />
+            <TextBlock
+                Grid.Column="0"
+                Width="50"
+                Height="16"
+                Margin="295,90,35,0"
+                VerticalAlignment="Top"
+                Text="End" />
 
 
         </Grid>
