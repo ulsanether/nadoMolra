@@ -462,6 +462,15 @@ namespace Mvvm.ViewModels
             }
         }
 
+        private void LoadExcelData()
+        {
+            string defaultPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Data", "ModbusParameters.xlsx");
+
+            if (File.Exists(defaultPath))
+            {
+                var modbusData = ExcelSettingsManager.LoadModbusParameters(defaultPath);
+            }
+        }
 
 
         private void ExecuteMethod(ParameterModel parameter)
