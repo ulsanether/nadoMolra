@@ -191,7 +191,7 @@ namespace Mvvm.ViewModels
             if (_wpfPlot == null) return;
 
             var plt = _wpfPlot.Plot;
-            plt.Clear();
+          //  plt.Clear();
 
             // 모니터링 중인 주소가 없으면, 선택된 파라미터만 표시
             if (MonitoredAddresses.Count == 0 && SelectedParameter != null)
