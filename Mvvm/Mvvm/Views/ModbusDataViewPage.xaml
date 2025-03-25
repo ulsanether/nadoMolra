@@ -52,12 +52,18 @@
                                 Width="180"
                                 Margin="5"
                                 materialDesign:HintAssist.Hint="파라미터 선택"
-                                DisplayMemberPath="Label"
                                 ItemsSource="{Binding Parameters}"
-                                SelectedItem="{Binding SelectedParameter, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                SelectedItem="{Binding SelectedParameter, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}">
+                                <ComboBox.ItemTemplate>
+                                    <DataTemplate>
+                                        <TextBlock Foreground="Black" Text="{Binding Description}" />
+                                    </DataTemplate>
+                                </ComboBox.ItemTemplate>
+                            </ComboBox>
 
 
                             <TextBlock
+                                Width="100"
                                 Margin="5"
                                 VerticalAlignment="Center"
                                 Style="{StaticResource MaterialDesignBody1TextBlock}"

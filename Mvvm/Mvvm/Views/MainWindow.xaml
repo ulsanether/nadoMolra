@@ -76,7 +76,7 @@
                     Width="80"
                     Margin="5,40,0,0"
                     FontSize="9"
-                    Foreground="White"
+                    Foreground="Black"
                     Text="모드버스 데이터" />
             </StackPanel>
         </Button>

@@ -141,7 +141,7 @@ namespace Mvvm.Model
             };
 
 
-            MessageBox.Show(serialPortConfig.BaudRate.ToString(), "BaudRate", MessageBoxButton.OK, MessageBoxImage.Information);
+          //  MessageBox.Show(serialPortConfig.BaudRate.ToString(), "BaudRate", MessageBoxButton.OK, MessageBoxImage.Information);
 
 
             await Task.Run(() =>
