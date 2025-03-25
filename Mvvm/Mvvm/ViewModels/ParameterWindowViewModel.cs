@@ -26,6 +26,211 @@ namespace Mvvm.ViewModels
 {
     public class ParameterWindowViewModel : BindableBase
     {
+
+
+       private DelegateCommand _addButtonClickCommand;
+        public ICommand AddButtonClickCommand =>
+        _addButtonClickCommand ??= new DelegateCommand(OnAddButtonClick);
+
+
+        #region  임시로 놔두는곳
+
+       private void OnAddButtonClick()
+    {
+        if (SelectedParameter != null)
+        {
+                var index = SelectedParameter.Index;
+                MessageBox.Show(SelectedParameter.Index.ToString());
+                AddPlotAddress(int.Parse(index.ToString()));
+
+            }
+        {
+            MessageBox.Show("파라미터를 선택하세요.", "오류", MessageBoxButton.OK, MessageBoxImage.Error);
+        }
+    }
+
+
+        private ObservableCollection<int> _monitoredAddresses = new ObservableCollection<int>();
+        public ObservableCollection<int> MonitoredAddresses
+        {
+            get => _monitoredAddresses;
+            set => SetProperty(ref _monitoredAddresses, value);
+        }
+
+        public void AddPlotAddress(int addr)
+        {
+            try
+            {
+                if (MonitoredAddresses.Contains(addr))
+                {
+                    MessageBox.Show($"주소 {addr}는 이미 모니터링 중입니다.", "알림", MessageBoxButton.OK, MessageBoxImage.Information);
+                    return;
+                }
+
+                var parameter = Parameters.FirstOrDefault(p => p.Address == addr);
+                if (parameter == null)
+                {
+                    MessageBox.Show($"주소 {addr}에 해당하는 파라미터를 찾을 수 없습니다.", "오류", MessageBoxButton.OK, MessageBoxImage.Error);
+                    return;
+                }
+
+                MonitoredAddresses.Add(addr);
+                parameter.IsMonitoring = true;
+
+                Logger.Info($"모니터링 추가: 주소 {addr}, 설명: {parameter.Description}");
+                AddLog("모니터링 추가", $"주소 {addr}, 파라미터: {parameter.Description}");
+
+                if (!IsRealTimeUpdate)
+                {
+                    IsRealTimeUpdate = true;
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.Error(ex, $"플롯 주소 추가 중 오류 발생: {addr}");
+                MessageBox.Show($"플롯 주소 추가 중 오류가 발생했습니다: {ex.Message}", "오류", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        public void DeletePlotAddress(int addr)
+        {
+            try
+            {
+                if (!MonitoredAddresses.Contains(addr))
+                {
+                    MessageBox.Show($"주소 {addr}는 모니터링 중이 아닙니다.", "알림", MessageBoxButton.OK, MessageBoxImage.Information);
+                    return;
+                }
+
+                MonitoredAddresses.Remove(addr);
+
+                var parameter = Parameters.FirstOrDefault(p => p.Address == addr);
+                if (parameter != null)
+                {
+                    parameter.IsMonitoring = false;
+                    Logger.Info($"모니터링 제거: 주소 {addr}, 설명: {parameter.Description}");
+                    AddLog("모니터링 제거", $"주소 {addr}, 파라미터: {parameter.Description}");
+                }
+
+                if (MonitoredAddresses.Count == 0 && IsRealTimeUpdate)
+                {
+                    IsRealTimeUpdate = false;
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.Error(ex, $"플롯 주소 삭제 중 오류 발생: {addr}");
+                MessageBox.Show($"플롯 주소 삭제 중 오류가 발생했습니다: {ex.Message}", "오류", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        public void AllClearPlotAddress()
+        {
+            try
+            {
+                if (MonitoredAddresses.Count == 0)
+                {
+                    MessageBox.Show("모니터링 중인 주소가 없습니다.", "알림", MessageBoxButton.OK, MessageBoxImage.Information);
+                    return;
+                }
+
+                // 모니터링 중인 모든 파라미터 처리
+                foreach (var addr in MonitoredAddresses.ToList())
+                {
+                    var parameter = Parameters.FirstOrDefault(p => p.Address == addr);
+                    if (parameter != null)
+                    {
+                        parameter.IsMonitoring = false;
+                    }
+                }
+
+                MonitoredAddresses.Clear();
+
+                if (IsRealTimeUpdate)
+                {
+                    IsRealTimeUpdate = false;
+                }
+
+                ResetChart();
+
+                Logger.Info("모든 모니터링 주소 제거");
+                AddLog("모니터링 초기화", "모든 모니터링 주소가 제거되었습니다.");
+
+                MessageBox.Show("모든 모니터링 주소가 제거되었습니다.", "알림", MessageBoxButton.OK, MessageBoxImage.Information);
+            }
+            catch (Exception ex)
+            {
+                Logger.Error(ex, "모든 플롯 주소 제거 중 오류 발생");
+                MessageBox.Show($"모든 플롯 주소 제거 중 오류가 발생했습니다: {ex.Message}", "오류", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+
+        public void UpdatePlot()
+        {
+            if (_wpfPlot == null || SelectedParameter == null) return;
+
+            var plt = _wpfPlot.Plot;
+            plt.Clear();
+
+            int parameterAddress = SelectedParameter.Address;
+
+            TimeSpan historySpan = TimeSpan.FromHours(1);
+            var historicalData = _modbusConnect.dataBuffer.GetHistoricalData(parameterAddress, historySpan);
+
+
+            if (historicalData.Length > 0)
+            {
+                double[] times = historicalData.Select(dp =>
+                    (dp.Timestamp - DateTime.Today).TotalSeconds).ToArray();
+                double[] values = historicalData.Select(dp => dp.Value).ToArray();
+
+                plt.Title($"{SelectedParameter.Label} 데이터 이력");
+                plt.YLabel($"값 ({SelectedParameter.ModbusUnit})");
+                plt.XLabel("시간 (초)");
+
+                _dataPlot = plt.Add.ScatterLine(times, values);
+
+                if (values.Length > 0)
+                {
+                    plt.Add.Text(
+                        text: values.Last().ToString("F2"),
+                        x: times.Last(),
+                        y: values.Last()
+                    );
+                }
+
+                if (AutoScale)
+                {
+                    plt.Axes.AutoScale();
+                }
+                else
+                {
+                    double timeSpan = 300; // 5분
+                    double latestTime = times.LastOrDefault();
+                    plt.Axes.SetLimits(
+                        left: Math.Max(latestTime - timeSpan, times.FirstOrDefault()),
+                        right: latestTime,
+                        bottom: values.Min() - 1,
+                        top: values.Max() + 1
+                    );
+                }
+            }
+            else
+            {
+                double[] initialData = { 0 };
+                double[] initialTimes = { 0 };
+                _dataPlot = plt.Add.ScatterLine(initialTimes, initialData);
+                plt.Axes.SetLimits(left: -10, right: 0, bottom: -10, top: 10);
+            }
+
+            _wpfPlot.Refresh();
+        }
+
+        #endregion
+
+
+
         #region Fields
         private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
         private readonly ModbusConnect _modbusConnect;
@@ -82,9 +287,6 @@ namespace Mvvm.ViewModels
             get => _isListView;
             set => SetProperty(ref _isListView, value);
         }
-
-
-
 
         public bool IsRealTimeUpdate
         {
@@ -229,9 +431,9 @@ namespace Mvvm.ViewModels
 
 
 
+
         private async void ExecuteGenerateParameters()
         {
-
 
             try
             {
@@ -249,10 +451,10 @@ namespace Mvvm.ViewModels
 
                 int numberOfPoints = end - start + 1;
 
+                double[] Temp = { 0, 0 };
+
                 Parameters.Clear();
                 var parameters = await GetReadModbusData(start, numberOfPoints);
-
-                //값은 전체를 읽고 가져 오는 것은 세팅된 값으로 가져오게 수정.
 
                 var stackParameterModels = new Stack<ParameterModel>(parameters);
                 var description = Properties.Settings.Default.Description;
@@ -267,16 +469,12 @@ namespace Mvvm.ViewModels
                 var symbols = Properties.Settings.Default.Symbols;
 
 
-                double[] Temp = { 0, 0 };
+
                 await Application.Current.Dispatcher.InvokeAsync(() =>
                 {
                     while (stackParameterModels.Count > 0)
                     {
                         var parameter = stackParameterModels.Pop();
-
-                        //func값과 파라미터 note값을 합쳐서 표시, 쓸때도 그렇게 되게 자동화 한다.
-                        //Endian 값의 H 와L 값을 합쳐서 H에 합쳐진 값을 표시
-                        //unit 단위 값에 맞춰서 defaultValue 값와 현재 값을 표시
 
                         parameter.Index = start++;
                         parameter.Description = description[parameter.Index];
@@ -377,7 +575,6 @@ namespace Mvvm.ViewModels
                     await _modbusConnect.ReadModbusData(start, numberOfPoints);
 
 
-
         private async void ExecuteWrite(ParameterModel parameter)
         {
 
@@ -417,12 +614,8 @@ namespace Mvvm.ViewModels
                 if (result == MessageBoxResult.Yes)
                 {
 
-
-                    #region 표시 범위랑 값들인데, 나중에 다른 프로젝트 할때 추가 해야함. 일단 /10 만 있음.
-
-
+                    #region 표시 범위랑 값들인데, 나중에 다른 프로젝트 할때  추가 해야함. 일단 /10 만 있음.
                     string[] normalRangeSplit = parameter.NormalRange.Split('~');
-
 
                     int lowRange = int.Parse(normalRangeSplit[0]) / 10;
                     int highRange = int.Parse(normalRangeSplit[1]) / 10;
@@ -434,9 +627,6 @@ namespace Mvvm.ViewModels
                         return;
 
                     }
-
-
-
 
                     var allParameters = GetAllParameters();
 
@@ -496,30 +686,15 @@ namespace Mvvm.ViewModels
 
                         #endregion
 
-
-
                     }
                     else
                     {
-
                         await _modbusConnect.WriteRegister(parameter.Index, newValue);
                         parameter.DefaultActual = newValue;
                         parameter.NewValue = "";
                     }
-
-
-
-
-
-
-
                     parameter.NewValue = "";
                     Logger.Info($"파라미터 쓰기 완료 - 인덱스: {parameter.Index:D3}, 주소: {parameter.Address}, 값: {newValue}");
-
-
-
-
-
                 }
 
 
@@ -575,11 +750,6 @@ namespace Mvvm.ViewModels
             ResetStatisticsCommand = new DelegateCommand(ResetStatistics);
 
 
-            _dataUpdateTimer = new System.Timers.Timer(2000);
-            _dataUpdateTimer.Elapsed += OnDataUpdateTimerElapsed;
-            _dataUpdateTimer.AutoReset = true;
-            _dataUpdateTimer.Start();
-
             _updateTimer = new Timer(2000);
             _updateTimer.Elapsed += OnUpdateTimerElapsed;
             _updateTimer.AutoReset = false;
@@ -604,6 +774,8 @@ namespace Mvvm.ViewModels
             LoadModbusData();
         }
 
+
+        #region 타이머 갱신인데 나중에 넣어야 함.
         private async void LoadModbusData()
         {
             try
@@ -618,7 +790,8 @@ namespace Mvvm.ViewModels
 
                 if (!Parameters.Any())
                 {
-                    var initialData = await _modbusConnect.ReadModbusData(0, 1);
+
+                    var initialData = await GetReadModbusData(0, 1);
                     AddLog("초기 데이터", $"레지스터 수: {initialData.Count}");
 
                     await Application.Current.Dispatcher.InvokeAsync(() =>
@@ -627,27 +800,31 @@ namespace Mvvm.ViewModels
                         {
                             InitializeParameter(parameter);
                         }
-
                     });
                 }
                 else
                 {
-                    int startAddress, endAddress, count;
-                    ModbusCount(out startAddress, out endAddress, out count);
 
-                    var updatedData = await _modbusConnect.ReadModbusData(startAddress, count);
-                    AddLog("데이터 갱신", $"주소 범위: {startAddress}-{endAddress}, 개수: {count}");
+                    //int startAddress, endAddress, count;
+                    //ModbusCount(out startAddress, out endAddress, out count);
 
-                    await Application.Current.Dispatcher.InvokeAsync(() =>
-                    {
-                        foreach (var parameter in updatedData)
-                        {
-                            UpdateExistingParameter(parameter);
+                    //var updatedData = await GetReadModbusData(startAddress, count);
 
-                        }
-                        RaisePropertyChanged(nameof(Parameters));
-                        RaisePropertyChanged(nameof(AvailableParameters));
-                    });
+                    ////MessageBox.Show(string.Format("주소 범위: {0} - {1}, 개수: {2}", startAddress, endAddress, count));
+
+                    //AddLog("데이터 갱신", $"주소 범위: {startAddress}-{endAddress}, 개수: {count}");
+
+
+                    //await Application.Current.Dispatcher.InvokeAsync(() =>
+                    //{
+                    //    foreach (var parameter in updatedData)
+                    //    {
+                    //        UpdateExistingParameter(parameter);
+
+                    //    }
+                    //    RaisePropertyChanged(nameof(Parameters));
+                    //    RaisePropertyChanged(nameof(AvailableParameters));
+                    //});
                 }
             }
             catch (Exception ex)
@@ -657,13 +834,8 @@ namespace Mvvm.ViewModels
             }
         }
 
-        private void ModbusCount(out int startAddress, out int endAddress, out int count)
-        {
-            startAddress = Parameters.Min(p => p.Address);
-            endAddress = Parameters.Max(p => p.Address);
-            count = endAddress - startAddress + 1;
-        }
 
+        //사용 안할것 같은 코드
         private void UpdateExistingParameter(ParameterModel updatedParameter)
         {
             var existingParameter = Parameters.FirstOrDefault(p => p.Address == updatedParameter.Address);
@@ -689,6 +861,13 @@ namespace Mvvm.ViewModels
                 }
             }
         }
+
+        #endregion
+
+
+
+
+
 
         private void AddLog(string eventName, string details)
         {
@@ -762,10 +941,6 @@ namespace Mvvm.ViewModels
             Parameters.Add(newParameter);
         }
 
-        private void OnDataUpdateTimerElapsed(object sender, ElapsedEventArgs e)
-        {
-            LoadModbusData();
-        }
 
 
         #region 차트 관련 메서드
@@ -776,12 +951,45 @@ namespace Mvvm.ViewModels
             {
                 if (SelectedParameter == null) return;
 
-                var data = await _modbusConnect.ReadModbusData(SelectedParameter.Address, 1);
-                if (data.Any())
-                {
-                    var value = data[0].DefaultActual;
-                    var time = (DateTime.Now - DateTime.Today).TotalSeconds;
+                // 데이터 버퍼에서 최근 값 가져오기 시도
+                var historicalData = _modbusConnect.dataBuffer.GetHistoricalData(SelectedParameter.Address, TimeSpan.FromSeconds(5));
 
+                double value;
+                double time = (DateTime.Now - DateTime.Today).TotalSeconds;
+                bool valueUpdated = false;
+
+                if (historicalData.Length > 0)
+                {
+                    var latestData = historicalData.OrderByDescending(dp => dp.Timestamp).First();
+                    value = latestData.Value;
+                    valueUpdated = true;
+                }
+                else
+                {
+                    if (_modbusConnect.IsConnected())
+                    {
+                        var data = await GetReadModbusData(SelectedParameter.Address, 1);
+                        if (data.Any())
+                        {
+                            value = data[0].DefaultActual;
+                            valueUpdated = true;
+                            Logger.Debug($"버퍼에 데이터가 없어 직접 통신: {SelectedParameter.Address}");
+                        }
+                        else
+                        {
+                            // 연결은 되어 있지만 데이터를 읽지 못함
+                            return;
+                        }
+                    }
+                    else
+                    {
+                        // 연결이 안 되어 있으면 타이머 계속 유지
+                        return;
+                    }
+                }
+
+                if (valueUpdated)
+                {
                     lock (_lockObject)
                     {
                         _timeData.Enqueue(time);
@@ -796,15 +1004,24 @@ namespace Mvvm.ViewModels
                         Application.Current.Dispatcher.Invoke(() =>
                         {
 
-                            // SelectedParameter의 DefaultActual 값을 업데이트
 
-                            SelectedParameter.DefaultActual = value;
-                            CurrentValue = value;
-                            UpdatePlot();
+                        //차트 업데이트 갱신 부분
+
+
+
+                       //    SelectedParameter.DefaultActual = value;
+                        //    CurrentValue = value;
+                          //  UpdatePlot();
+
+
 
                         });
                     }
                 }
+            }
+            catch (Exception ex)
+            {
+                Logger.Error(ex, "타이머 데이터 업데이트 중 오류 발생");
             }
             finally
             {
@@ -814,6 +1031,7 @@ namespace Mvvm.ViewModels
                 }
             }
         }
+
 
 
         #endregion
@@ -855,55 +1073,6 @@ namespace Mvvm.ViewModels
             InitializeChart();
         }
 
-        public void UpdatePlot()
-        {
-            if (_wpfPlot == null) return;
-
-            var times = _timeData.ToArray();
-            var values = _valueData.ToArray();
-
-            if (times.Length > 0)
-            {
-                var plt = _wpfPlot.Plot;
-                plt.Clear();
-
-                if (SelectedParameter != null)
-                {
-                    plt.Title($"{SelectedParameter.Label} 실시간 데이터");
-                    plt.YLabel($"값 ({SelectedParameter.ModbusUnit})");
-                }
-
-                _dataPlot = plt.Add.ScatterLine(times, values);
-
-                if (AutoScale)
-                {
-                    // 자동 스케일링 적용
-                    plt.Axes.AutoScale();
-                }
-                else
-                {
-                    double timeSpan = 10;
-                    double latestTime = times.Last();
-                    plt.Axes.SetLimits(
-                    left: Math.Max(latestTime - timeSpan, times[0]),
-                    right: latestTime,
-                    bottom: values.Min() - 1,
-                    top: values.Max() + 1
-                    );
-                }
-
-                if (values.Length > 0)
-                {
-                    plt.Add.Text(
-                    text: values.Last().ToString("F2"),
-                    x: times.Last(),
-                    y: values.Last()
-                    );
-                }
-            }
-
-            _wpfPlot.Refresh();
-        }
 
         public void UpdateCommunicationStatus()
         {

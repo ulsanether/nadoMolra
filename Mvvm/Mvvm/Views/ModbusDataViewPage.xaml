@@ -85,7 +85,7 @@
                             <Button
                                 Width="100"
                                 Margin="5"
-                                Click="OnAddButtonClick"
+                                Command="{Binding AddButtonClickCommand}"
                                 Content="추가"
                                 Style="{StaticResource MaterialDesignRaisedButton}" />
 

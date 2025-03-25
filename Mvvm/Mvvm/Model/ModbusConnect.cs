@@ -24,11 +24,14 @@ namespace Mvvm.Model
         private readonly int MAX_RECONNECT_ATTEMPTS = 3;
         private readonly Dictionary<ushort, DataType> dataTypeMap = new Dictionary<ushort, DataType>();
         private readonly CommunicationStatistics statistics;
-        private readonly ModbusDataBuffer dataBuffer;
         private bool autoReconnect = true;
         private DateTime lastDataReceived;
 
         public SerialPortConfig serialPortConfig { get; set; }
+
+
+        public readonly ModbusDataBuffer dataBuffer;
+
 
 
         protected virtual void OnConnectionStatusChanged(bool isConnected)
@@ -151,12 +154,13 @@ namespace Mvvm.Model
             master.Transport.WriteTimeout = 2000;
         }
 
+
+        //여기는 세팅값에 저장된 전체의 데이터를 가져와야함.
         public async Task<List<ParameterModel>> ReadModbusData(int startAddress, int numberOfPoints)
         {
             if (!IsConnected())
             {
 
-            //연결 안될경우에는 가장 최근값 가져올것
                 var lastValues = dataBuffer.GetLastValues(numberOfPoints);
                 return lastValues;
             }
@@ -354,6 +358,11 @@ namespace Mvvm.Model
             }
         }
 
+
+
+        #region 차트에 쓸 데이터 버퍼
+
+        //GetHistoricalData(100, TimeSpan.FromHours(1)  주소 100번의 1시간동안의 데이터 포인터 출력.
         public DataPoint[] GetHistoricalData(int address, TimeSpan timeSpan)
         {
             lock (lockObject)
@@ -369,6 +378,8 @@ namespace Mvvm.Model
                     .ToArray();
             }
         }
+        #endregion
+
     }
 
     public class CommunicationStatistics
