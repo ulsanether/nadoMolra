@@ -54,8 +54,7 @@
                                 materialDesign:HintAssist.Hint="파라미터 선택"
                                 DisplayMemberPath="Label"
                                 ItemsSource="{Binding Parameters}"
-                                SelectedItem="{Binding SelectedParameter, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                Style="{StaticResource MaterialDesignComboBox}" />
+                                SelectedItem="{Binding SelectedParameter, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
 
 
                             <TextBlock

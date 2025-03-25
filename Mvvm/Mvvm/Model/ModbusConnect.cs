@@ -121,9 +121,6 @@ namespace Mvvm.Model
                 port.Close();
                 await Task.Delay(100);
             }
-
-
-
         }
 
         private async Task OpenNewConnection(string portName)
@@ -191,7 +188,7 @@ namespace Mvvm.Model
             }
         }
 
-        public async Task WriteRegister(ParameterModel parameter, int value, int addr)
+        public async Task WriteRegister(int addr, int value)
         {
             if (!IsConnected())
                 throw new InvalidOperationException("연결되지 않았습니다.");
@@ -199,8 +196,7 @@ namespace Mvvm.Model
             try
             {
                 await Task.Run(() =>
-                    master.WriteSingleRegister(
-                        serialPortConfig.slaveId,
+                    master.WriteSingleRegister(           serialPortConfig.slaveId,
                         (ushort)addr,
                         (ushort)value));
 
@@ -352,7 +348,7 @@ namespace Mvvm.Model
                     .Take(count)
                     .Select(dp => new ParameterModel
                     {
-                        DefaultActual = dp.Value,  
+                        DefaultActual = dp.Value,
                     })
                     .ToList();
             }

@@ -145,18 +145,30 @@
         <materialDesign:Card Margin="5" Padding="8">
             <Grid>
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="30" />
-                    <!--  Index  -->
-                    <ColumnDefinition Width="200" />
-                    <!--  Description  -->
+
                     <ColumnDefinition Width="20" />
+                    <!--  Index  -->
+                    <ColumnDefinition Width="180" />
+                    <!--  Description  -->
+
+                    <ColumnDefinition Width="30" />
                     <!--  Unit  -->
-                    <ColumnDefinition Width="100" />
+
+                    <ColumnDefinition Width="80" />
                     <!--  Default  -->
-                    <ColumnDefinition Width="120" />
+
+                    <ColumnDefinition Width="100" />
                     <!--  Current Value  -->
-                    <ColumnDefinition Width="120" />
+
+                    <ColumnDefinition Width="80" />
                     <!--  Setting Value  -->
+
+                    <ColumnDefinition Width="50" />
+                    <!--  Symbols  -->
+
+                    <ColumnDefinition Width="140" />
+                    <!--  Range  -->
+
                     <ColumnDefinition Width="Auto" />
                     <!--  Save Button  -->
                 </Grid.ColumnDefinitions>
@@ -186,7 +198,7 @@
                 <!--  기본값  -->
                 <TextBlock
                     Grid.Column="3"
-                    Margin="5,0"
+                    Margin="0,0"
                     HorizontalAlignment="Center"
                     VerticalAlignment="Center"
                     Text="{Binding DefaultValue, StringFormat={}{0:F1}}" />
@@ -194,7 +206,7 @@
                 <!--  현재값  -->
                 <TextBlock
                     Grid.Column="4"
-                    Margin="5,0"
+                    Margin="0,0"
                     HorizontalAlignment="Center"
                     VerticalAlignment="Center"
                     Style="{StaticResource ModbusValueTextBlock}"
@@ -203,16 +215,31 @@
                 <!--  설정값 입력  -->
                 <TextBox
                     Grid.Column="5"
-                    Width="100"
+                    Width="50"
                     Margin="6,0"
-                    HorizontalAlignment="Center"
                     VerticalAlignment="Center"
                     Text="{Binding NewValue, UpdateSourceTrigger=PropertyChanged}" />
 
-                <Button
+                <!--  Symbols  -->
+                <TextBlock
                     Grid.Column="6"
+                    Margin="5,0"
+                    VerticalAlignment="Center"
+                    Text="{Binding Symbols}" />
+
+                <!--  Range  -->
+                <TextBlock
+                    Grid.Column="7"
+                    Margin="5,0"
+                    HorizontalAlignment="Left"
+                    VerticalAlignment="Center"
+                    Text="{Binding NormalRange}" />
+
+                <Button
+                    Grid.Column="8"
                     Width="100"
                     Margin="5,0"
+                    HorizontalAlignment="Left"
                     Command="{Binding DataContext.WriteCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
                     CommandParameter="{Binding}">
                     <StackPanel Orientation="Horizontal">
@@ -226,8 +253,6 @@
                             Text="{Binding Index}" />
                     </StackPanel>
                 </Button>
-
-
             </Grid>
         </materialDesign:Card>
     </DataTemplate>
@@ -241,6 +266,8 @@
             Background="{DynamicResource MaterialDesignBackground}">
             <Grid>
                 <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
@@ -294,7 +321,7 @@
 
                     <!--  설정값  -->
                     <TextBox
-                        Grid.Column="5"
+                        Grid.Column="1"
                         Width="100"
                         Margin="6,0"
                         HorizontalAlignment="Center"
@@ -302,9 +329,20 @@
                         Text="{Binding NewValue, UpdateSourceTrigger=PropertyChanged}" />
                 </Grid>
 
+                <!--  Symbols  -->
+                <DockPanel Grid.Row="4" Margin="0,8">
+                    <TextBlock Text="Symbols: " />
+                    <TextBlock Margin="8,0,0,0" Text="{Binding Symbols}" />
+                </DockPanel>
+
+                <!--  Range  -->
+                <DockPanel Grid.Row="5" Margin="0,8">
+                    <TextBlock Text="Range: " />
+                    <TextBlock Margin="8,0,0,0" Text="{Binding NormalRange}" />
+                </DockPanel>
 
                 <Button
-                    Grid.Column="6"
+                    Grid.Row="6"
                     Width="100"
                     Margin="5,0"
                     Command="{Binding DataContext.WriteCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
@@ -323,6 +361,7 @@
             </Grid>
         </materialDesign:Card>
     </DataTemplate>
+
     <!--  DataTemplateSelector 등록  -->
     <local:ParameterTemplateSelector
         x:Key="ParameterTemplateSelector"

@@ -1,7 +1,4 @@
-﻿using System;
-using System.ComponentModel;
-using System.Threading.Tasks;
-using System.Windows;
+﻿using System.Threading.Tasks;
 using System.Windows.Media;
 using Prism.Mvvm;
 
@@ -14,7 +11,6 @@ namespace Mvvm.Model
         private string _description;
         private double _defaultActual;
         private string _defaultValue;
-        private string _modbusUnit;
         private bool _isValueChanged;
         private bool _isMonitoring;
         private string _statusMessage;
@@ -42,6 +38,24 @@ namespace Mvvm.Model
             set => SetProperty(ref _defaultActual, value);
         }
         public string DefaultValue { get; set; }
+
+
+        private string _normalRange;
+
+        public string NormalRange { get => _normalRange; set => SetProperty(ref _normalRange, value); }
+
+
+        public string Func { get; set;}
+
+        private string _note;
+
+        public string Note { get => _note; set => SetProperty(ref _note, value); }
+
+        private string _symbols;
+
+        public string Symbols { get => _symbols; set => SetProperty(ref _symbols, value); }
+
+
         public string ModbusUnit { get; set; }
         public bool IsValueChanged
         {
@@ -77,12 +91,13 @@ namespace Mvvm.Model
         public string NewValue
         {
             get => _newValue;
-            set { SetProperty(ref _newValue, value);
+            set
+            {
+                SetProperty(ref _newValue, value);
 
 
             }
         }
-
 
         public ParameterModel()
         {

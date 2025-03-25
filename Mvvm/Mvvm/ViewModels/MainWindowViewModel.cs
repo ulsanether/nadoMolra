@@ -454,7 +454,7 @@ namespace Mvvm.ViewModels
             }
         }
 
-        private void LogModbusParameters(Dictionary<int, (string Size, string Description, string Unit, double DefaultValue, string Func, string Note, string Endian)> modbusData)
+        private void LogModbusParameters(Dictionary<int, (string Size, string Description, string Unit, double DefaultValue, string NormalRange, string Func, string Note, string Endian, string Symbols, string Style)> modbusData)
         {
             foreach (var kvp in modbusData)
             {

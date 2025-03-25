@@ -19,6 +19,8 @@ using System.Threading.Tasks;
 using System.Windows.Input;
 using System.Collections.Specialized;
 using ImTools;
+using ScottPlot.Colormaps;
+using FluentIcons.Common;
 
 namespace Mvvm.ViewModels
 {
@@ -80,6 +82,9 @@ namespace Mvvm.ViewModels
             get => _isListView;
             set => SetProperty(ref _isListView, value);
         }
+
+
+
 
         public bool IsRealTimeUpdate
         {
@@ -161,7 +166,6 @@ namespace Mvvm.ViewModels
                 if (_modbusWriteCommand == null)
                 {
                     _modbusWriteCommand = new DelegateCommand<ParameterModel>(OnModbusWrite);
-
                 }
                 return _modbusWriteCommand;
             }
@@ -251,13 +255,18 @@ namespace Mvvm.ViewModels
                 //값은 전체를 읽고 가져 오는 것은 세팅된 값으로 가져오게 수정.
 
                 var stackParameterModels = new Stack<ParameterModel>(parameters);
-                var Description = Properties.Settings.Default.Description;
-                var Unit = Properties.Settings.Default.Unit;
-                var DefaultValue = Properties.Settings.Default.DefaultValue;
+                var description = Properties.Settings.Default.Description;
+                var unit = Properties.Settings.Default.Unit;
+                var defaultValue = Properties.Settings.Default.DefaultValue;
 
-                var Note = Properties.Settings.Default.Note;
-                var Func = Properties.Settings.Default.Func;
-                var Endian = Properties.Settings.Default.Endian;
+                var normalRange = Properties.Settings.Default.NormalRange;
+
+                var note = Properties.Settings.Default.Note;
+                var func = Properties.Settings.Default.Func;
+                var endian = Properties.Settings.Default.Endian;
+                var symbols = Properties.Settings.Default.Symbols;
+
+
                 double[] Temp = { 0, 0 };
                 await Application.Current.Dispatcher.InvokeAsync(() =>
                 {
@@ -270,10 +279,17 @@ namespace Mvvm.ViewModels
                         //unit 단위 값에 맞춰서 defaultValue 값와 현재 값을 표시
 
                         parameter.Index = start++;
-                        parameter.Description = Description[parameter.Index];
-                        parameter.Unit = Unit[parameter.Index];
-                        parameter.DefaultValue = DefaultValue[parameter.Index];
-                        parameter.Endian += Endian[parameter.Index];
+                        parameter.Description = description[parameter.Index];
+                        parameter.Unit = unit[parameter.Index];
+                        parameter.DefaultValue = defaultValue[parameter.Index];
+                        parameter.Endian = endian[parameter.Index];
+
+                        //범위값 /10 해서 표시 할것.
+                        parameter.NormalRange = normalRange[parameter.Index] ;
+
+                        parameter.Symbols = symbols[parameter.Index];
+                        parameter.Func = func[parameter.Index];
+
 
                         if (parameter.Endian == "H")
                         {
@@ -281,7 +297,9 @@ namespace Mvvm.ViewModels
                             if (Temp != null && Temp.Length > 0)
                                 Temp[0] = parameter.DefaultActual;
                             parameter.DefaultActual = 0;
-                            //이 위치에 해당하는 열에 데한 데이터를 락 걸어 버려야함.
+                            continue;
+
+
                         }
                         else if (parameter.Endian == "L")
                         {
@@ -313,7 +331,33 @@ namespace Mvvm.ViewModels
                         }
 
 
-                            Parameters.Add(parameter);
+                        if (parameter.Func != "N")
+                        {
+                            string[] funcSplit = parameter.Func.Split('_');
+
+                        //    MessageBox.Show(funcSplit[0] + "  |  " + funcSplit[1]);
+
+
+                            switch (funcSplit[0]) {
+                                 case "+":
+                                    break;
+                                case "-":
+                                    break;
+                                case "*":
+                                parameter.DefaultActual = parameter.DefaultActual * double.Parse(funcSplit[1]);
+                                    break;
+                                case "/":
+                                  parameter.DefaultActual = parameter.DefaultActual / double.Parse(funcSplit[1]);
+                                    break;
+                                    default:
+                                    break;
+
+                            }
+
+                        }
+
+
+                        Parameters.Add(parameter);
 
                     }
                 });
@@ -368,15 +412,114 @@ namespace Mvvm.ViewModels
                 MessageBoxButton.YesNo,
                 MessageBoxImage.Question);
 
+
+
                 if (result == MessageBoxResult.Yes)
                 {
 
-               // MessageBox.Show(parameter.Index.ToString());
 
-                    await _modbusConnect.WriteRegister(parameter, newValue, parameter.Index);
-                    parameter.DefaultActual = newValue;
+                    #region 표시 범위랑 값들인데, 나중에 다른 프로젝트 할때 추가 해야함. 일단 /10 만 있음.
+
+
+                    string[] normalRangeSplit = parameter.NormalRange.Split('~');
+
+
+                    int lowRange = int.Parse(normalRangeSplit[0]) / 10;
+                    int highRange = int.Parse(normalRangeSplit[1]) / 10;
+                    if (lowRange > newValue || highRange < newValue)
+                    {
+
+                        MessageBox.Show("설정값이 정상 범위를 벗어났습니다.", "입력 오류",
+                            MessageBoxButton.OK, MessageBoxImage.Warning);
+                        return;
+
+                    }
+
+
+
+
+                    var allParameters = GetAllParameters();
+
+                    foreach(var item in allParameters)
+                    {
+                            if (item.Endian == "H") {
+                                var numOne = item.Index;
+                                parameter.NewValue = "";
+                        }
+                            else if (item.Endian == "L")
+                            {
+                                var numTwo = item.Index;
+
+
+                                var refVal = ModbusDataConverter.FromInt32Big((int)item.DefaultActual);
+
+
+                               await _modbusConnect.WriteRegister( parameter.Index-1 ,refVal[0]);
+                               await _modbusConnect.WriteRegister(parameter.Index, refVal[1]);
+                               parameter.NewValue = "";
+
+                            Logger.Info($"파라미터 쓰기 완료 - 인덱스: {parameter.Index:D3}, 주소: {parameter.Address}, 값: {newValue}");
+                                return;
+                            }
+                    }
+
+                    if (parameter.Func != "N")
+                    {
+
+
+                        string[] funcSplit = parameter.Func.Split('_');
+
+                        switch (funcSplit[0])
+                        {
+                            case "+":
+                                break;
+                            case "-":
+                                break;
+                            case "*":
+
+
+                                newValue /= int.Parse(funcSplit[1]);
+                                await _modbusConnect.WriteRegister( parameter.Index, newValue );
+                                parameter.DefaultActual = newValue * int.Parse(funcSplit[1]);
+                                parameter.NewValue = "";
+                                break;
+                            case "/":
+                                newValue *= int.Parse(funcSplit[1]);
+                                await _modbusConnect.WriteRegister( parameter.Index, newValue );
+                                parameter.DefaultActual = newValue / int.Parse(funcSplit[1]);
+                                parameter.NewValue = "";
+                                break;
+                            default:
+                                break;
+
+                        }
+
+                        #endregion
+
+
+
+                    }
+                    else
+                    {
+
+                        await _modbusConnect.WriteRegister(parameter.Index, newValue);
+                        parameter.DefaultActual = newValue;
+                        parameter.NewValue = "";
+                    }
+
+
+
+
+
+
+
                     parameter.NewValue = "";
                     Logger.Info($"파라미터 쓰기 완료 - 인덱스: {parameter.Index:D3}, 주소: {parameter.Address}, 값: {newValue}");
+
+
+
+
+
                 }
 
 
@@ -391,6 +534,10 @@ namespace Mvvm.ViewModels
 
 
 
+        public List<ParameterModel> GetAllParameters()
+        {
+            return Parameters.ToList();
+        }
 
         public ObservableCollection<string> ChartTypes
         {
@@ -579,16 +726,21 @@ namespace Mvvm.ViewModels
             var descriptionList = Properties.Settings.Default.Description;
             var unitList = Properties.Settings.Default.Unit;
             var defaultValueList = Properties.Settings.Default.DefaultValue;
+            var normalRangeList = Properties.Settings.Default.NormalRange;
+            var symbolsList = Properties.Settings.Default.Symbols;
+
 
             var newParameter = new ParameterModel
             {
                 Address = parameter.Address,
 
-
+                NormalRange = "-",
                 DefaultActual = parameter.DefaultActual,
-                Description = "Description",
+                Description = "description",
                 Label = $"Register {parameter.Address}",
+
                 ModbusUnit = "Raw"
+
             };
 
 
@@ -614,6 +766,9 @@ namespace Mvvm.ViewModels
         {
             LoadModbusData();
         }
+
+
+        #region 차트 관련 메서드
 
         private async void OnUpdateTimerElapsed(object sender, ElapsedEventArgs e)
         {
@@ -659,6 +814,11 @@ namespace Mvvm.ViewModels
                 }
             }
         }
+
+
+        #endregion
+
+
 
         private void OnConnectionStatusChanged(bool isConnected)
         {
@@ -718,7 +878,7 @@ namespace Mvvm.ViewModels
                 if (AutoScale)
                 {
                     // 자동 스케일링 적용
-                    plt.Axes.AutoScale(); // AxisAuto() 대신 AutoScale() 사용
+                    plt.Axes.AutoScale();
                 }
                 else
                 {
@@ -732,7 +892,6 @@ namespace Mvvm.ViewModels
                     );
                 }
 
-                // 마지막 값 텍스트 추가 (size 파라미터 제거)
                 if (values.Length > 0)
                 {
                     plt.Add.Text(
@@ -780,6 +939,7 @@ namespace Mvvm.ViewModels
             var plt = _wpfPlot.Plot;
             plt.Clear();
             plt.Font.Set("맑은 고딕");
+
             plt.Title("Real Time ", 16);
             plt.XLabel("시간 (초)");
             plt.YLabel("값");
@@ -798,6 +958,9 @@ namespace Mvvm.ViewModels
             SelectedChartType = ChartTypes.First();
         }
 
+
+
+        //차트 삭제 함수
         private void ResetChart()
         {
             if (_wpfPlot == null) return;
@@ -818,6 +981,9 @@ namespace Mvvm.ViewModels
                 _wpfPlot.Refresh();
             }
         }
+
+
+
 
         private void ExportData()
         {

@@ -18,6 +18,22 @@ namespace Mvvm.Model
 
             return BitConverter.ToSingle(bytes, 0);
         }
+
+
+        public static ushort[] FromFloat(float value)
+        {
+            byte[] bytes = BitConverter.GetBytes(value);
+            return new ushort[]
+            {
+                (ushort)((bytes[3] << 8) | bytes[2]),
+                (ushort)((bytes[1] << 8) | bytes[0])
+            };
+        }
+
+
+
+
+
         /// <summary>
         /// 빅엔디안 방식
         /// [1]0x1234 << 16 = 0x12340000
@@ -34,6 +50,18 @@ namespace Mvvm.Model
         }
 
 
+
+        //역변환
+        public static ushort[] FromInt32Big(int value)
+        {
+            return new ushort[]
+            {
+                (ushort)(value >> 16),
+                (ushort)(value & 0xffff)
+            };
+        }
+
+
         //리틀 엔디안 방식.
         public static int ToInt32Little(ushort[] registers)
         {
@@ -43,6 +71,16 @@ namespace Mvvm.Model
             return (registers[1] << 16) | registers[0];
         }
 
+        public static ushort[] FromInt32Little(int value)
+        {
+            return new ushort[]
+            {
+                (ushort)(value & 0xffff),
+                (ushort)(value >> 16)
+            };
+        }
+
+
 
 
         public static short ToInt16(ushort register)
@@ -51,15 +89,7 @@ namespace Mvvm.Model
         }
 
 
-        public static ushort[] FromFloat(float value)
-        {
-            byte[] bytes = BitConverter.GetBytes(value);
-            return new ushort[]
-            {
-                (ushort)((bytes[3] << 8) | bytes[2]),
-                (ushort)((bytes[1] << 8) | bytes[0])
-            };
-        }
+
     }
 
 

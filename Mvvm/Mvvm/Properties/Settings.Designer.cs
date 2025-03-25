@@ -254,5 +254,38 @@ namespace Mvvm.Properties {
                 this["Endian"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        public global::System.Collections.Specialized.StringCollection Symbols {
+            get {
+                return ((global::System.Collections.Specialized.StringCollection)(this["Symbols"]));
+            }
+            set {
+                this["Symbols"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        public global::System.Collections.Specialized.StringCollection Style {
+            get {
+                return ((global::System.Collections.Specialized.StringCollection)(this["Style"]));
+            }
+            set {
+                this["Style"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        public global::System.Collections.Specialized.StringCollection NormalRange {
+            get {
+                return ((global::System.Collections.Specialized.StringCollection)(this["NormalRange"]));
+            }
+            set {
+                this["NormalRange"] = value;
+            }
+        }
     }
 }
