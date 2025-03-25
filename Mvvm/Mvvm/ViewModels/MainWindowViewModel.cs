@@ -166,7 +166,7 @@ namespace Mvvm.ViewModels
             set
             {
                 SetProperty(ref _selectedConnection, value);
-                UpdateSerialPortConfig();
+                //UpdateSerialPortConfig();
             }
         }
 
@@ -176,7 +176,7 @@ namespace Mvvm.ViewModels
             set
             {
                 SetProperty(ref _selectedBaud, value);
-                UpdateSerialPortConfig();
+                //UpdateSerialPortConfig();
             }
         }
 
@@ -186,7 +186,7 @@ namespace Mvvm.ViewModels
             set
             {
                 SetProperty(ref _selectedDataBit, value);
-                UpdateSerialPortConfig();
+                //UpdateSerialPortConfig();
             }
         }
 
@@ -196,7 +196,7 @@ namespace Mvvm.ViewModels
             set
             {
                 SetProperty(ref _selectedParity, value);
-                UpdateSerialPortConfig();
+                //UpdateSerialPortConfig();
             }
         }
 
@@ -206,7 +206,7 @@ namespace Mvvm.ViewModels
             set
             {
                 SetProperty(ref _selectedStopBit, value);
-                UpdateSerialPortConfig();
+                //UpdateSerialPortConfig();
             }
         }
 
@@ -216,7 +216,7 @@ namespace Mvvm.ViewModels
             set
             {
                 SetProperty(ref _startAddress, value);
-                UpdateSerialPortConfig();
+                //UpdateSerialPortConfig();
             }
         }
 
@@ -226,7 +226,7 @@ namespace Mvvm.ViewModels
             set
             {
                 SetProperty(ref _endAddress, value);
-                UpdateSerialPortConfig();
+                // UpdateSerialPortConfig();
             }
         }
 
@@ -261,7 +261,7 @@ namespace Mvvm.ViewModels
             InitializeParameterWindowViewModel();
 
             // Initialize fields from SettingPageViewModel
-            _serialPortConfig = new SerialPortConfig();
+            //   _serialPortConfig = new SerialPortConfig();
             _settingsManager = new ExcelSettingsManager();
 
             Parameters = new ObservableCollection<ParameterModel>();
@@ -273,11 +273,12 @@ namespace Mvvm.ViewModels
             SaveExcelCommand = new DelegateCommand(SaveSetting);
         }
 
-        private void OpenRightBar(object sender, EventArgs e) {
+        private void OpenRightBar(object sender, EventArgs e)
+        {
             var mainWindow = Application.Current.MainWindow as MainWindow;
             if (mainWindow != null)
             {
-            MessageBox.Show("Advanced Mode Changed", "알림", MessageBoxButton.OK, MessageBoxImage.Information);
+                MessageBox.Show("Advanced Mode Changed", "알림", MessageBoxButton.OK, MessageBoxImage.Information);
                 DrawerHost.OpenDrawerCommand.Execute(Dock.Right, mainWindow.DrawerHost);
             }
         }
@@ -321,7 +322,8 @@ namespace Mvvm.ViewModels
                     IconColor = "Red";
                 }
             }
-            else {
+            else
+            {
                 await _modbusConnect.DisconnectIfConnected();
                 if (!_modbusConnect.IsConnected())
                 {
@@ -381,10 +383,10 @@ namespace Mvvm.ViewModels
             }
             catch (Exception e)
             {
-            MessageBox.Show("에러내용 :" + e.Message);
+                MessageBox.Show("에러내용 :" + e.Message);
 
                 throw;
-             }
+            }
 
             if (int.TryParse(Properties.Settings.Default.BaudRate, out int baudRate))
             {
@@ -506,14 +508,14 @@ namespace Mvvm.ViewModels
 
         }
 
-        private void UpdateSerialPortConfig()
-        {
-            if (SelectedConnection == "SerialPort")
-            {
-                _serialPortConfig.startAddress = StartAddress;
-                _serialPortConfig.numberOfPoints = (ushort)(EndAddress - StartAddress + 1);
-            }
-        }
+        //private void UpdateSerialPortConfig()
+        //{
+        //    if (SelectedConnection == "SerialPort")
+        //    {
+        //        _serialPortConfig.startAddress = StartAddress;
+        //        _serialPortConfig.numberOfPoints = (ushort)(EndAddress - StartAddress + 1);
+        //    }
+        //}
 
         private void ShowSuccess(string message)
         {

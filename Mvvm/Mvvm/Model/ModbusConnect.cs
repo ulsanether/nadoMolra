@@ -45,7 +45,7 @@ namespace Mvvm.Model
             statistics = new CommunicationStatistics();
             dataBuffer = new ModbusDataBuffer();
 
-          LoadDefaultConfig();
+            LoadDefaultConfig();
         }
 
         public void LoadDefaultConfig()
@@ -105,7 +105,7 @@ namespace Mvvm.Model
 
             try
             {
-             //   MessageBox.Show("포트 연결 시도 중...", "연결", MessageBoxButton.OK, MessageBoxImage.Information);
+                //   MessageBox.Show("포트 연결 시도 중...", "연결", MessageBoxButton.OK, MessageBoxImage.Information);
                 await DisconnectIfConnected();
                 await OpenNewConnection(_portName);
                 ConnectionStatusChanged?.Invoke(true);
@@ -200,7 +200,7 @@ namespace Mvvm.Model
             try
             {
                 await Task.Run(() =>
-                    master.WriteSingleRegister(           serialPortConfig.slaveId,
+                    master.WriteSingleRegister(serialPortConfig.slaveId,
                         (ushort)addr,
                         (ushort)value));
 
@@ -238,7 +238,8 @@ namespace Mvvm.Model
         }
 
 
-        public async  void  ReadREgisterAsType(string Hi, string Lo, DataType dataType) {
+        public async void ReadREgisterAsType(string Hi, string Lo, DataType dataType)
+        {
 
             //return null;
 
@@ -276,7 +277,7 @@ namespace Mvvm.Model
                 {
                     Address = address,
                     Label = $"Register {address}",
-                    Description =  descriptionList.Cast<string>().ElementAt(indexList.IndexOf(address.ToString())),
+                    Description = descriptionList.Cast<string>().ElementAt(indexList.IndexOf(address.ToString())),
                     DefaultActual = value,
                     DefaultValue = defaultValueList.Cast<string>().ElementAt(indexList.IndexOf(address.ToString())),
                     ModbusUnit = unitList.Cast<string>().ElementAt(indexList.IndexOf(address.ToString())),

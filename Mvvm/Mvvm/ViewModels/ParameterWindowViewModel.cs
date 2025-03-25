@@ -21,6 +21,8 @@ using System.Collections.Specialized;
 using ImTools;
 using ScottPlot.Colormaps;
 using FluentIcons.Common;
+using DevExpress.Xpf.Bars;
+using System.Net.Sockets;
 
 namespace Mvvm.ViewModels
 {
@@ -28,26 +30,27 @@ namespace Mvvm.ViewModels
     {
 
 
-       private DelegateCommand _addButtonClickCommand;
+        private DelegateCommand _addButtonClickCommand;
         public ICommand AddButtonClickCommand =>
         _addButtonClickCommand ??= new DelegateCommand(OnAddButtonClick);
 
 
         #region  임시로 놔두는곳
 
-       private void OnAddButtonClick()
-    {
-        if (SelectedParameter != null)
+        private void OnAddButtonClick()
         {
-                var index = SelectedParameter.Index;
-                MessageBox.Show(SelectedParameter.Index.ToString());
-                AddPlotAddress(int.Parse(index.ToString()));
+            if (SelectedParameter != null)
+            {
+                var parameter = SelectedParameter;
+                //  MessageBox.Show(SelectedParameter.Index.ToString());
+                AddPlotAddress(parameter);
 
             }
-        {
-            MessageBox.Show("파라미터를 선택하세요.", "오류", MessageBoxButton.OK, MessageBoxImage.Error);
+            else
+            {
+                MessageBox.Show("파라미터를 선택하세요.", "오류", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
         }
-    }
 
 
         private ObservableCollection<int> _monitoredAddresses = new ObservableCollection<int>();
@@ -57,28 +60,45 @@ namespace Mvvm.ViewModels
             set => SetProperty(ref _monitoredAddresses, value);
         }
 
-        public void AddPlotAddress(int addr)
+        public void AddPlotAddress(ParameterModel addr)
         {
             try
             {
-                if (MonitoredAddresses.Contains(addr))
+                if (MonitoredAddresses.Contains(addr.Index))
                 {
-                    MessageBox.Show($"주소 {addr}는 이미 모니터링 중입니다.", "알림", MessageBoxButton.OK, MessageBoxImage.Information);
+                    MessageBox.Show($"주소 {addr.Index}는 이미 모니터링 중입니다.", "알림", MessageBoxButton.OK, MessageBoxImage.Information);
                     return;
                 }
 
-                var parameter = Parameters.FirstOrDefault(p => p.Address == addr);
+                var parameter = Parameters.FirstOrDefault(p => p == addr);
+
+
+
                 if (parameter == null)
                 {
-                    MessageBox.Show($"주소 {addr}에 해당하는 파라미터를 찾을 수 없습니다.", "오류", MessageBoxButton.OK, MessageBoxImage.Error);
+                    MessageBox.Show($"주소 {addr.Index}에 해당하는 파라미터를 찾을 수 없습니다.", "오류", MessageBoxButton.OK, MessageBoxImage.Error);
                     return;
                 }
 
-                MonitoredAddresses.Add(addr);
+                if (MonitoredAddresses.Count >= 10)
+                {
+                    int oldestAddress = MonitoredAddresses.First();
+                    MonitoredAddresses.Remove(oldestAddress);
+
+                    var oldestParameter = Parameters.FirstOrDefault(p => p.Address == oldestAddress);
+                    if (oldestParameter != null)
+                    {
+                        oldestParameter.IsMonitoring = false;
+                        Logger.Info($"모니터링 제거: 주소 {oldestAddress}, 설명: {oldestParameter.Description}");
+                        AddLog("모니터링 제거", $"주소 {oldestAddress}, 파라미터: {oldestParameter.Description}");
+                    }
+                }
+
+                MonitoredAddresses.Add(addr.Index);
                 parameter.IsMonitoring = true;
 
-                Logger.Info($"모니터링 추가: 주소 {addr}, 설명: {parameter.Description}");
-                AddLog("모니터링 추가", $"주소 {addr}, 파라미터: {parameter.Description}");
+                Logger.Info($"모니터링 추가: 주소 {addr.Index}, 설명: {parameter.Description}");
+                AddLog("모니터링 추가", $"주소 {addr.Index}, 파라미터: {parameter.Description}");
 
                 if (!IsRealTimeUpdate)
                 {
@@ -87,7 +107,7 @@ namespace Mvvm.ViewModels
             }
             catch (Exception ex)
             {
-                Logger.Error(ex, $"플롯 주소 추가 중 오류 발생: {addr}");
+                Logger.Error(ex, $"플롯 주소 추가 중 오류 발생: {addr.Index}");
                 MessageBox.Show($"플롯 주소 추가 중 오류가 발생했습니다: {ex.Message}", "오류", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
@@ -168,56 +188,144 @@ namespace Mvvm.ViewModels
 
         public void UpdatePlot()
         {
-            if (_wpfPlot == null || SelectedParameter == null) return;
+            if (_wpfPlot == null) return;
 
             var plt = _wpfPlot.Plot;
             plt.Clear();
 
-            int parameterAddress = SelectedParameter.Address;
-
-            TimeSpan historySpan = TimeSpan.FromHours(1);
-            var historicalData = _modbusConnect.dataBuffer.GetHistoricalData(parameterAddress, historySpan);
-
-
-            if (historicalData.Length > 0)
+            // 모니터링 중인 주소가 없으면, 선택된 파라미터만 표시
+            if (MonitoredAddresses.Count == 0 && SelectedParameter != null)
             {
-                double[] times = historicalData.Select(dp =>
-                    (dp.Timestamp - DateTime.Today).TotalSeconds).ToArray();
-                double[] values = historicalData.Select(dp => dp.Value).ToArray();
+                int parameterAddress = SelectedParameter.Address;
+                TimeSpan historySpan = TimeSpan.FromHours(1);
+                var historicalData = _modbusConnect.dataBuffer.GetHistoricalData(parameterAddress, historySpan);
 
-                plt.Title($"{SelectedParameter.Label} 데이터 이력");
-                plt.YLabel($"값 ({SelectedParameter.ModbusUnit})");
-                plt.XLabel("시간 (초)");
-
-                _dataPlot = plt.Add.ScatterLine(times, values);
-
-                if (values.Length > 0)
+                if (historicalData.Length > 0)
                 {
-                    plt.Add.Text(
-                        text: values.Last().ToString("F2"),
-                        x: times.Last(),
-                        y: values.Last()
-                    );
-                }
+                    double[] times = historicalData.Select(dp =>
+                        (dp.Timestamp - DateTime.Today).TotalSeconds).ToArray();
+                    double[] values = historicalData.Select(dp => dp.Value).ToArray();
 
-                if (AutoScale)
-                {
-                    plt.Axes.AutoScale();
+                    plt.Title($"{SelectedParameter.Label} 데이터 이력");
+                    plt.YLabel($"값 ({SelectedParameter.ModbusUnit})");
+                    plt.XLabel("시간 (초)");
+
+                    _dataPlot = plt.Add.ScatterLine(times, values);
+
+                    if (values.Length > 0)
+                    {
+                        plt.Add.Text(
+                            text: values.Last().ToString("F2"),
+                            x: times.Last(),
+                            y: values.Last()
+                        );
+                    }
+
+                    if (AutoScale)
+                    {
+                        plt.Axes.AutoScale();
+                    }
+                    else
+                    {
+                        double timeSpan = 300; // 5분
+                        double latestTime = times.LastOrDefault();
+                        plt.Axes.SetLimits(
+                            left: Math.Max(latestTime - timeSpan, times.FirstOrDefault()),
+                            right: latestTime,
+                            bottom: values.Min() - 1,
+                            top: values.Max() + 1
+                        );
+                    }
                 }
                 else
                 {
-                    double timeSpan = 300; // 5분
-                    double latestTime = times.LastOrDefault();
-                    plt.Axes.SetLimits(
-                        left: Math.Max(latestTime - timeSpan, times.FirstOrDefault()),
-                        right: latestTime,
-                        bottom: values.Min() - 1,
-                        top: values.Max() + 1
-                    );
+                    double[] initialData = { 0 };
+                    double[] initialTimes = { 0 };
+                    _dataPlot = plt.Add.ScatterLine(initialTimes, initialData);
+                    plt.Axes.SetLimits(left: -10, right: 0, bottom: -10, top: 10);
+                }
+            }
+            // 모니터링 중인 주소들의 데이터 표시
+            else if (MonitoredAddresses.Count > 0)
+            {
+                TimeSpan historySpan = TimeSpan.FromHours(1);
+                double minValue = double.MaxValue;
+                double maxValue = double.MinValue;
+                double minTime = double.MaxValue;
+                double maxTime = double.MinValue;
+
+                plt.Title("모니터링 중인 파라미터");
+                plt.YLabel("값");
+                plt.XLabel("시간 (초)");
+
+                // 각 모니터링 주소에 대한 데이터 추가
+                foreach (int index in MonitoredAddresses)
+                {
+                    var parameter = Parameters.FirstOrDefault(p => p.Index == index);
+                    if (parameter == null) continue;
+
+                    var historicalData = _modbusConnect.dataBuffer.GetHistoricalData(parameter.Address, historySpan);
+
+                    if (historicalData.Length > 0)
+                    {
+                        double[] times = historicalData.Select(dp =>
+                            (dp.Timestamp - DateTime.Today).TotalSeconds).ToArray();
+                        double[] values = historicalData.Select(dp => dp.Value).ToArray();
+
+                        // 각 파라미터마다 다른 색상으로 표시
+                        var line = plt.Add.ScatterLine(times, values);
+
+                        // 가장 최근 값에 레이블 추가
+                        if (values.Length > 0)
+                        {
+                            plt.Add.Text(
+                                text: $"{parameter.Description}: {values.Last():F2} {parameter.ModbusUnit}",
+                                x: times.Last(),
+                                y: values.Last()
+                            );
+                        }
+
+                        // 축 제한을 위한 최소/최대 값 업데이트
+                        if (values.Length > 0)
+                        {
+                            minValue = Math.Min(minValue, values.Min());
+                            maxValue = Math.Max(maxValue, values.Max());
+                            minTime = Math.Min(minTime, times.First());
+                            maxTime = Math.Max(maxTime, times.Last());
+                        }
+                    }
+                }
+
+                // 축 설정
+                if (minValue != double.MaxValue && maxValue != double.MinValue)
+                {
+                    if (AutoScale)
+                    {
+                        plt.Axes.AutoScale();
+                    }
+                    else
+                    {
+                        double timeSpan = 300; // 5분
+                        plt.Axes.SetLimits(
+                            left: Math.Max(maxTime - timeSpan, minTime),
+                            right: maxTime,
+                            bottom: minValue - 1,
+                            top: maxValue + 1
+                        );
+                    }
+                }
+                else
+                {
+                    // 데이터가 없는 경우 기본 축 설정
+                    double[] initialData = { 0 };
+                    double[] initialTimes = { 0 };
+                    _dataPlot = plt.Add.ScatterLine(initialTimes, initialData);
+                    plt.Axes.SetLimits(left: -10, right: 0, bottom: -10, top: 10);
                 }
             }
             else
             {
+                // 선택된 파라미터도, 모니터링 중인 주소도 없는 경우 빈 차트 표시
                 double[] initialData = { 0 };
                 double[] initialTimes = { 0 };
                 _dataPlot = plt.Add.ScatterLine(initialTimes, initialData);
@@ -226,6 +334,7 @@ namespace Mvvm.ViewModels
 
             _wpfPlot.Refresh();
         }
+
 
         #endregion
 
@@ -320,7 +429,7 @@ namespace Mvvm.ViewModels
             {
                 if (SetProperty(ref _selectedParameter, value))
                 {
-                    ResetChart();
+                    // ResetChart();
                     if (value != null)
                     {
                         CurrentValue = value.DefaultActual;
@@ -483,7 +592,7 @@ namespace Mvvm.ViewModels
                         parameter.Endian = endian[parameter.Index];
 
                         //범위값 /10 해서 표시 할것.
-                        parameter.NormalRange = normalRange[parameter.Index] ;
+                        parameter.NormalRange = normalRange[parameter.Index];
 
                         parameter.Symbols = symbols[parameter.Index];
                         parameter.Func = func[parameter.Index];
@@ -491,7 +600,7 @@ namespace Mvvm.ViewModels
 
                         if (parameter.Endian == "H")
                         {
-                           MessageBox.Show(parameter.DefaultActual.ToString());
+                            //  MessageBox.Show(parameter.DefaultActual.ToString());
                             if (Temp != null && Temp.Length > 0)
                                 Temp[0] = parameter.DefaultActual;
                             parameter.DefaultActual = 0;
@@ -503,7 +612,7 @@ namespace Mvvm.ViewModels
                         {
                             if (Temp != null && Temp.Length > 1)
                                 Temp[1] = parameter.DefaultActual;
-                            MessageBox.Show(Temp[0].ToString() + "  ||   " + Temp[1].ToString());
+                            //      MessageBox.Show(Temp[0].ToString() + "  ||   " + Temp[1].ToString());
 
                             var ushortTemp = ConvertToUShortArray(Temp);
 
@@ -518,12 +627,12 @@ namespace Mvvm.ViewModels
                                 }
                                 var result = task.Result;
 
-                             //   MessageBox.Show("Result : " + result);
+                                //   MessageBox.Show("Result : " + result);
 
                                 Application.Current.Dispatcher.Invoke(() =>
                                 {
                                     parameter.DefaultActual = result;
-                                   //Parameters.Add(parameter);
+                                    //Parameters.Add(parameter);
                                 });
                             });
                         }
@@ -533,21 +642,22 @@ namespace Mvvm.ViewModels
                         {
                             string[] funcSplit = parameter.Func.Split('_');
 
-                            MessageBox.Show(funcSplit[0] + "  |  " + funcSplit[1]);
+                            //    MessageBox.Show(funcSplit[0] + "  |  " + funcSplit[1]);
 
 
-                            switch (funcSplit[0]) {
-                                 case "+":
+                            switch (funcSplit[0])
+                            {
+                                case "+":
                                     break;
                                 case "-":
                                     break;
                                 case "*":
-                                parameter.DefaultActual = parameter.DefaultActual * double.Parse(funcSplit[1]);
+                                    parameter.DefaultActual = parameter.DefaultActual * double.Parse(funcSplit[1]);
                                     break;
                                 case "/":
-                                  parameter.DefaultActual = parameter.DefaultActual / double.Parse(funcSplit[1]);
+                                    parameter.DefaultActual = parameter.DefaultActual / double.Parse(funcSplit[1]);
                                     break;
-                                    default:
+                                default:
                                     break;
 
                             }
@@ -630,27 +740,28 @@ namespace Mvvm.ViewModels
 
                     var allParameters = GetAllParameters();
 
-                    foreach(var item in allParameters)
+                    foreach (var item in allParameters)
                     {
-                            if (item.Endian == "H") {
-                                var numOne = item.Index;
-                                parameter.NewValue = "";
+                        if (item.Endian == "H")
+                        {
+                            var numOne = item.Index;
+                            parameter.NewValue = "";
                         }
-                            else if (item.Endian == "L")
-                            {
-                                var numTwo = item.Index;
+                        else if (item.Endian == "L")
+                        {
+                            var numTwo = item.Index;
 
 
-                                var refVal = ModbusDataConverter.FromInt32Big((int)item.DefaultActual);
+                            var refVal = ModbusDataConverter.FromInt32Big((int)item.DefaultActual);
 
 
-                               await _modbusConnect.WriteRegister( parameter.Index-1 ,refVal[0]);
-                               await _modbusConnect.WriteRegister(parameter.Index, refVal[1]);
-                               parameter.NewValue = "";
+                            await _modbusConnect.WriteRegister(parameter.Index - 1, refVal[0]);
+                            await _modbusConnect.WriteRegister(parameter.Index, refVal[1]);
+                            parameter.NewValue = "";
 
                             Logger.Info($"파라미터 쓰기 완료 - 인덱스: {parameter.Index:D3}, 주소: {parameter.Address}, 값: {newValue}");
-                                return;
-                            }
+                            return;
+                        }
                     }
 
                     if (parameter.Func != "N")
@@ -669,13 +780,13 @@ namespace Mvvm.ViewModels
 
 
                                 newValue /= int.Parse(funcSplit[1]);
-                                await _modbusConnect.WriteRegister( parameter.Index, newValue );
+                                await _modbusConnect.WriteRegister(parameter.Index, newValue);
                                 parameter.DefaultActual = newValue * int.Parse(funcSplit[1]);
                                 parameter.NewValue = "";
                                 break;
                             case "/":
                                 newValue *= int.Parse(funcSplit[1]);
-                                await _modbusConnect.WriteRegister( parameter.Index, newValue );
+                                await _modbusConnect.WriteRegister(parameter.Index, newValue);
                                 parameter.DefaultActual = newValue / int.Parse(funcSplit[1]);
                                 parameter.NewValue = "";
                                 break;
@@ -876,18 +987,14 @@ namespace Mvvm.ViewModels
                 var logItem = new CommunicationLogItem(eventName, details);
                 _communicationLog.Insert(0, logItem);
 
-                while (_communicationLog.Count > 1000)
+                while (_communicationLog.Count > 500)  //500개 부터 삭제 
 
                 {
-
                     _communicationLog.RemoveAt(_communicationLog.Count - 1);
-
                 }
 
 
                 Logger.Info($"{eventName}: {details}");
-
-
                 RaisePropertyChanged(nameof(CommunicationLog));
 
             });
@@ -1005,13 +1112,11 @@ namespace Mvvm.ViewModels
                         {
 
 
-                        //차트 업데이트 갱신 부분
+                            //차트 업데이트 갱신 부분
 
-
-
-                       //    SelectedParameter.DefaultActual = value;
-                        //    CurrentValue = value;
-                          //  UpdatePlot();
+                            SelectedParameter.DefaultActual = value;
+                            CurrentValue = value;
+                            UpdatePlot();
 
 
 
