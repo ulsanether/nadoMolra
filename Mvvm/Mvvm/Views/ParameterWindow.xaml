@@ -8,6 +8,8 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     d:DesignHeight="800"
     d:DesignWidth="1000"
+    SnapsToDevicePixels="True"
+    UseLayoutRounding="True"
     mc:Ignorable="d">
 
     <UserControl.Resources>
@@ -31,6 +33,13 @@
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="Auto" />
             </Grid.ColumnDefinitions>
+
+            <ToggleButton
+                Grid.Column="5"
+                Command="{Binding ToggleParameterUpdateCommand}"
+                Content="자동 갱신"
+                Cursor="Hand"
+                IsChecked="{Binding IsParameterUpdateActive}" />
 
             <!--  시작 주소  -->
             <TextBlock

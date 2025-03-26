@@ -312,7 +312,7 @@ namespace Mvvm.Model
 {
     public class ModbusDataBuffer
     {
-        private readonly int bufferSize = 1000;
+        private readonly int bufferSize = 10;
         private readonly Dictionary<int, Queue<DataPoint>> dataBuffer = new Dictionary<int, Queue<DataPoint>>();
         private readonly object lockObject = new object();
 
@@ -322,7 +322,7 @@ namespace Mvvm.Model
             {
                 foreach (var parameter in parameters)
                 {
-                    if (!dataBuffer.ContainsKey(parameter.Address))
+                     if (!dataBuffer.ContainsKey(parameter.Address))
                     {
                         dataBuffer[parameter.Address] = new Queue<DataPoint>(bufferSize);
                     }
@@ -372,7 +372,6 @@ namespace Mvvm.Model
                 {
                     return Array.Empty<DataPoint>();
                 }
-
                 var cutoff = DateTime.Now - timeSpan;
                 return dataBuffer[address]
                     .Where(dp => dp.Timestamp >= cutoff)

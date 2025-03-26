@@ -32,11 +32,13 @@ namespace Mvvm.Model
         public int Address { get; set; }
         public string Label { get; set; }  //차트에 쓴다. 이걸 다른걸로 수정 할 것
         public string Description { get; set; }
+
         public double DefaultActual
         {
             get => _defaultActual;
             set => SetProperty(ref _defaultActual, value);
         }
+
         public string DefaultValue { get; set; }
 
 
@@ -97,6 +99,10 @@ namespace Mvvm.Model
 
 
             }
+        }
+        public void NotifyPropertyChanged(string propertyName)
+        {
+            RaisePropertyChanged(propertyName);
         }
 
         public ParameterModel()

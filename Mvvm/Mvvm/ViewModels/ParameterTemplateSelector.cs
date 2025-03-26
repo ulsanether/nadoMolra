@@ -14,7 +14,13 @@ namespace Mvvm.Views
             var itemsControl = ItemsControl.ItemsControlFromItemContainer(container);
             var viewModel = itemsControl?.DataContext as ParameterWindowViewModel;
 
+
+
+
             return viewModel?.IsCardView == true ? CardTemplate : ListTemplate;
+
+
+
         }
     }
 }

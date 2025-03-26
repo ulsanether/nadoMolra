@@ -10,7 +10,9 @@
     xmlns:vm="clr-namespace:Mvvm.ViewModels"
     d:DesignHeight="520"
     d:DesignWidth="800"
+    SnapsToDevicePixels="True"
     Unloaded="UserControl_Unloaded"
+    UseLayoutRounding="True"
     mc:Ignorable="d">
 
     <Grid>
@@ -67,7 +69,7 @@
                                 Margin="5"
                                 VerticalAlignment="Center"
                                 Style="{StaticResource MaterialDesignBody1TextBlock}"
-                                Text="{Binding SelectedParameter.DefaultActual, StringFormat=현재값: \{0:F2\}}" />
+                                Text="{Binding SelectedParameter.DefaultActual, StringFormat=\{0:F2\}}" />
 
 
                             <!--  차트 타입 선택  -->

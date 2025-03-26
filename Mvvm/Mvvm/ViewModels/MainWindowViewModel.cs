@@ -278,7 +278,7 @@ namespace Mvvm.ViewModels
             var mainWindow = Application.Current.MainWindow as MainWindow;
             if (mainWindow != null)
             {
-                MessageBox.Show("Advanced Mode Changed", "알림", MessageBoxButton.OK, MessageBoxImage.Information);
+            //    MessageBox.Show("Advanced Mode Changed", "알림", MessageBoxButton.OK, MessageBoxImage.Information);
                 DrawerHost.OpenDrawerCommand.Execute(Dock.Right, mainWindow.DrawerHost);
             }
         }

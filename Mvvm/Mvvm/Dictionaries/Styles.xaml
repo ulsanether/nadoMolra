@@ -209,7 +209,6 @@
                     Margin="0,0"
                     HorizontalAlignment="Center"
                     VerticalAlignment="Center"
-                    Style="{StaticResource ModbusValueTextBlock}"
                     Text="{Binding DefaultActual, StringFormat={}{0:F1}}" />
 
                 <!--  설정값 입력  -->
@@ -249,7 +248,7 @@
                             MaxWidth="0"
                             Margin="0,0,0,0"
                             VerticalAlignment="Center"
-                            Foreground="Transparent"
+                            Foreground="Black"
                             Text="{Binding Index}" />
                     </StackPanel>
                 </Button>
