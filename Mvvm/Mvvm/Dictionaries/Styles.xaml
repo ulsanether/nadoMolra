@@ -27,7 +27,7 @@
                                 Height="20"
                                 Margin="0,0,0,15"
                                 HorizontalAlignment="Center"
-                                Data="{StaticResource ExcelOpenIcon}"
+                                Data="{StaticResource BasicIcon}"
                                 Fill="Black"
                                 Opacity="0.2"
                                 Stretch="Fill" />
@@ -37,7 +37,7 @@
                                 Height="20"
                                 Margin="0,0,0,15"
                                 HorizontalAlignment="Center"
-                                Data="{StaticResource ExcelOpenIcon}"
+                                Data="{StaticResource BasicIcon}"
                                 Fill="{StaticResource MainButtonPath}"
                                 Stretch="Fill" />
 
@@ -81,8 +81,8 @@
                         CornerRadius="1">
                         <Grid>
                             <Path
-                                Width="25"
-                                Height="30"
+                                Width="15"
+                                Height="20"
                                 Margin="0,0,0,15"
                                 HorizontalAlignment="Center"
                                 Data="{StaticResource ExcelOpenIcon}"
@@ -91,8 +91,8 @@
                                 Stretch="Fill" />
                             <Path
                                 x:Name="PathIcon"
-                                Width="25"
-                                Height="30"
+                                Width="15"
+                                Height="20"
                                 Margin="0,0,0,15"
                                 HorizontalAlignment="Center"
                                 Data="{StaticResource ExcelOpenIcon}"
@@ -244,7 +244,7 @@
                     Margin="5,0"
                     HorizontalAlignment="Left"
                     Command="{Binding DataContext.WriteCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
-                    CommandParameter="{Binding}">
+                    CommandParameter="{Binding Converter={StaticResource CommandParameterTypeConverter}}">
                     <StackPanel Orientation="Horizontal">
                         <materialDesign:PackIcon VerticalAlignment="Center" Kind="ContentSave" />
                         <TextBlock
@@ -256,6 +256,7 @@
                             Text="{Binding Index}" />
                     </StackPanel>
                 </Button>
+
 
             </Grid>
         </materialDesign:Card>
@@ -349,7 +350,7 @@
                     Width="100"
                     Margin="5,0"
                     Command="{Binding DataContext.WriteCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
-                    CommandParameter="{Binding}">
+                    CommandParameter="{Binding Converter={StaticResource CommandParameterTypeConverter}}">
                     <StackPanel Orientation="Horizontal">
                         <materialDesign:PackIcon VerticalAlignment="Center" Kind="ContentSave" />
                         <TextBlock
@@ -361,6 +362,7 @@
                             Text="{Binding Index}" />
                     </StackPanel>
                 </Button>
+
 
 
             </Grid>

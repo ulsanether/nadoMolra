@@ -51,7 +51,7 @@
             Grid.Row="0"
             Width="80"
             Height="60"
-            Margin="0,0,20,0"
+            Margin="0,0,90,0"
             HorizontalAlignment="Right"
             Command="{Binding NavigateToParameterWindowCommand}"
             Style="{StaticResource NavigateToParameterWindow}">
@@ -69,17 +69,17 @@
             Grid.Row="0"
             Width="80"
             Height="60"
-            Margin="0,0,120,0"
+            Margin="0,0,170,0"
             HorizontalAlignment="Right"
             Command="{Binding NavigateToModbusDataViewPageCommand}"
             Style="{StaticResource ModbusDataButton}">
             <StackPanel>
                 <TextBlock
                     Width="80"
-                    Margin="5,40,0,0"
+                    Margin="20,40,0,0"
                     FontSize="9"
                     Foreground="White"
-                    Text="모드버스 데이터" />
+                    Text="차트 보기" />
             </StackPanel>
         </Button>
 

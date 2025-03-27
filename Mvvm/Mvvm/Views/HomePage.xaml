@@ -3,9 +3,12 @@
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:av="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:dd="urn:gong-wpf-dragdrop"
     xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:prism="http://prismlibrary.com/"
+
+
     mc:Ignorable="av">
 
     <Grid Width="686" Height="642">
@@ -18,6 +21,23 @@
             <RowDefinition Height="*" />
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
+
+        <ItemsControl
+      dd:DragDrop.DropHandler="{Binding}"
+      dd:DragDrop.IsDragSource="True"
+      dd:DragDrop.IsDropTarget="True"
+      ItemsSource="{Binding Borders}" Grid.Row="1">
+            <ItemsControl.ItemsPanel>
+                <ItemsPanelTemplate>
+                    <Grid />
+                </ItemsPanelTemplate>
+            </ItemsControl.ItemsPanel>
+            <ItemsControl.ItemTemplate>
+                <DataTemplate>
+                    <ContentPresenter Content="{Binding}" />
+                </DataTemplate>
+            </ItemsControl.ItemTemplate>
+        </ItemsControl>
         <Border
             Width="100"
             Height="100"
@@ -29,7 +49,6 @@
             CornerRadius="6"
             IsEnabled="False">
             <Border.Effect>
-
                 <DropShadowEffect
                     BlurRadius="5"
                     Direction="300"
@@ -52,7 +71,6 @@
             CornerRadius="6"
             IsEnabled="False">
             <Border.Effect>
-
                 <DropShadowEffect
                     BlurRadius="5"
                     Direction="300"
@@ -88,7 +106,6 @@
                 </LinearGradientBrush>
             </Border.Background>
             <Border.Effect>
-
                 <DropShadowEffect
                     BlurRadius="5"
                     Direction="300"
@@ -101,13 +118,21 @@
                 FontFamily="Yu Gothic UI Semibold"
                 Foreground="{StaticResource SubOneFontColor}" />
         </Border>
-
-
+        <ItemsControl
+            dd:DragDrop.DropHandler="{Binding}"
+            dd:DragDrop.IsDragSource="True"
+            dd:DragDrop.IsDropTarget="True"
+            ItemsSource="{Binding Borders}" Grid.Row="1" Grid.Column="1" Margin="-10,10,10,-10">
+            <ItemsControl.ItemsPanel>
+                <ItemsPanelTemplate>
+                    <Grid />
+                </ItemsPanelTemplate>
+            </ItemsControl.ItemsPanel>
+            <ItemsControl.ItemTemplate>
+                <DataTemplate>
+                    <ContentPresenter Content="{Binding}" />
+                </DataTemplate>
+            </ItemsControl.ItemTemplate>
+        </ItemsControl>
     </Grid>
-
-
-
-
 </UserControl>
-
-

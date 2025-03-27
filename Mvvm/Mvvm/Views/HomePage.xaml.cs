@@ -12,17 +12,14 @@ namespace Mvvm.Views
     {
 
 
-        private readonly MainWindowViewModel _mainWindowViewModel;
-
-        public HomePage(MainWindowViewModel viewModel  )
+        private readonly HomePageViewModel _ViewModel;
 
 
+        public HomePage()
         {
             InitializeComponent();
-
-            _mainWindowViewModel = viewModel;
-
-            DataContext = _mainWindowViewModel;
+            _ViewModel = new HomePageViewModel();
+            DataContext = _ViewModel;
         }
 
 
