@@ -243,7 +243,7 @@
                     Margin="5,0"
                     HorizontalAlignment="Left"
                     Command="{Binding DataContext.WriteCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
-                    CommandParameter="{Binding}">
+                    CommandParameter="{Binding RelativeSource={RelativeSource Self}, Path=DataContext}">
                     <StackPanel Orientation="Horizontal">
                         <materialDesign:PackIcon VerticalAlignment="Center" Kind="ContentSave" />
                         <TextBlock
@@ -348,7 +348,7 @@
                     Width="100"
                     Margin="5,0"
                     Command="{Binding DataContext.WriteCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
-                    CommandParameter="{Binding}">
+                    CommandParameter="{Binding RelativeSource={RelativeSource Self}, Path=DataContext}">
                     <StackPanel Orientation="Horizontal">
                         <materialDesign:PackIcon VerticalAlignment="Center" Kind="ContentSave" />
                         <TextBlock

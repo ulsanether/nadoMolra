@@ -26,7 +26,7 @@ namespace Mvvm.Views
                 Interval = TimeSpan.FromMilliseconds(100)
             };
             _statusUpdateTimer.Tick += StatusUpdateTimer_Tick;
-            _statusUpdateTimer.Start();
+          _statusUpdateTimer.Start();
 
         }
         private void StatusUpdateTimer_Tick(object sender, EventArgs e)

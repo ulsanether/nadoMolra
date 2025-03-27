@@ -11,14 +11,14 @@ namespace Mvvm.Tests
     public class ParameterWindowViewModelTests
     {
         private Mock<ModbusConnect> _modbusConnectMock;
-        private Mock<SettingPageViewModel> _settingPageViewModelMock;
+        private Mock<MainWindowViewModel> _settingPageViewModelMock;
         private ParameterWindowViewModel _viewModel;
 
         [TestInitialize]
         public void Setup()
         {
             _modbusConnectMock = new Mock<ModbusConnect>();
-            _settingPageViewModelMock = new Mock<SettingPageViewModel>(null);
+            _settingPageViewModelMock = new Mock<MainWindowViewModel> (null);
             _viewModel = new ParameterWindowViewModel(_modbusConnectMock.Object, _settingPageViewModelMock.Object);
         }
 

@@ -14,6 +14,9 @@ using NModbus;
 using NModbus.Serial;
 using ScottPlot;
 using System.Diagnostics;
+using Mvvm.Converters;
+
+
 namespace Mvvm.Model
 {
     public class ModbusConnect
@@ -23,7 +26,6 @@ namespace Mvvm.Model
 
 
         #region 필드
-        private string portName;
         private bool autoReconnect = true;
 
         private readonly int MAX_RECONNECT_ATTEMPTS = 3;
@@ -48,6 +50,7 @@ namespace Mvvm.Model
 
         #endregion
 
+        public string portName;
 
         public SerialPortConfig serialPortConfig { get; set; }
         public readonly ModbusDataBuffer dataBuffer;
@@ -188,12 +191,14 @@ namespace Mvvm.Model
 
         }
 
+
         public async Task<List<ParameterModel>> ReadModbusData(int startAddress, int numberOfPoints)
         {
-
             try
             {
-                var registers = await Task.Run(() =>
+                var registers = new ushort[numberOfPoints];
+
+                registers = await Task.Run(() =>
                     master.ReadHoldingRegisters(
                         serialPortConfig.slaveId,
                         (ushort)startAddress,
@@ -203,22 +208,26 @@ namespace Mvvm.Model
                 lastDataReceived = DateTime.Now;
 
                 var parameters = ConvertToParameters(registers, startAddress);
+
+                dataBuffer.StoreValues(parameters);
+
                 return parameters;
             }
             catch (Exception ex)
             {
                 statistics.RecordError();
                 ShowMessage($"데이터 읽기 실패: {ex.Message}", "오류", true);
+
                 var lastValues = dataBuffer.GetLastValues(numberOfPoints);
                 return lastValues;
             }
         }
 
+
         public async Task WriteRegister(int addr, int value)
         {
             if (!IsConnected())
                 throw new InvalidOperationException("연결되지 않았습니다.");
-
             try
             {
                 await Task.Run(() =>
@@ -260,33 +269,18 @@ namespace Mvvm.Model
         }
 
 
-        public async void ReadREgisterAsType(string Hi, string Lo, DataType dataType)
-        {
-
-            //return null;
-
-        }
-
-
         public bool IsConnected()
         {
             return master != null && port != null && port.IsOpen;
         }
 
 
-
-
         private List<ParameterModel> ConvertToParameters(ushort[] registers, int startAddress)
         {
             List<ParameterModel> result = new List<ParameterModel>();
 
-
-
             for (int i = 0; i < registers.Length; i++)
             {
-
-
-             //   Debug.WriteLine(registers[1]); // 디버그 메시지 출력
                 ushort value = registers[i];
                 int address = startAddress + i;
 

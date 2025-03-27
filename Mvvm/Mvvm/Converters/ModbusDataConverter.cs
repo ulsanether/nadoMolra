@@ -1,7 +1,7 @@
 ﻿using System;
 using OfficeOpenXml.DataValidation.Exceptions;
 
-namespace Mvvm.Model
+namespace Mvvm.Converters
 {
     public static class ModbusDataConverter
     {

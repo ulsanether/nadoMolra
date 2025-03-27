@@ -6,8 +6,10 @@ namespace Mvvm.Model
 {
     public class ParameterModel : BindableBase
     {
-        private int _address;
+        #region Fields
+        private SolidColorBrush _statusColor;
 
+        private int _address;
         private string _description;
         private double _defaultActual;
         private string _defaultValue;
@@ -15,19 +17,29 @@ namespace Mvvm.Model
         private bool _isMonitoring;
         private string _statusMessage;
         private string _statusIcon;
-        private SolidColorBrush _statusColor;
+
         private int _index;
         private string _unit;
         private string _newValue;
         private string _endian;
+        private string _symbols;
+        private string _note;
+        #endregion
 
+
+        #region Properties
+
+        public SolidColorBrush StatusColor
+        {
+            get => _statusColor;
+            set => SetProperty(ref _statusColor, value);
+        }
 
         public string Endian
         {
             get => _endian;
             set => SetProperty(ref _endian, value);
         }
-
 
         public int Address { get; set; }
 
@@ -40,23 +52,14 @@ namespace Mvvm.Model
         }
 
         public string DefaultValue { get; set; }
-
-
         private string _normalRange;
-
         public string NormalRange { get => _normalRange; set => SetProperty(ref _normalRange, value); }
+        public string Func { get; set; }
 
-
-        public string Func { get; set;}
-
-        private string _note;
 
         public string Note { get => _note; set => SetProperty(ref _note, value); }
 
-        private string _symbols;
-
         public string Symbols { get => _symbols; set => SetProperty(ref _symbols, value); }
-
 
         public string ModbusUnit { get; set; }
         public bool IsValueChanged
@@ -75,11 +78,7 @@ namespace Mvvm.Model
             get => _statusIcon;
             set => SetProperty(ref _statusIcon, value);
         }
-        public SolidColorBrush StatusColor
-        {
-            get => _statusColor;
-            set => SetProperty(ref _statusColor, value);
-        }
+
         public int Index
         {
             get => _index;
@@ -100,18 +99,18 @@ namespace Mvvm.Model
 
             }
         }
-        public void NotifyPropertyChanged(string propertyName)
-        {
-            RaisePropertyChanged(propertyName);
-        }
 
-        public ParameterModel()
-        {
-        }
+        #endregion
+
         private async void ResetValueChangedFlag()
         {
             await Task.Delay(1000);
             IsValueChanged = false;
+        }
+
+        public void NotifyPropertyChanged(string propertyName)
+        {
+            RaisePropertyChanged(propertyName);
         }
 
         public void UpdateStatus(bool isSuccess, string message = null)

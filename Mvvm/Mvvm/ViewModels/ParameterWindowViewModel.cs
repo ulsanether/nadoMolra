@@ -20,7 +20,6 @@ using System.Collections.Specialized;
 using ImTools;
 using FluentIcons.Common;
 using System.Net.Sockets;
-using DevExpress.DocumentServices.ServiceModel.DataContracts;
 using Accord;
 
 using Mvvm.Model;
@@ -32,125 +31,31 @@ namespace Mvvm.ViewModels
     public class ParameterWindowViewModel : BindableBase
     {
 
-        private Timer _chartUpdateTimer;
-        private DelegateCommand _addButtonClickCommand;
-        public ICommand AddButtonClickCommand =>
-        _addButtonClickCommand ??= new DelegateCommand(OnAddButtonClick);
 
-
-        #region  임시로 놔두는곳
-
-        private void OnAddButtonClick()
-        {
-            if (SelectedParameter != null)
-            {
-                var parameterAddr = SelectedParameter.Index;
-
-                Debug.WriteLine(parameterAddr);
-                AddValueToChart( parameterAddr);
-            }
-            else
-            {
-
-                MessageBox.Show("파라미터를 먼저 선택해주세요.", "알림");
-            }
-        }
-
-
-        private Dictionary<int, bool> addressDictionary = new Dictionary<int, bool>();
-
-        private void AddValueToChart(int addr)
-        {
-            var parameter = Parameters?.FirstOrDefault(p => p.Address == addr);
-            int start = Properties.Settings.Default.StartAddress;
-            int end = Properties.Settings.Default.EndAddress;
-            if (parameter != null)
-            {
-                var addressRange = Enumerable.Range(start, end - start + 1);
-                if (addressDictionary == null || !addressDictionary.Any())
-                {
-                    addressDictionary = addressRange.ToDictionary(address => address, address => false);
-                }
-
-                if (addressDictionary.ContainsKey(parameter.Address))
-                {
-                    addressDictionary[parameter.Address] = true;
-                }
-
-                UpdateChart();
-            }
-        }
-
-        private readonly Dictionary<int, Queue<double>> _timeDataDict = new();
-        private readonly Dictionary<int, Queue<double>> _valueDataDict = new();
-
-        private async Task UpdateChart()
-        {
-            if (_wpfPlot == null) return;
-
-            var trueAddresses = addressDictionary.Where(entry => entry.Value).Select(entry => entry.Key).ToList();
-            var parametersToPlot = Parameters.Where(p => trueAddresses.Contains(p.Address)).ToList();
-
-            if (_wpfPlot == null) return;
-
-            var plt = _wpfPlot.Plot;
-            plt.Clear();
-
-            foreach (var parameter in parametersToPlot)
-            {
-                if (!_timeDataDict.ContainsKey(parameter.Address))
-                {
-                    _timeDataDict[parameter.Address] = new Queue<double>();
-                    _valueDataDict[parameter.Address] = new Queue<double>();
-                }
-
-                var timeData = _timeDataDict[parameter.Address];
-                var valueData = _valueDataDict[parameter.Address];
-
-                timeData.Enqueue(DateTime.Now.ToOADate());
-                valueData.Enqueue(parameter.DefaultActual);
-
-                if (timeData.Count > MaxDataPoints)
-                {
-                    timeData.Dequeue();
-                    valueData.Dequeue();
-                }
-
-                double[] times = timeData.ToArray();
-                double[] values = valueData.ToArray();
-
-                var scatterPlot = plt.Add.Scatter(times, values);
-                scatterPlot.Label = $"{parameter.Description}";
-            }
-
-            if (AutoScale)
-            {
-                plt.Axes.AutoScale();
-            }
-
-            plt.ShowLegend();
-            _wpfPlot.Refresh();
-        }
-
-        #endregion
 
 
 
         #region Fields
         private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
-        private readonly ModbusConnect _modbusConnect;
 
-        private readonly Dictionary<int, (string Description, string Unit, double DefaultValue, string Note)> _modbusData;
-        private int _columns = 1;
-        private CancellationTokenSource _cancellationTokenSource;
-        private readonly Timer _dataUpdateTimer;
-        private bool _isRealTimeUpdate;
-        private ParameterModel _selectedParameter;
-        private double _currentValue;
         private readonly int _maxDataPoints = 1000;
         private readonly Queue<double> _timeData = new();
         private readonly Queue<double> _valueData = new();
+        private readonly ModbusConnect _modbusConnect;
+
+        private readonly Timer _modbusDataVieewDataUpdateTimer;
+        private Timer _chartUpdateTimer;
+        private Timer _parameterUpdateTimer;
+
+
+        private bool _isParameterUpdateEnabled;
+        private bool _isRealTimeUpdate;
+        private ParameterModel _selectedParameter;
+        private double _currentValue;
+
         private WpfPlot _wpfPlot;
+
+
         private readonly object _lockObject = new();
         private IPlottable _dataPlot;
         private bool _autoScale;
@@ -158,16 +63,27 @@ namespace Mvvm.ViewModels
         private string _statistics;
 
         private bool _isCardView;
-        private ObservableCollection<string> _chartTypes;
+
         private string _startAddress;
         private string _endAddress;
         private bool _isListView = true;
-        private ObservableCollection<CommunicationLogItem> _communicationLog;
 
+        private readonly Dictionary<int, Queue<double>> _timeDataDict = new();
+        private readonly Dictionary<int, Queue<double>> _valueDataDict = new();
+
+        private DelegateCommand<ParameterModel> _modbusWriteCommand;
+        private DelegateCommand _addButtonClickCommand;
         private DelegateCommand<ParameterModel> _writeCommand;
+        private DelegateCommand _generateParametersCommand;
+        private DelegateCommand _toggleParameterUpdateCommand;
 
+
+        private ObservableCollection<string> _chartTypes;
+        private ObservableCollection<CommunicationLogItem> _communicationLog;
+        private ObservableCollection<ParameterModel> _parameters;
 
         #endregion
+
 
 
         #region Properties
@@ -243,60 +159,39 @@ namespace Mvvm.ViewModels
             get => _autoScale;
             set => SetProperty(ref _autoScale, value);
         }
-
         public string SelectedChartType
         {
             get => _selectedChartType;
             set => SetProperty(ref _selectedChartType, value);
         }
-
         public string Statistics
         {
             get => _statistics;
             set => SetProperty(ref _statistics, value);
         }
-
-        private DelegateCommand _generateParametersCommand;
         public DelegateCommand GenerateParametersCommand =>
-            _generateParametersCommand ??= new DelegateCommand(
+    _generateParametersCommand ??= new DelegateCommand(
 
 
-                ExecuteGenerateParameters,
+        ExecuteGenerateParameters,
 
-                () => true
-
-
-                );
+        () => true
 
 
-        private DelegateCommand<ParameterModel> _modbusWriteCommand;
+        );
+
+
+        public ICommand AddButtonClickCommand => _addButtonClickCommand ??= new DelegateCommand(OnAddButtonClick);
         public ICommand ModbosWritCommand
         {
             get
             {
                 if (_modbusWriteCommand == null)
                 {
-                    _modbusWriteCommand = new DelegateCommand<ParameterModel>(OnModbusWrite);
+                   _modbusWriteCommand = new DelegateCommand<ParameterModel>(OnModbusWrite);
                 }
                 return _modbusWriteCommand;
             }
-        }
-
-        private async void OnModbusWrite(ParameterModel parameter)
-        {
-            if (parameter == null)
-            {
-                MessageBox.Show("선택된 파라미터가 없습니다.", "오류", MessageBoxButton.OK, MessageBoxImage.Warning);
-                return;
-            }
-           // MessageBox.Show(parameter.NormalRange);
-            // Index 값 가져오기
-            Logger.Info($"Modbus 쓰기 시작 - 인덱스: {parameter.Index:D3}, 설명: {parameter.Description}");
-            MessageBox.Show($"인덱스: {parameter.Index:D3}, '{parameter.Description}' 파라미터 설정을 시작합니다.",
-            "Modbus Write", MessageBoxButton.OK, MessageBoxImage.Information);
-
-            // 기존 ExecuteWrite 메서드 호출
-            ExecuteWrite(parameter);
         }
 
 
@@ -304,25 +199,25 @@ namespace Mvvm.ViewModels
         {
             get
             {
-                if (_writeCommand == null )
+                if (_writeCommand == null)
                 {
                     _writeCommand = new DelegateCommand<ParameterModel>(
                         param =>
                         {
                             if (param != null)
-                                ExecuteWrite(param);
+                            {
+                                OnModbusWrite(param);
+                            }
                         },
-                        param => param is ParameterModel parameter && CanExecuteWrite(parameter)
+                        param => param != null // 단순하게 null 체크만 수행
                     );
                 }
                 return _writeCommand;
             }
         }
 
-        private bool CanExecuteWrite(ParameterModel parameter)
-        {
-            return parameter != null;
-        }
+
+
 
 
 
@@ -340,8 +235,71 @@ namespace Mvvm.ViewModels
         }
 
 
+        public ObservableCollection<string> ChartTypes
+        {
+            get => _chartTypes;
+            set => SetProperty(ref _chartTypes, value);
+        }
+
+        public ObservableCollection<ParameterModel> Parameters
+        {
+            get => _parameters;
+            set => SetProperty(ref _parameters, value);
+        }
 
 
+        public DelegateCommand ResetChartCommand { get; }
+        public DelegateCommand ExportDataCommand { get; }
+        public DelegateCommand ResetStatisticsCommand { get; }
+        public Queue<ParameterModel> queuePparmameterModels = new Queue<ParameterModel>();
+
+        #endregion
+
+
+
+
+        #region Constructor
+
+        public ParameterWindowViewModel(ModbusConnect modbusConnect)
+        {
+            _modbusConnect = modbusConnect;
+            _communicationLog = new ObservableCollection<CommunicationLogItem>();
+
+            Parameters = new ObservableCollection<ParameterModel>();
+            ResetChartCommand = new DelegateCommand(ResetChart);
+            ExportDataCommand = new DelegateCommand(ExportData);
+            ResetStatisticsCommand = new DelegateCommand(ResetStatistics);
+
+            _isParameterUpdateEnabled = false;
+
+            _modbusConnect.ConnectionStatusChanged += OnConnectionStatusChanged;
+
+            AddLog("초기화", "ParameterWindow 초기화 완료");
+            InitializeChart();
+            InitializeChartTypes();
+            LoadModbusData();
+
+
+            // 차트 갱신 타이머 설정
+            _chartUpdateTimer = new Timer(2000);
+            _chartUpdateTimer.Elapsed += async (sender, e) => await UpdateChart();
+            _chartUpdateTimer.Start();
+
+
+        }
+        #endregion
+
+
+
+        #region Private Methods
+
+
+
+
+        private bool CanExecuteWrite(ParameterModel parameter)
+        {
+            return parameter != null;
+        }
 
 
         private async void ExecuteGenerateParameters()
@@ -436,9 +394,6 @@ namespace Mvvm.ViewModels
 
 
 
-
-
-
         private async Task<List<ParameterModel>> GetReadModbusData(int start, int numberOfPoints) =>
 
                     await _modbusConnect.ReadModbusData(start, numberOfPoints);
@@ -446,7 +401,6 @@ namespace Mvvm.ViewModels
 
         private async void ExecuteWrite(ParameterModel parameter)
         {
-
 
 
             if (parameter == null)
@@ -475,7 +429,7 @@ namespace Mvvm.ViewModels
                     return;
                 }
 
-                var result = MessageBox.Show( $"다음 값을 설정하시겠습니까?\n\n인덱스: {parameter.Index:D3}\n주소: {parameter.Address}\n설명: {parameter.Description}\n현재값: {parameter.DefaultActual:F3}\n설정값: {newValue}",
+                var result = MessageBox.Show($"다음 값을 설정하시겠습니까?\n\n인덱스: {parameter.Index:D3}\n주소: {parameter.Address}\n설명: {parameter.Description}\n현재값: {parameter.DefaultActual:F3}\n설정값: {newValue}",
                 "설정 확인",
                 MessageBoxButton.YesNo,
                 MessageBoxImage.Question);
@@ -490,7 +444,7 @@ namespace Mvvm.ViewModels
 
                     var allParameters = GetAllParameters();
 
-                    if(parameter.Endian == "H")
+                    if (parameter.Endian == "H")
                     {
                         MessageBox.Show("이 부분은 수정할 수 없습니다. ");
                         parameter.NewValue = "";
@@ -505,20 +459,18 @@ namespace Mvvm.ViewModels
                         foreach (var item in allParameters)
                         {
 
-                           if (item.Index == parameter.Index - 1)
-    {
-        MessageBox.Show("h");
-        var numOne = item.Index;
-        parameter.NewValue = "";
-    }
+                            if (item.Index == parameter.Index - 1)
+                            {
+                                MessageBox.Show("h");
+                                var numOne = item.Index;
+                                parameter.NewValue = "";
+                            }
 
-                            if (item.Index == parameter.Index) {
+                            if (item.Index == parameter.Index)
+                            {
 
 
                                 var numTwo = item.Index;
-                                MessageBox.Show("l");
-
-
                                 var refVal = ModbusDataConverter.FromInt32Big((int)item.DefaultActual);
 
 
@@ -537,7 +489,7 @@ namespace Mvvm.ViewModels
 
                     }
 
-                    if (parameter.Func != "N" )
+                    if (parameter.Func != "N")
                     {
 
                         string[] funcSplit = parameter.Func.Split('_');
@@ -613,72 +565,14 @@ namespace Mvvm.ViewModels
             }
         }
 
-        #endregion
-
-        public List<ParameterModel> GetAllParameters()
+        private List<ParameterModel> GetAllParameters()
         {
             return Parameters.ToList();
         }
 
-        public ObservableCollection<string> ChartTypes
-        {
-            get => _chartTypes;
-            set => SetProperty(ref _chartTypes, value);
-        }
-
-        private ObservableCollection<ParameterModel> _parameters;
-        public ObservableCollection<ParameterModel> Parameters
-        {
-            get => _parameters;
-            set => SetProperty(ref _parameters, value);
-        }
-
-
-        public DelegateCommand ResetChartCommand { get; }
-        public DelegateCommand ExportDataCommand { get; }
-        public DelegateCommand ResetStatisticsCommand { get; }
-
-
-        #region Constructor
-        public Queue<ParameterModel> queuePparmameterModels = new Queue<ParameterModel>();
-        private List<ParameterModel> listParameterModels = new List<ParameterModel>();
 
 
 
-        public ParameterWindowViewModel(ModbusConnect modbusConnect)
-        {
-            _modbusConnect = modbusConnect;
-            _communicationLog = new ObservableCollection<CommunicationLogItem>();
-
-            Parameters = new ObservableCollection<ParameterModel>();
-            ResetChartCommand = new DelegateCommand(ResetChart);
-            ExportDataCommand = new DelegateCommand(ExportData);
-            ResetStatisticsCommand = new DelegateCommand(ResetStatistics);
-
-
-
-            _isParameterUpdateEnabled = false;
-
-            _modbusConnect.ConnectionStatusChanged += OnConnectionStatusChanged;
-
-            AddLog("초기화", "ParameterWindow 초기화 완료");
-            InitializeChart();
-            InitializeChartTypes();
-            LoadModbusData();
-
-
-            // 차트 갱신 타이머 설정
-            _chartUpdateTimer = new Timer(2000);
-            _chartUpdateTimer.Elapsed += async (sender, e) => await UpdateChart();
-            _chartUpdateTimer.Start();
-
-
-        }
-        #endregion
-
-
-
-        #region Private Methods
 
         public void RefreshTemplate()
         {
@@ -688,7 +582,7 @@ namespace Mvvm.ViewModels
         }
 
 
-        #region 타이머 갱신인데 나중에 넣어야 함.
+
         private async void LoadModbusData()
         {
             try
@@ -780,10 +674,6 @@ namespace Mvvm.ViewModels
         }
 
 
-        #endregion
-
-
-
 
 
 
@@ -807,18 +697,13 @@ namespace Mvvm.ViewModels
         }
 
 
-
-
-
-
-        //ModbusDataviewPage 데이터 업데이트 항목
         private void OnConnectionStatusChanged(bool isConnected)
         {
             Application.Current.Dispatcher.Invoke(() =>
             {
                 if (isConnected)
                 {
-                    _dataUpdateTimer?.Start();
+                    _modbusDataVieewDataUpdateTimer?.Start();
                     LoadModbusData();
 
                     if (!_isParameterUpdateEnabled)
@@ -830,7 +715,7 @@ namespace Mvvm.ViewModels
                 }
                 else
                 {
-                    _dataUpdateTimer?.Stop();
+                    _modbusDataVieewDataUpdateTimer?.Stop();
                     IsRealTimeUpdate = false;
 
                     if (_isParameterUpdateEnabled)
@@ -854,6 +739,8 @@ namespace Mvvm.ViewModels
         }
         #endregion
 
+
+
         #region Public Methods
         public void InitializeWithPlot(WpfPlot plot)
         {
@@ -873,8 +760,8 @@ namespace Mvvm.ViewModels
             StopDataCollection();
             StopParameterUpdateTimer(); // 파라미터 갱신 타이머 중지
             _parameterUpdateTimer?.Dispose(); // 리소스 해제
-            _dataUpdateTimer?.Stop();
-            _dataUpdateTimer?.Dispose();
+            _modbusDataVieewDataUpdateTimer?.Stop();
+            _modbusDataVieewDataUpdateTimer?.Dispose();
             if (_modbusConnect != null)
             {
                 _modbusConnect.ConnectionStatusChanged -= OnConnectionStatusChanged;
@@ -884,7 +771,6 @@ namespace Mvvm.ViewModels
         #endregion
 
         #region Helper Methods
-
 
         private ushort[] ConvertToUShortArray(double[] input)
         {
@@ -944,9 +830,6 @@ namespace Mvvm.ViewModels
 
 
 
-
-
-        private DelegateCommand _toggleParameterUpdateCommand;
         public ICommand ToggleParameterUpdateCommand =>
             _toggleParameterUpdateCommand ??= new DelegateCommand(
                 () => IsParameterUpdateEnabled = !IsParameterUpdateEnabled,
@@ -954,8 +837,19 @@ namespace Mvvm.ViewModels
             );
 
 
-        private Timer _parameterUpdateTimer;
-        private bool _isParameterUpdateEnabled;
+
+        private async void OnModbusWrite(ParameterModel parameter)
+        {
+            if (parameter == null)
+            {
+                MessageBox.Show("선택된 파라미터가 없습니다.", "오류", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
+
+            ExecuteWrite(parameter);
+        }
+
 
         public bool IsParameterUpdateEnabled
         {
@@ -979,6 +873,101 @@ namespace Mvvm.ViewModels
             }
         }
 
+
+
+
+        private void OnAddButtonClick()
+        {
+            if (SelectedParameter != null)
+            {
+                var parameterAddr = SelectedParameter.Index;
+
+                Debug.WriteLine(parameterAddr);
+                AddValueToChart(parameterAddr);
+            }
+            else
+            {
+
+                MessageBox.Show("파라미터를 먼저 선택해주세요.", "알림");
+            }
+        }
+
+
+        private Dictionary<int, bool> addressDictionary = new Dictionary<int, bool>();
+
+        private void AddValueToChart(int addr)
+        {
+            var parameter = Parameters?.FirstOrDefault(p => p.Address == addr);
+            int start = Properties.Settings.Default.StartAddress;
+            int end = Properties.Settings.Default.EndAddress;
+            if (parameter != null)
+            {
+                var addressRange = Enumerable.Range(start, end - start + 1);
+                if (addressDictionary == null || !addressDictionary.Any())
+                {
+                    addressDictionary = addressRange.ToDictionary(address => address, address => false);
+                }
+
+                if (addressDictionary.ContainsKey(parameter.Address))
+                {
+                    addressDictionary[parameter.Address] = true;
+                }
+
+                UpdateChart();
+            }
+        }
+
+
+
+        private async Task UpdateChart()
+        {
+            if (_wpfPlot == null) return;
+
+            var trueAddresses = addressDictionary.Where(entry => entry.Value).Select(entry => entry.Key).ToList();
+            var parametersToPlot = Parameters.Where(p => trueAddresses.Contains(p.Address)).ToList();
+
+            if (_wpfPlot == null) return;
+
+            var plt = _wpfPlot.Plot;
+            plt.Clear();
+
+            foreach (var parameter in parametersToPlot)
+            {
+                if (!_timeDataDict.ContainsKey(parameter.Address))
+                {
+                    _timeDataDict[parameter.Address] = new Queue<double>();
+                    _valueDataDict[parameter.Address] = new Queue<double>();
+                }
+
+                var timeData = _timeDataDict[parameter.Address];
+                var valueData = _valueDataDict[parameter.Address];
+
+                timeData.Enqueue(DateTime.Now.ToOADate());
+                valueData.Enqueue(parameter.DefaultActual);
+
+                if (timeData.Count > MaxDataPoints)
+                {
+                    timeData.Dequeue();
+                    valueData.Dequeue();
+                }
+
+                double[] times = timeData.ToArray();
+                double[] values = valueData.ToArray();
+
+                var scatterPlot = plt.Add.Scatter(times, values);
+                scatterPlot.Label = $"{parameter.Description}";
+            }
+
+            if (AutoScale)
+            {
+                plt.Axes.AutoScale();
+            }
+
+            plt.ShowLegend();
+            _wpfPlot.Refresh();
+        }
+
+
         private async void DataUpdateTimerElapsed(object sender, ElapsedEventArgs e)
         {
             try
@@ -995,9 +984,6 @@ namespace Mvvm.ViewModels
 
                 await Application.Current.Dispatcher.InvokeAsync(() =>
                 {
-
-
-
                     ExecuteGenerateParameters();
 
                 });
@@ -1059,9 +1045,6 @@ namespace Mvvm.ViewModels
                 AddLog("타이머", "파라미터 자동 갱신이 중지되었습니다");
             }
         }
-
-
-
 
 
         private void ExportData()

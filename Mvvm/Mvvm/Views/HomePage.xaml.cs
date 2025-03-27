@@ -1,4 +1,5 @@
 ﻿using System.Windows.Controls;
+using Accord.Statistics.Testing;
 using Mvvm.ViewModels;
 
 
@@ -9,11 +10,22 @@ namespace Mvvm.Views
     /// </summary>
     public partial class HomePage : UserControl
     {
-        public HomePage()
+
+
+        private readonly MainWindowViewModel _mainWindowViewModel;
+
+        public HomePage(MainWindowViewModel viewModel  )
+
+
         {
             InitializeComponent();
 
-            DataContext = new HomePageViewModel();
+            _mainWindowViewModel = viewModel;
+
+            DataContext = _mainWindowViewModel;
         }
+
+
+
     }
 }

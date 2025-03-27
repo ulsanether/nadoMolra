@@ -26,6 +26,16 @@ namespace Mvvm.ViewModels
 {
     public class MainWindowViewModel : BindableBase
     {
+
+
+        #region Fields
+
+        private string _baudRate;
+        private string _portName;
+
+        private int _responseTimeout;
+        private int _delayBetweenPolls;
+        private byte _slaveId;
         private readonly IRegionManager _regionManager;
         private readonly ParameterWindowViewModel _parameterWindowViewModel;
         private string _title = "애플리케이션";
@@ -36,12 +46,33 @@ namespace Mvvm.ViewModels
         private string _selectPort;
         private SnackbarMessageQueue _bottomMessageQueue;
 
+        private ObservableCollection<string> _shortStringList = new();
+
+
+
+
+        private readonly SerialPortConfig _serialPortConfig;
+        private readonly ExcelSettingsManager _settingsManager;
+
+
+        // Fields from SettingPageViewModel
+        private string _selectedConnection;
+        private string _selectedBaud;
+        private string _selectedDataBit;
+        private string _selectedParity;
+        private string _selectedStopBit;
+        private ushort _endAddress;
+        private ushort _startAddress;
+
+        #endregion
+
 
 
         #region 연결 아이콘 컬러 바꾸려고 만들어 놓은것들
 
         private string _icon = "Connector";
         private string _iconColor = "White";
+
 
         public string Icon
         {
@@ -58,7 +89,8 @@ namespace Mvvm.ViewModels
         #endregion
 
 
-        private ObservableCollection<string> _shortStringList = new();
+
+        #region Properties
         public ObservableCollection<string> ShortStringList
         {
             get => _shortStringList;
@@ -71,7 +103,6 @@ namespace Mvvm.ViewModels
             set => SetProperty(ref _selectPort, value);
         }
 
-        private byte _slaveId;
         public byte SlaveId
         {
             get => _slaveId;
@@ -79,15 +110,12 @@ namespace Mvvm.ViewModels
         }
 
 
-
-        private int _delayBetweenPolls;
         public int DelayBetweenPolls
         {
             get => _delayBetweenPolls;
             set => SetProperty(ref _delayBetweenPolls, value);
         }
 
-        private int _responseTimeout;
         public int ResponseTimeout
         {
             get => _responseTimeout;
@@ -119,21 +147,6 @@ namespace Mvvm.ViewModels
 
         private readonly MainBottomBarViewModel _mainBottomBarViewModel;
 
-        // Fields from SettingPageViewModel
-        private string _selectedConnection;
-        private string _selectedBaud;
-        private string _selectedDataBit;
-        private string _selectedParity;
-        private string _selectedStopBit;
-        private ushort _endAddress;
-        private ushort _startAddress;
-
-
-
-
-
-        private readonly SerialPortConfig _serialPortConfig;
-        private readonly ExcelSettingsManager _settingsManager;
 
         public DelegateCommand SaveExcelCommand { get; private set; }
 
@@ -145,8 +158,7 @@ namespace Mvvm.ViewModels
         public ObservableCollection<string> StopBitOptions { get; set; }
         public ObservableCollection<ParameterModel> Parameters { get; set; }
 
-        private string _baudRate;
-        private string _portName;
+
 
         public string BaudRate
         {
@@ -234,6 +246,7 @@ namespace Mvvm.ViewModels
         public DelegateCommand<ParameterModel> SomeCommand { get; private set; }
         public event Action<List<ParameterModel>> ExcelDataLoaded;
 
+        #endregion
         public MainWindowViewModel(IRegionManager regionManager, MainBottomBarViewModel mainBottomBarViewModel, ModbusConnect modbusConnect, ParameterWindowViewModel parameterWindowViewModel)
         {
             _regionManager = regionManager;
@@ -260,8 +273,6 @@ namespace Mvvm.ViewModels
 
             InitializeParameterWindowViewModel();
 
-            // Initialize fields from SettingPageViewModel
-            //   _serialPortConfig = new SerialPortConfig();
             _settingsManager = new ExcelSettingsManager();
 
             Parameters = new ObservableCollection<ParameterModel>();
@@ -360,9 +371,6 @@ namespace Mvvm.ViewModels
         {
             _regionManager.RequestNavigate("ContentRegion", "SettingPage");
         }
-
-
-
 
 
 
@@ -474,10 +482,9 @@ namespace Mvvm.ViewModels
             }
         }
 
-
         private void ExecuteMethod(ParameterModel parameter)
         {
-           
+
         }
 
         private bool CanExecuteMethod(ParameterModel parameter)
@@ -508,7 +515,7 @@ namespace Mvvm.ViewModels
 
         }
 
-   
+
         private void ShowSuccess(string message)
         {
             MessageBox.Show(message, "성공", MessageBoxButton.OK, MessageBoxImage.Information);

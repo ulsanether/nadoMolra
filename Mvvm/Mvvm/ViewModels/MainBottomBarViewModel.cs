@@ -13,19 +13,20 @@ namespace Mvvm.ViewModels
     {
         #region 필드
         private readonly ModbusConnect _modbusConnect;
-
         private int CountAdvanced = 0;
 
-
+        private int _baudRate;
+        private string _portName;
+        private string _portState;
+        private bool _isConnected;
         #endregion
 
 
 
+        #region 프로퍼티
         public ICommand AdvancedModeCommand => new DelegateCommand(OnAdvancedModeCommand);
-
         public event EventHandler AdvancedModeChanged;
 
-        private bool _isConnected;
         public bool IsConnected
         {
             get => _isConnected;
@@ -38,42 +39,38 @@ namespace Mvvm.ViewModels
             }
         }
 
-        private string _portState;
         public string PortState
         {
             get => _portState;
             set => SetProperty(ref _portState, value);
         }
 
-        private string _portName;
         public string PortName
         {
             get => _portName;
             set => SetProperty(ref _portName, value);
         }
 
-        private int _baudRate;
+
         public int BaudRate
         {
             get => _baudRate;
             set => SetProperty(ref _baudRate, value);
         }
 
+#endregion
+
+
         public MainBottomBarViewModel(ModbusConnect modbusConnect)
         {
             _modbusConnect = modbusConnect;
-
             _modbusConnect.ConnectionStatusChanged += OnConnectionStatusChanged;
-
             InitializeValues();
         }
 
         public void SubscribeToPortConnectedEvent(MainWindowViewModel mainWindowViewModel)
         {
             mainWindowViewModel.PortConnected += OnPortConnected;
-            
-
-
         }
 
         private async Task InitializeValues()
@@ -93,9 +90,9 @@ namespace Mvvm.ViewModels
             }
         }
 
-      
 
-        
+
+
 
         private async  Task UpdatePortConfiguration()
         {
@@ -121,7 +118,7 @@ namespace Mvvm.ViewModels
         {
               PortName = portName;
              BaudRate = baudRate;
-        
+
         }
     }
 }
