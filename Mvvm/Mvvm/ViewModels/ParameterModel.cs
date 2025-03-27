@@ -7,7 +7,7 @@ namespace Mvvm.Model
     public class ParameterModel : BindableBase
     {
         private int _address;
-        private string _label;
+
         private string _description;
         private double _defaultActual;
         private string _defaultValue;
@@ -30,7 +30,7 @@ namespace Mvvm.Model
 
 
         public int Address { get; set; }
-        public string Label { get; set; }  //차트에 쓴다. 이걸 다른걸로 수정 할 것
+
         public string Description { get; set; }
 
         public double DefaultActual

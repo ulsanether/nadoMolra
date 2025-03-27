@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.IO.Ports;
 using System.Linq;
 using System.Threading.Tasks;
@@ -11,6 +12,7 @@ using Mvvm.ViewModels;
 using MySqlX.XDevAPI.Common;
 using NModbus;
 using NModbus.Serial;
+using ScottPlot;
 
 namespace Mvvm.Model
 {
@@ -27,6 +29,19 @@ namespace Mvvm.Model
         private bool autoReconnect = true;
         private DateTime lastDataReceived;
 
+        StringCollection descriptionList;
+        StringCollection unitList;
+        StringCollection indexList;
+        StringCollection sizeList;
+        StringCollection defaultValueList;
+        StringCollection noteList;
+        StringCollection funcList;
+        StringCollection endList;
+        StringCollection symbolList;
+        StringCollection StyleList;
+        StringCollection normalRangeList;
+
+
         public SerialPortConfig serialPortConfig { get; set; }
 
 
@@ -39,11 +54,21 @@ namespace Mvvm.Model
             ConnectionStatusChanged?.Invoke(isConnected);
         }
 
+
+
+
         public ModbusConnect()
         {
             serialPortConfig = new SerialPortConfig();
             statistics = new CommunicationStatistics();
             dataBuffer = new ModbusDataBuffer();
+
+
+
+
+
+
+
 
             LoadDefaultConfig();
         }
@@ -105,7 +130,7 @@ namespace Mvvm.Model
 
             try
             {
-                //   MessageBox.Show("포트 연결 시도 중...", "연결", MessageBoxButton.OK, MessageBoxImage.Information);
+
                 await DisconnectIfConnected();
                 await OpenNewConnection(_portName);
                 ConnectionStatusChanged?.Invoke(true);
@@ -152,16 +177,29 @@ namespace Mvvm.Model
             master = factory.CreateRtuMaster(port);
             master.Transport.ReadTimeout = 2000;
             master.Transport.WriteTimeout = 2000;
+
+            descriptionList = Properties.Settings.Default.Description;
+            unitList = Properties.Settings.Default.Unit;
+            indexList = Properties.Settings.Default.Index;
+            sizeList = Properties.Settings.Default.Size;
+            defaultValueList = Properties.Settings.Default.DefaultValue;
+            noteList = Properties.Settings.Default.Note;
+            funcList = Properties.Settings.Default.Func;
+            endList = Properties.Settings.Default.Endian;
+            symbolList = Properties.Settings.Default.Symbols;
+            StyleList = Properties.Settings.Default.Style;
+            normalRangeList = Properties.Settings.Default.NormalRange;
+
+
+
         }
 
-
-        //여기는 세팅값에 저장된 전체의 데이터를 가져와야함.
         public async Task<List<ParameterModel>> ReadModbusData(int startAddress, int numberOfPoints)
         {
             if (!IsConnected())
             {
 
-                var lastValues = dataBuffer.GetLastValues(numberOfPoints);
+               var lastValues = dataBuffer.GetLastValues(numberOfPoints);
                 return lastValues;
             }
             try
@@ -181,6 +219,7 @@ namespace Mvvm.Model
 
                 var lastValues = dataBuffer.GetLastValues(numberOfPoints);
                 DataReceived?.Invoke(parameters);
+
                 return lastValues;
             }
             catch (Exception ex)
@@ -258,11 +297,6 @@ namespace Mvvm.Model
         {
             List<ParameterModel> result = new List<ParameterModel>();
 
-            var indexList = Properties.Settings.Default.Index;
-            var descriptionList = Properties.Settings.Default.Description;
-            var unitList = Properties.Settings.Default.Unit;
-            var defaultValueList = Properties.Settings.Default.DefaultValue;
-
 
 
             for (int i = 0; i < registers.Length; i++)
@@ -276,12 +310,16 @@ namespace Mvvm.Model
                 ParameterModel parameter = new ParameterModel
                 {
                     Address = address,
-                    Label = $"Register {address}",
                     Description = descriptionList.Cast<string>().ElementAt(indexList.IndexOf(address.ToString())),
                     DefaultActual = value,
                     DefaultValue = defaultValueList.Cast<string>().ElementAt(indexList.IndexOf(address.ToString())),
                     ModbusUnit = unitList.Cast<string>().ElementAt(indexList.IndexOf(address.ToString())),
-                    Index = address
+                    Index = address,
+                    Note = noteList.Cast<string>().ElementAt(indexList.IndexOf(address.ToString())),
+                    Func = funcList.Cast<string>().ElementAt(indexList.IndexOf(address.ToString())),
+                    Endian = endList.Cast<string>().ElementAt(indexList.IndexOf(address.ToString())),
+                    Symbols = symbolList.Cast<string>().ElementAt(indexList.IndexOf(address.ToString())),
+                    NormalRange = normalRangeList.Cast<string>().ElementAt(indexList.IndexOf(address.ToString()))
                 };
 
                 result.Add(parameter);
@@ -289,7 +327,6 @@ namespace Mvvm.Model
 
             return result;
         }
-
 
 
         public void RegisterDataType(ushort address, DataType dataType)
@@ -312,8 +349,8 @@ namespace Mvvm.Model
 {
     public class ModbusDataBuffer
     {
-        private readonly int bufferSize = 10;
-        private readonly Dictionary<int, Queue<DataPoint>> dataBuffer = new Dictionary<int, Queue<DataPoint>>();
+        private readonly int bufferSize = 100;
+        private readonly Dictionary<int, Queue<DataPointWithMetadata>> dataBuffer = new Dictionary<int, Queue<DataPointWithMetadata>>();
         private readonly object lockObject = new object();
 
         public void StoreValues(List<ParameterModel> parameters)
@@ -322,9 +359,9 @@ namespace Mvvm.Model
             {
                 foreach (var parameter in parameters)
                 {
-                     if (!dataBuffer.ContainsKey(parameter.Address))
+                    if (!dataBuffer.ContainsKey(parameter.Address))
                     {
-                        dataBuffer[parameter.Address] = new Queue<DataPoint>(bufferSize);
+                        dataBuffer[parameter.Address] = new Queue<DataPointWithMetadata>(bufferSize);
                     }
 
                     var queue = dataBuffer[parameter.Address];
@@ -333,15 +370,31 @@ namespace Mvvm.Model
                         queue.Dequeue();
                     }
 
-                    queue.Enqueue(new DataPoint
+                    var parameterCopy = new ParameterModel
+                    {
+                        Address = parameter.Address,
+                        Description = parameter.Description,
+                        DefaultActual = parameter.DefaultActual,
+                        DefaultValue = parameter.DefaultValue,
+                        ModbusUnit = parameter.ModbusUnit,
+                        Index = parameter.Index,
+                        Note = parameter.Note,
+                        Func = parameter.Func,
+                        Endian = parameter.Endian,
+                        Symbols = parameter.Symbols,
+                        NormalRange = parameter.NormalRange
+                    };
+
+                    queue.Enqueue(new DataPointWithMetadata
                     {
                         Timestamp = DateTime.Now,
-                        Value = parameter.DefaultActual
-
+                        Value = parameter.DefaultActual,
+                        Metadata = parameterCopy
                     });
                 }
             }
         }
+
 
         public List<ParameterModel> GetLastValues(int count)
         {
@@ -353,28 +406,43 @@ namespace Mvvm.Model
                     .Take(count)
                     .Select(dp => new ParameterModel
                     {
+
+                        Address = dp.Metadata.Address,
+                        Description = dp.Metadata.Description,
                         DefaultActual = dp.Value,
+                        DefaultValue = dp.Metadata.DefaultValue,
+                        ModbusUnit = dp.Metadata.ModbusUnit,
+                        Index = dp.Metadata.Index,
+                        Note = dp.Metadata.Note,
+                        Func = dp.Metadata.Func,
+                        Endian = dp.Metadata.Endian,
+                        Symbols = dp.Metadata.Symbols,
+                        NormalRange = dp.Metadata.NormalRange
                     })
                     .ToList();
             }
         }
 
-
-
         #region 차트에 쓸 데이터 버퍼
 
-        //GetHistoricalData(100, TimeSpan.FromHours(1)  주소 100번의 1시간동안의 데이터 포인터 출력.
-        public DataPoint[] GetHistoricalData(int address, TimeSpan timeSpan)
+
+        public DataPointWithMetadata[] GetHistoricalData(int address, TimeSpan timeSpan)
         {
             lock (lockObject)
             {
                 if (!dataBuffer.ContainsKey(address))
                 {
-                    return Array.Empty<DataPoint>();
+                    return Array.Empty<DataPointWithMetadata>();
                 }
+
                 var cutoff = DateTime.Now - timeSpan;
                 return dataBuffer[address]
                     .Where(dp => dp.Timestamp >= cutoff)
+                    .Select(dp => new DataPointWithMetadata
+                    {
+                        Timestamp = dp.Timestamp,
+                        Value = dp.Value
+                    })
                     .ToArray();
             }
         }
@@ -434,12 +502,12 @@ namespace Mvvm.Model
         }
     }
 
-    public class DataPoint
+    public class DataPointWithMetadata
     {
         public DateTime Timestamp { get; set; }
         public double Value { get; set; }
+        public ParameterModel Metadata { get; set; }
     }
-
     public enum DataType
     {
         UInt16,

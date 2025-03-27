@@ -59,14 +59,14 @@ private Dictionary<int, double> chartValues = new Dictionary<int, double>();
 
 private void AddValueToChart(int addr)
 {
-    
+
     var parameter = Parameters?.FirstOrDefault(p => p.Address == addr);
-    
+
     if (parameter != null)
     {
-       
+
         double value = parameter.DefaultActual;
-     
+
         if (chartValues.ContainsKey(addr))
         {
             chartValues[addr] = value;
@@ -75,7 +75,7 @@ private void AddValueToChart(int addr)
         {
             chartValues.Add(addr, value);
         }
-  
+
         UpdateChart(addr, value);
     }
 }
@@ -353,36 +353,15 @@ private void UpdateChart(int addr, double value)
                 int numberOfPoints = end - start + 1;
 
                 var parame = await GetReadModbusData(start, numberOfPoints);
-                var func = Properties.Settings.Default.Func;
-                var parameterStack = new Stack<ParameterModel>(parame);
-                var endian = Properties.Settings.Default.Endian;
-                var symbols = Properties.Settings.Default.Symbols;
-                var normalRange = Properties.Settings.Default.NormalRange;
-
 
 
                 double[] Temp = { 0, 0 };
 
                 await Application.Current.Dispatcher.InvokeAsync(() =>
                 {
-                    var defaultActualStack = new Stack<double>();
 
                     foreach (var parameter in Parameters)
                     {
-                        defaultActualStack.Push(parame[parameter.Index].DefaultActual);
-                    }
-
-                    foreach (var parameter in Parameters)
-                    {
-
-                        parameter.DefaultActual = defaultActualStack.Pop();
-                        parameter.Endian = endian[parameter.Index];
-                        parameter.Symbols = symbols[parameter.Index];
-                        parameter.NormalRange = normalRange[parameter.Index];
-
-                        parameter.Index = start++;
-
-
 
                         if (parameter.Endian == "H")
                         {
@@ -411,7 +390,6 @@ private void UpdateChart(int addr, double value)
                                 }
                                 var result = task.Result;
 
-
                                 Application.Current.Dispatcher.Invoke(() =>
                                 {
                                     parameter.DefaultActual = result;
@@ -423,8 +401,6 @@ private void UpdateChart(int addr, double value)
                         if (parameter.Func != "N")
                         {
                             string[] funcSplit = parameter.Func.Split('_');
-
-
 
                             switch (funcSplit[0])
                             {
@@ -773,32 +749,11 @@ private void UpdateChart(int addr, double value)
                     return;
                 }
 
-                var stackParameterModels = new Stack<ParameterModel>(parameters);
-                var description = Properties.Settings.Default.Description;
-                var unit = Properties.Settings.Default.Unit;
-                var defaultValue = Properties.Settings.Default.DefaultValue;
-                var normalRange = Properties.Settings.Default.NormalRange;
-                var note = Properties.Settings.Default.Note;
-                var func = Properties.Settings.Default.Func;
-                var endian = Properties.Settings.Default.Endian;
-                var symbols = Properties.Settings.Default.Symbols;
-
                 await Application.Current.Dispatcher.InvokeAsync(() =>
                 {
-                    int currentStart = start;
-                    while (stackParameterModels.Count > 0)
+                    foreach (var parameter in parameters)
                     {
-                        var parameter = stackParameterModels.Pop();
-
-                        parameter.Index = currentStart++;
-                        parameter.Description = description[parameter.Index];
-                        parameter.Unit = unit[parameter.Index];
-                        parameter.DefaultValue = defaultValue[parameter.Index];
-                        parameter.Endian = endian[parameter.Index];
-                        parameter.NormalRange = normalRange[parameter.Index];
-                        parameter.Symbols = symbols[parameter.Index];
-                        parameter.Func = func[parameter.Index];
-
+             
                         Parameters.Add(parameter);
                     }
                 });
@@ -815,6 +770,7 @@ private void UpdateChart(int addr, double value)
                 });
             }
         }
+
 
         //사용 안할것 같은 코드
         private void UpdateExistingParameter(ParameterModel updatedParameter)
