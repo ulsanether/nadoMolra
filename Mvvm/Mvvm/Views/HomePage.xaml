@@ -7,8 +7,6 @@
     xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:prism="http://prismlibrary.com/"
-
-
     mc:Ignorable="av">
 
     <Grid Width="686" Height="642">
@@ -21,23 +19,6 @@
             <RowDefinition Height="*" />
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
-
-        <ItemsControl
-      dd:DragDrop.DropHandler="{Binding}"
-      dd:DragDrop.IsDragSource="True"
-      dd:DragDrop.IsDropTarget="True"
-      ItemsSource="{Binding Borders}" Grid.Row="1">
-            <ItemsControl.ItemsPanel>
-                <ItemsPanelTemplate>
-                    <Grid />
-                </ItemsPanelTemplate>
-            </ItemsControl.ItemsPanel>
-            <ItemsControl.ItemTemplate>
-                <DataTemplate>
-                    <ContentPresenter Content="{Binding}" />
-                </DataTemplate>
-            </ItemsControl.ItemTemplate>
-        </ItemsControl>
         <Border
             Width="100"
             Height="100"
@@ -119,10 +100,13 @@
                 Foreground="{StaticResource SubOneFontColor}" />
         </Border>
         <ItemsControl
+            Grid.Row="1"
+            Grid.Column="1"
+            Margin="-10,10,10,-10"
             dd:DragDrop.DropHandler="{Binding}"
             dd:DragDrop.IsDragSource="True"
             dd:DragDrop.IsDropTarget="True"
-            ItemsSource="{Binding Borders}" Grid.Row="1" Grid.Column="1" Margin="-10,10,10,-10">
+            ItemsSource="{Binding Borders}">
             <ItemsControl.ItemsPanel>
                 <ItemsPanelTemplate>
                     <Grid />
