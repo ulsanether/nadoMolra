@@ -5,12 +5,11 @@ using System.Windows;
 using System.Timers;
 using Prism.Commands;
 using Prism.Mvvm;
+
 using ScottPlot;
 using ScottPlot.WPF;
 using System.Collections.Generic;
 using System.Diagnostics;
-using DryIoc;
-using Mvvm.Model;
 using System.Threading;
 using NLog;
 
@@ -19,19 +18,21 @@ using System.Threading.Tasks;
 using System.Windows.Input;
 using System.Collections.Specialized;
 using ImTools;
-using ScottPlot.Colormaps;
 using FluentIcons.Common;
-using DevExpress.Xpf.Bars;
 using System.Net.Sockets;
 using DevExpress.DocumentServices.ServiceModel.DataContracts;
 using Accord;
+
+using Mvvm.Model;
+using Mvvm.Converters;
+
 
 namespace Mvvm.ViewModels
 {
     public class ParameterWindowViewModel : BindableBase
     {
 
-
+        private Timer _chartUpdateTimer;
         private DelegateCommand _addButtonClickCommand;
         public ICommand AddButtonClickCommand =>
         _addButtonClickCommand ??= new DelegateCommand(OnAddButtonClick);
@@ -44,7 +45,8 @@ namespace Mvvm.ViewModels
             if (SelectedParameter != null)
             {
                 var parameterAddr = SelectedParameter.Index;
-                MessageBox.Show(parameterAddr.ToString());
+
+                Debug.WriteLine(parameterAddr);
                 AddValueToChart( parameterAddr);
             }
             else
@@ -54,38 +56,81 @@ namespace Mvvm.ViewModels
             }
         }
 
-  // 딕셔너리를 선언하여 주소와 파라미터 값을 저장
-private Dictionary<int, double> chartValues = new Dictionary<int, double>();
 
-private void AddValueToChart(int addr)
-{
+        private Dictionary<int, bool> addressDictionary = new Dictionary<int, bool>();
 
-    var parameter = Parameters?.FirstOrDefault(p => p.Address == addr);
-
-    if (parameter != null)
-    {
-
-        double value = parameter.DefaultActual;
-
-        if (chartValues.ContainsKey(addr))
+        private void AddValueToChart(int addr)
         {
-            chartValues[addr] = value;
+            var parameter = Parameters?.FirstOrDefault(p => p.Address == addr);
+            int start = Properties.Settings.Default.StartAddress;
+            int end = Properties.Settings.Default.EndAddress;
+            if (parameter != null)
+            {
+                var addressRange = Enumerable.Range(start, end - start + 1);
+                if (addressDictionary == null || !addressDictionary.Any())
+                {
+                    addressDictionary = addressRange.ToDictionary(address => address, address => false);
+                }
+
+                if (addressDictionary.ContainsKey(parameter.Address))
+                {
+                    addressDictionary[parameter.Address] = true;
+                }
+
+                UpdateChart();
+            }
         }
-        else
+
+        private readonly Dictionary<int, Queue<double>> _timeDataDict = new();
+        private readonly Dictionary<int, Queue<double>> _valueDataDict = new();
+
+        private async Task UpdateChart()
         {
-            chartValues.Add(addr, value);
+            if (_wpfPlot == null) return;
+
+            var trueAddresses = addressDictionary.Where(entry => entry.Value).Select(entry => entry.Key).ToList();
+            var parametersToPlot = Parameters.Where(p => trueAddresses.Contains(p.Address)).ToList();
+
+            if (_wpfPlot == null) return;
+
+            var plt = _wpfPlot.Plot;
+            plt.Clear();
+
+            foreach (var parameter in parametersToPlot)
+            {
+                if (!_timeDataDict.ContainsKey(parameter.Address))
+                {
+                    _timeDataDict[parameter.Address] = new Queue<double>();
+                    _valueDataDict[parameter.Address] = new Queue<double>();
+                }
+
+                var timeData = _timeDataDict[parameter.Address];
+                var valueData = _valueDataDict[parameter.Address];
+
+                timeData.Enqueue(DateTime.Now.ToOADate());
+                valueData.Enqueue(parameter.DefaultActual);
+
+                if (timeData.Count > MaxDataPoints)
+                {
+                    timeData.Dequeue();
+                    valueData.Dequeue();
+                }
+
+                double[] times = timeData.ToArray();
+                double[] values = valueData.ToArray();
+
+                var scatterPlot = plt.Add.Scatter(times, values);
+                scatterPlot.Label = $"{parameter.Description}";
+            }
+
+            if (AutoScale)
+            {
+                plt.Axes.AutoScale();
+            }
+
+            plt.ShowLegend();
+            _wpfPlot.Refresh();
         }
-
-        UpdateChart(addr, value);
-    }
-}
-
-private void UpdateChart(int addr, double value)
-{
-    // 차트 업데이트 로직 구현
-    // ScottPlot 등을 사용하여 차트 데이터를 업데이트
-}
-
 
         #endregion
 
@@ -94,7 +139,7 @@ private void UpdateChart(int addr, double value)
         #region Fields
         private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
         private readonly ModbusConnect _modbusConnect;
-        private readonly Timer _updateTimer;
+
         private readonly Dictionary<int, (string Description, string Unit, double DefaultValue, string Note)> _modbusData;
         private int _columns = 1;
         private CancellationTokenSource _cancellationTokenSource;
@@ -181,14 +226,14 @@ private void UpdateChart(int addr, double value)
                 if (SetProperty(ref _selectedParameter, value))
                 {
 
-                    //if (value != null)
-                    //{
-                    //    CurrentValue = value.DefaultActual;
-                    //    if (IsRealTimeUpdate)
-                    //    {
-                    //        StartDataCollection();
-                    //    }
-                    //}
+                    if (value != null)
+                    {
+                        CurrentValue = value.DefaultActual;
+                        if (IsRealTimeUpdate)
+                        {
+                            StartDataCollection();
+                        }
+                    }
                 }
             }
         }
@@ -214,8 +259,14 @@ private void UpdateChart(int addr, double value)
         private DelegateCommand _generateParametersCommand;
         public DelegateCommand GenerateParametersCommand =>
             _generateParametersCommand ??= new DelegateCommand(
-                ExecuteGenerateParameters, () => true
-            );
+
+
+                ExecuteGenerateParameters,
+
+                () => true
+
+
+                );
 
 
         private DelegateCommand<ParameterModel> _modbusWriteCommand;
@@ -249,12 +300,11 @@ private void UpdateChart(int addr, double value)
         }
 
 
-
         public DelegateCommand<ParameterModel> WriteCommand
         {
             get
             {
-                if (_writeCommand == null)
+                if (_writeCommand == null )
                 {
                     _writeCommand = new DelegateCommand<ParameterModel>(
                         param =>
@@ -262,7 +312,7 @@ private void UpdateChart(int addr, double value)
                             if (param != null)
                                 ExecuteWrite(param);
                         },
-                        param => param is ParameterModel && CanExecuteWrite(param)
+                        param => param is ParameterModel parameter && CanExecuteWrite(parameter)
                     );
                 }
                 return _writeCommand;
@@ -271,10 +321,8 @@ private void UpdateChart(int addr, double value)
 
         private bool CanExecuteWrite(ParameterModel parameter)
         {
-
             return parameter != null;
         }
-
 
 
 
@@ -292,54 +340,6 @@ private void UpdateChart(int addr, double value)
         }
 
 
-        private async void InitializeParameter()
-        {
-            try
-            {
-                int start = Properties.Settings.Default.StartAddress;
-                int end = Properties.Settings.Default.EndAddress;
-                int numberOfPoints = end - start + 1;
-
-                Parameters.Clear();
-                var parameters = await GetReadModbusData(start, numberOfPoints);
-
-                var stackParameterModels = new Stack<ParameterModel>(parameters);
-                var description = Properties.Settings.Default.Description;
-                var unit = Properties.Settings.Default.Unit;
-                var defaultValue = Properties.Settings.Default.DefaultValue;
-                var normalRange = Properties.Settings.Default.NormalRange;
-                var note = Properties.Settings.Default.Note;
-                var func = Properties.Settings.Default.Func;
-                var endian = Properties.Settings.Default.Endian;
-                var symbols = Properties.Settings.Default.Symbols;
-
-                await Application.Current.Dispatcher.InvokeAsync(() =>
-                {
-                    while (stackParameterModels.Count > 0)
-                    {
-                        var parameter = stackParameterModels.Pop();
-
-                        parameter.Index = start++;
-                        parameter.Description = description[parameter.Index];
-                        parameter.Unit = unit[parameter.Index];
-                        parameter.DefaultValue = defaultValue[parameter.Index];
-                        parameter.Endian = endian[parameter.Index];
-                        parameter.NormalRange = normalRange[parameter.Index];
-                        parameter.Symbols = symbols[parameter.Index];
-                        parameter.Func = func[parameter.Index];
-
-                        Parameters.Add(parameter);
-                    }
-                });
-
-                Logger.Info($"파라미터 생성 완료: {start}부터 {end}까지 {parameters.Count}개 생성됨");
-            }
-            catch (Exception ex)
-            {
-                Logger.Error(ex, "파라미터 생성 중 오류 발생");
-                MessageBox.Show($"파라미터 생성 중 오류가 발생했습니다: {ex.Message}", "오류", MessageBoxButton.OK, MessageBoxImage.Error);
-            }
-        }
 
 
 
@@ -353,24 +353,26 @@ private void UpdateChart(int addr, double value)
                 int numberOfPoints = end - start + 1;
 
                 var parame = await GetReadModbusData(start, numberOfPoints);
-
-
+                foreach (var param in parame)
+                {
+                    var parameter = Parameters.FirstOrDefault(p => p.Address == param.Address);
+                    if (parameter != null)
+                    {
+                        parameter.DefaultActual = param.DefaultActual;
+                    }
+                }
                 double[] Temp = { 0, 0 };
 
                 await Application.Current.Dispatcher.InvokeAsync(() =>
                 {
-
                     foreach (var parameter in Parameters)
                     {
-
                         if (parameter.Endian == "H")
                         {
                             if (Temp != null && Temp.Length > 0)
                                 Temp[0] = parameter.DefaultActual;
-                          parameter.DefaultActual =0;
+                            parameter.DefaultActual = 0;
                             continue;
-
-
                         }
                         else if (parameter.Endian == "L")
                         {
@@ -393,7 +395,6 @@ private void UpdateChart(int addr, double value)
                                 Application.Current.Dispatcher.Invoke(() =>
                                 {
                                     parameter.DefaultActual = result;
-
                                 });
                             });
                         }
@@ -416,18 +417,12 @@ private void UpdateChart(int addr, double value)
                                     break;
                                 default:
                                     break;
-
                             }
-
                         }
 
                         parameter.NotifyPropertyChanged(nameof(parameter.DefaultActual));
-
-
-
                     }
                 });
-
 
                 Logger.Info("파라미터 값 갱신 완료");
             }
@@ -445,6 +440,7 @@ private void UpdateChart(int addr, double value)
 
 
         private async Task<List<ParameterModel>> GetReadModbusData(int start, int numberOfPoints) =>
+
                     await _modbusConnect.ReadModbusData(start, numberOfPoints);
 
 
@@ -479,8 +475,7 @@ private void UpdateChart(int addr, double value)
                     return;
                 }
 
-                var result = MessageBox.Show(
-                $"다음 값을 설정하시겠습니까?\n\n인덱스: {parameter.Index:D3}\n주소: {parameter.Address}\n설명: {parameter.Description}\n현재값: {parameter.DefaultActual:F3}\n설정값: {newValue}",
+                var result = MessageBox.Show( $"다음 값을 설정하시겠습니까?\n\n인덱스: {parameter.Index:D3}\n주소: {parameter.Address}\n설명: {parameter.Description}\n현재값: {parameter.DefaultActual:F3}\n설정값: {newValue}",
                 "설정 확인",
                 MessageBoxButton.YesNo,
                 MessageBoxImage.Question);
@@ -489,67 +484,61 @@ private void UpdateChart(int addr, double value)
 
                 if (result == MessageBoxResult.Yes)
                 {
-
-
-
                     #region 표시 범위랑 값들인데, 나중에 다른 프로젝트 할때  추가 해야함. 일단 /10 만 있음.
 
-
-                    if (parameter.NormalRange.Contains('~')) {
-
-                    string[] normalRangeSplit = parameter.NormalRange.Split('~');
-
-
-                        int lowRange = int.Parse(normalRangeSplit[0]) / 10;
-                        int highRange = int.Parse(normalRangeSplit[1]) / 10;
-                        if (lowRange > newValue || highRange < newValue)
-                        {
-
-                            MessageBox.Show("설정값이 정상 범위를 벗어났습니다.", "입력 오류",
-                                MessageBoxButton.OK, MessageBoxImage.Warning);
-                            return;
-
-                        }
-                    }
-
+                    CheckParameterRange(parameter, newValue);
 
                     var allParameters = GetAllParameters();
 
-                    foreach (var item in allParameters)
+                    if(parameter.Endian == "H")
                     {
-                        MessageBox.Show(item.Endian);
-
-                        if (item.Endian == "H")
-                        {
-                            MessageBox.Show("h");
-                            var numOne = item.Index;
-                            parameter.NewValue = "";
-
-
-
-                        }
-                        else if (item.Endian == "L")
-                        {
-                            var numTwo = item.Index;
-                            MessageBox.Show("l");
-
-
-                            var refVal = ModbusDataConverter.FromInt32Big((int)item.DefaultActual);
-
-
-                            await _modbusConnect.WriteRegister(parameter.Index - 1, refVal[0]);
-                            await _modbusConnect.WriteRegister(parameter.Index, refVal[1]);
-                            parameter.NewValue = "";
-
-                            Logger.Info($"파라미터 쓰기 완료 - 인덱스: {parameter.Index:D3}, 주소: {parameter.Address}, 값: {newValue}");
-                            return;
-                        }
+                        MessageBox.Show("이 부분은 수정할 수 없습니다. ");
+                        parameter.NewValue = "";
+                        return;
                     }
 
-                    if (parameter.Func != "N")
+                    if (parameter.Endian == "L")
                     {
-                        MessageBox.Show("n");
 
+                        var allParameter = GetAllParameters();
+
+                        foreach (var item in allParameters)
+                        {
+
+                           if (item.Index == parameter.Index - 1)
+    {
+        MessageBox.Show("h");
+        var numOne = item.Index;
+        parameter.NewValue = "";
+    }
+
+                            if (item.Index == parameter.Index) {
+
+
+                                var numTwo = item.Index;
+                                MessageBox.Show("l");
+
+
+                                var refVal = ModbusDataConverter.FromInt32Big((int)item.DefaultActual);
+
+
+                                await _modbusConnect.WriteRegister(parameter.Index - 1, refVal[0]);
+                                await _modbusConnect.WriteRegister(parameter.Index, refVal[1]);
+                                parameter.NewValue = "";
+
+                                Logger.Info($"파라미터 쓰기 완료 - 인덱스: {parameter.Index:D3}, 주소: {parameter.Address}, 값: {newValue}");
+                                return;
+
+                            }
+
+
+                        }
+
+
+                    }
+
+                    if (parameter.Func != "N" )
+                    {
 
                         string[] funcSplit = parameter.Func.Split('_');
 
@@ -577,14 +566,13 @@ private void UpdateChart(int addr, double value)
                                 break;
 
                         }
-
                         #endregion
 
                     }
                     else
                     {
 
-                        MessageBox.Show("w");
+
 
                         await _modbusConnect.WriteRegister(parameter.Index, newValue);
                         parameter.DefaultActual = newValue;
@@ -604,7 +592,28 @@ private void UpdateChart(int addr, double value)
             }
         }
 
+        private static void CheckParameterRange(ParameterModel parameter, int newValue)
+        {
+            if (parameter.NormalRange.Contains('~'))
+            {
 
+                string[] normalRangeSplit = parameter.NormalRange.Split('~');
+
+
+                int lowRange = int.Parse(normalRangeSplit[0]) / 10;
+                int highRange = int.Parse(normalRangeSplit[1]) / 10;
+                if (lowRange > newValue || highRange < newValue)
+                {
+
+                    MessageBox.Show("설정값이 정상 범위를 벗어났습니다.", "입력 오류",
+                        MessageBoxButton.OK, MessageBoxImage.Warning);
+                    return;
+
+                }
+            }
+        }
+
+        #endregion
 
         public List<ParameterModel> GetAllParameters()
         {
@@ -628,7 +637,7 @@ private void UpdateChart(int addr, double value)
         public DelegateCommand ResetChartCommand { get; }
         public DelegateCommand ExportDataCommand { get; }
         public DelegateCommand ResetStatisticsCommand { get; }
-        #endregion
+
 
         #region Constructor
         public Queue<ParameterModel> queuePparmameterModels = new Queue<ParameterModel>();
@@ -657,8 +666,12 @@ private void UpdateChart(int addr, double value)
             InitializeChartTypes();
             LoadModbusData();
 
-            _updateTimer = new Timer(1000); // 1초 간격
-            _updateTimer.Elapsed += UpdateTimerPlot;
+
+            // 차트 갱신 타이머 설정
+            _chartUpdateTimer = new Timer(2000);
+            _chartUpdateTimer.Elapsed += async (sender, e) => await UpdateChart();
+            _chartUpdateTimer.Start();
+
 
         }
         #endregion
@@ -688,34 +701,28 @@ private void UpdateChart(int addr, double value)
 
                 AddLog("데이터 요청", "ModBus 데이터 읽기 시작");
 
-                // 백그라운드에서 Modbus 데이터 읽기
                 if (!Parameters.Any())
                 {
-                    // Task.Run을 사용해 백그라운드 스레드에서 실행
-                    var initialDataTask = Task.Run(async () => {
-                        try
-                        {
-                            return await GetReadModbusData(0, 1);
-                        }
-                        catch (Exception ex)
-                        {
-                            Logger.Error(ex, "백그라운드 Modbus 초기 데이터 읽기 실패");
-                            return new List<ParameterModel>();
-                        }
-                    });
-
-                    var initialData = await initialDataTask;
-                    AddLog("초기 데이터", $"레지스터 수: {initialData.Count}");
-
-                    if (initialData.Any())
+                    try
                     {
-                        await Application.Current.Dispatcher.InvokeAsync(() => {
-                            InitializeParameterInBackground();
-                        });
+                        var initialData = await GetReadModbusData(0, 23);
+                        AddLog("초기 데이터", $"레지스터 수: {initialData.Count}");
+
+                        if (initialData.Any())
+                        {
+                            await Application.Current.Dispatcher.InvokeAsync(() => {
+                               InitializeParameterInBackground();
+
+                            });
+                        }
+                        else
+                        {
+                            AddLog("경고", "초기 데이터를 가져오지 못했습니다.");
+                        }
                     }
-                    else
+                    catch (Exception ex)
                     {
-                        AddLog("경고", "초기 데이터를 가져오지 못했습니다.");
+                        Logger.Error(ex, "백그라운드 Modbus 초기 데이터 읽기 실패");
                     }
                 }
             }
@@ -737,7 +744,8 @@ private void UpdateChart(int addr, double value)
                 Parameters.Clear();
 
                 var parametersTask = Task.Run(async () => {
-                    AddLog("데이터 요청", $"Modbus 데이터 요청 시작 (주소 {start}~{end})");
+
+
                     return await GetReadModbusData(start, numberOfPoints);
                 });
 
@@ -753,7 +761,7 @@ private void UpdateChart(int addr, double value)
                 {
                     foreach (var parameter in parameters)
                     {
-             
+
                         Parameters.Add(parameter);
                     }
                 });
@@ -771,33 +779,6 @@ private void UpdateChart(int addr, double value)
             }
         }
 
-
-        //사용 안할것 같은 코드
-        private void UpdateExistingParameter(ParameterModel updatedParameter)
-        {
-            var existingParameter = Parameters.FirstOrDefault(p => p.Address == updatedParameter.Address);
-            if (existingParameter != null)
-            {
-                if (Math.Abs(existingParameter.DefaultActual - updatedParameter.DefaultActual) > 0.001)
-                {
-                    var oldValue = existingParameter.DefaultActual;
-
-                    existingParameter.IsValueChanged = true;
-
-                    AddLog("값 변경", $"주소: {existingParameter.Address}, " +
-                    $"이전 값: {oldValue:F2}, " +
-                    $"새 값: {updatedParameter.DefaultActual:F2}");
-
-                    Task.Delay(3000).ContinueWith(_ =>
-                    {
-                        Application.Current.Dispatcher.Invoke(() =>
-                        {
-                            existingParameter.IsValueChanged = false;
-                        });
-                    });
-                }
-            }
-        }
 
         #endregion
 
@@ -820,7 +801,6 @@ private void UpdateChart(int addr, double value)
                 }
 
 
-              //  Logger.Info($"{eventName}: {details}");
                 RaisePropertyChanged(nameof(CommunicationLog));
 
             });
@@ -829,16 +809,9 @@ private void UpdateChart(int addr, double value)
 
 
 
-        #region 차트 관련 메서드
 
 
-
-
-
-        #endregion
-
-
-
+        //ModbusDataviewPage 데이터 업데이트 항목
         private void OnConnectionStatusChanged(bool isConnected)
         {
             Application.Current.Dispatcher.Invoke(() =>
@@ -872,12 +845,12 @@ private void UpdateChart(int addr, double value)
 
         private void StartDataCollection()
         {
-            _updateTimer.Start();
+            _chartUpdateTimer.Start();
         }
 
         private void StopDataCollection()
         {
-           _updateTimer.Stop();
+            _chartUpdateTimer.Stop();
         }
         #endregion
 
@@ -1023,7 +996,9 @@ private void UpdateChart(int addr, double value)
                 await Application.Current.Dispatcher.InvokeAsync(() =>
                 {
 
-                   ExecuteGenerateParameters();
+
+
+                    ExecuteGenerateParameters();
 
                 });
             }
@@ -1086,11 +1061,6 @@ private void UpdateChart(int addr, double value)
         }
 
 
-        private void UpdateTimerPlot(object sender, ElapsedEventArgs e)
-        {
-            //UpdatePlot();
-
-        }
 
 
 

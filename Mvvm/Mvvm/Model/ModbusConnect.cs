@@ -13,65 +13,60 @@ using MySqlX.XDevAPI.Common;
 using NModbus;
 using NModbus.Serial;
 using ScottPlot;
-
+using System.Diagnostics;
 namespace Mvvm.Model
 {
     public class ModbusConnect
     {
         public event Action<bool> ConnectionStatusChanged;
-        public event Action<List<ParameterModel>> DataReceived;
 
-        private SerialPort port = null;
-        private IModbusMaster master = null;
+
+
+        #region 필드
+        private string portName;
+        private bool autoReconnect = true;
+
         private readonly int MAX_RECONNECT_ATTEMPTS = 3;
         private readonly Dictionary<ushort, DataType> dataTypeMap = new Dictionary<ushort, DataType>();
         private readonly CommunicationStatistics statistics;
-        private bool autoReconnect = true;
-        private DateTime lastDataReceived;
 
-        StringCollection descriptionList;
-        StringCollection unitList;
-        StringCollection indexList;
-        StringCollection sizeList;
-        StringCollection defaultValueList;
-        StringCollection noteList;
-        StringCollection funcList;
-        StringCollection endList;
-        StringCollection symbolList;
-        StringCollection StyleList;
-        StringCollection normalRangeList;
+        private DateTime lastDataReceived;
+        private IModbusMaster ?master = null;
+        private SerialPort ?port = null;
+
+        private StringCollection descriptionList;
+        private StringCollection unitList;
+        private StringCollection indexList;
+        private StringCollection sizeList;
+        private StringCollection defaultValueList;
+        private StringCollection noteList;
+        private StringCollection funcList;
+        private StringCollection endList;
+        private StringCollection symbolList;
+        private StringCollection StyleList;
+        private StringCollection normalRangeList;
+
+        #endregion
 
 
         public SerialPortConfig serialPortConfig { get; set; }
-
-
         public readonly ModbusDataBuffer dataBuffer;
-
-
 
         protected virtual void OnConnectionStatusChanged(bool isConnected)
         {
             ConnectionStatusChanged?.Invoke(isConnected);
         }
 
-
-
-
         public ModbusConnect()
         {
             serialPortConfig = new SerialPortConfig();
             statistics = new CommunicationStatistics();
             dataBuffer = new ModbusDataBuffer();
-
-
-
-
-
-
-
-
             LoadDefaultConfig();
         }
+
+
+
 
         public void LoadDefaultConfig()
         {
@@ -114,23 +109,18 @@ namespace Mvvm.Model
             serialPortConfig.ReadTimeout = Properties.Settings.Default.ReadTimeout;
             serialPortConfig.WriteTimeout = Properties.Settings.Default.WriteTimeout;
             serialPortConfig.slaveId = Properties.Settings.Default.SlaveId;
+            }
 
 
-        }
 
-        public void LoadAvailablePorts(ComboBox portComBox)
-        {
-            portComBox.ItemsSource = SerialPort.GetPortNames();
-        }
 
-        public string portName;
+
         public async Task ConnectToPort(string _portName)
         {
             portName = _portName;
 
             try
             {
-
                 await DisconnectIfConnected();
                 await OpenNewConnection(_portName);
                 ConnectionStatusChanged?.Invoke(true);
@@ -150,6 +140,12 @@ namespace Mvvm.Model
                 await Task.Delay(100);
             }
         }
+
+        public void LoadAvailablePorts(ComboBox portComBox)
+        {
+            portComBox.ItemsSource = SerialPort.GetPortNames();
+        }
+
 
         private async Task OpenNewConnection(string portName)
         {
@@ -190,18 +186,11 @@ namespace Mvvm.Model
             StyleList = Properties.Settings.Default.Style;
             normalRangeList = Properties.Settings.Default.NormalRange;
 
-
-
         }
 
         public async Task<List<ParameterModel>> ReadModbusData(int startAddress, int numberOfPoints)
         {
-            if (!IsConnected())
-            {
 
-               var lastValues = dataBuffer.GetLastValues(numberOfPoints);
-                return lastValues;
-            }
             try
             {
                 var registers = await Task.Run(() =>
@@ -214,13 +203,7 @@ namespace Mvvm.Model
                 lastDataReceived = DateTime.Now;
 
                 var parameters = ConvertToParameters(registers, startAddress);
-
-                dataBuffer.StoreValues(parameters);
-
-                var lastValues = dataBuffer.GetLastValues(numberOfPoints);
-                DataReceived?.Invoke(parameters);
-
-                return lastValues;
+                return parameters;
             }
             catch (Exception ex)
             {
@@ -301,6 +284,9 @@ namespace Mvvm.Model
 
             for (int i = 0; i < registers.Length; i++)
             {
+
+
+             //   Debug.WriteLine(registers[1]); // 디버그 메시지 출력
                 ushort value = registers[i];
                 int address = startAddress + i;
 
@@ -359,17 +345,6 @@ namespace Mvvm.Model
             {
                 foreach (var parameter in parameters)
                 {
-                    if (!dataBuffer.ContainsKey(parameter.Address))
-                    {
-                        dataBuffer[parameter.Address] = new Queue<DataPointWithMetadata>(bufferSize);
-                    }
-
-                    var queue = dataBuffer[parameter.Address];
-                    if (queue.Count >= bufferSize)
-                    {
-                        queue.Dequeue();
-                    }
-
                     var parameterCopy = new ParameterModel
                     {
                         Address = parameter.Address,
@@ -385,12 +360,6 @@ namespace Mvvm.Model
                         NormalRange = parameter.NormalRange
                     };
 
-                    queue.Enqueue(new DataPointWithMetadata
-                    {
-                        Timestamp = DateTime.Now,
-                        Value = parameter.DefaultActual,
-                        Metadata = parameterCopy
-                    });
                 }
             }
         }

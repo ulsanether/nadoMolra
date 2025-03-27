@@ -3,13 +3,16 @@
 using System.Windows.Controls;
 using Mvvm.ViewModels;
 using Mvvm.Model;
+using System.Windows.Threading;
+using System;
+using System.Windows;
 
 namespace Mvvm.Views
 {
     public partial class ParameterWindow : UserControl
     {
         private readonly ParameterWindowViewModel _viewModel;
-
+        private readonly DispatcherTimer _statusUpdateTimer;
         // ParameterWindow.xaml.cs
         public ParameterWindow(ParameterWindowViewModel viewModel)
         {
@@ -17,8 +20,20 @@ namespace Mvvm.Views
             _viewModel = viewModel;
             DataContext = _viewModel;
             _viewModel.RefreshTemplateAction = RefreshTemplate;
-        }
 
+            _statusUpdateTimer = new DispatcherTimer
+            {
+                Interval = TimeSpan.FromMilliseconds(100)
+            };
+            _statusUpdateTimer.Tick += StatusUpdateTimer_Tick;
+            _statusUpdateTimer.Start();
+
+        }
+        private void StatusUpdateTimer_Tick(object sender, EventArgs e)
+        {
+            // 통신 상태 갱신
+            _viewModel.UpdateCommunicationStatus();
+        }
         private void RefreshTemplate()
         {
             var itemsControl = this.FindName("ParameterItemsControl") as ItemsControl;
@@ -29,7 +44,11 @@ namespace Mvvm.Views
                 itemsControl.ItemsSource = itemsSource;
             }
         }
-
+        private void UserControl_Unloaded(object sender, RoutedEventArgs e)
+        {
+            _viewModel.Cleanup();
+            _statusUpdateTimer.Stop();
+        }
         private void NumberValidationTextBox(object sender, System.Windows.Input.TextCompositionEventArgs e)
         {
             var regex = new System.Text.RegularExpressions.Regex("[^0-9]+");

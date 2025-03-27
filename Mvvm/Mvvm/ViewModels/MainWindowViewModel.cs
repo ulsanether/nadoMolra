@@ -477,7 +477,7 @@ namespace Mvvm.ViewModels
 
         private void ExecuteMethod(ParameterModel parameter)
         {
-            // 실행 로직
+           
         }
 
         private bool CanExecuteMethod(ParameterModel parameter)
@@ -508,15 +508,7 @@ namespace Mvvm.ViewModels
 
         }
 
-        //private void UpdateSerialPortConfig()
-        //{
-        //    if (SelectedConnection == "SerialPort")
-        //    {
-        //        _serialPortConfig.startAddress = StartAddress;
-        //        _serialPortConfig.numberOfPoints = (ushort)(EndAddress - StartAddress + 1);
-        //    }
-        //}
-
+   
         private void ShowSuccess(string message)
         {
             MessageBox.Show(message, "성공", MessageBoxButton.OK, MessageBoxImage.Information);

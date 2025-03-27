@@ -11,7 +11,7 @@ namespace Mvvm.Views
     public partial class ModbusDataViewPage : UserControl
     {
         private readonly ParameterWindowViewModel _viewModel;
-        private readonly DispatcherTimer _statusUpdateTimer;
+
 
         public ModbusDataViewPage(ParameterWindowViewModel viewModel)
         {
@@ -19,12 +19,7 @@ namespace Mvvm.Views
             _viewModel = viewModel;
             _viewModel.InitializeWithPlot(WpfPlot);
             DataContext = _viewModel;
-            _statusUpdateTimer = new DispatcherTimer
-            {
-                Interval = TimeSpan.FromMilliseconds(100)
-            };
-            _statusUpdateTimer.Tick += StatusUpdateTimer_Tick;
-            _statusUpdateTimer.Start();
+     
 
             // 차트 초기 설정
             WpfPlot.Plot.YLabel("값");
@@ -32,11 +27,7 @@ namespace Mvvm.Views
             WpfPlot.Refresh();
         }
 
-        private void StatusUpdateTimer_Tick(object sender, EventArgs e)
-        {
-            // 통신 상태 갱신
-            _viewModel.UpdateCommunicationStatus();
-        }
+
 
         private void RefreshTemplate()
         {
@@ -70,7 +61,7 @@ namespace Mvvm.Views
         private void UserControl_Unloaded(object sender, RoutedEventArgs e)
         {
             _viewModel.Cleanup();
-            _statusUpdateTimer.Stop();
+    
         }
     }
 }

@@ -4,6 +4,10 @@
     xmlns:local="clr-namespace:Mvvm.Views"
     xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes">
 
+
+
+
+
     <Style x:Key="NavigateToParameterWindow" TargetType="{x:Type Button}">
         <Setter Property="Background" Value="{StaticResource MainButtonFontColor}" />
         <Setter Property="Foreground" Value="White" />
@@ -233,7 +237,6 @@
                     HorizontalAlignment="Left"
                     VerticalAlignment="Center"
                     Text="{Binding NormalRange}" />
-
                 <Button
                     Grid.Column="8"
                     Width="100"
@@ -252,6 +255,7 @@
                             Text="{Binding Index}" />
                     </StackPanel>
                 </Button>
+
             </Grid>
         </materialDesign:Card>
     </DataTemplate>
@@ -339,7 +343,6 @@
                     <TextBlock Text="Range: " />
                     <TextBlock Margin="8,0,0,0" Text="{Binding NormalRange}" />
                 </DockPanel>
-
                 <Button
                     Grid.Row="6"
                     Width="100"
@@ -357,6 +360,7 @@
                             Text="{Binding Index}" />
                     </StackPanel>
                 </Button>
+
             </Grid>
         </materialDesign:Card>
     </DataTemplate>

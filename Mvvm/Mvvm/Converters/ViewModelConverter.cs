@@ -1,21 +1,16 @@
 ﻿using System;
 using System.Globalization;
 using System.Windows.Data;
-using MaterialDesignThemes.Wpf;
+using Mvvm.ViewModels;
 
 namespace Mvvm.Converters
 {
-    public class BooleanToIconConverter : IValueConverter
+    public class ViewModelConverter : IValueConverter
     {
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            if (value is bool isConnected)
-            {
-                return isConnected ? PackIconKind.RobotHappyOutline : PackIconKind.RobotOff;
-            }
-            return PackIconKind.RobotOff;
+            return value as ParameterWindowViewModel;
         }
-
 
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
         {

@@ -31,16 +31,12 @@ namespace Mvvm
         protected override void RegisterTypes(IContainerRegistry containerRegistry)
         {
             containerRegistry.Register<MainWindowViewModel>();
-            // 싱글톤으로 ModbusConnect 등록
             containerRegistry.RegisterSingleton<ModbusConnect>();
-            // EventAggregator 등록
             containerRegistry.RegisterSingleton<IEventAggregator, EventAggregator>();
-            // ViewModels 등록
 
             containerRegistry.RegisterSingleton<ParameterWindowViewModel>();
             containerRegistry.RegisterSingleton<HomePageViewModel>();
             containerRegistry.RegisterSingleton<MainBottomBarViewModel>();
-            // Views 등록
             containerRegistry.RegisterForNavigation<HomePage>();
             containerRegistry.RegisterForNavigation<SettingPage>();
             containerRegistry.RegisterForNavigation<ParameterWindow>();
