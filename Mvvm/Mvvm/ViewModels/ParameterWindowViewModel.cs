@@ -73,7 +73,8 @@ namespace Mvvm.ViewModels
 
         private DelegateCommand<ParameterModel> _modbusWriteCommand;
         private DelegateCommand _addButtonClickCommand;
-        private DelegateCommand<ParameterModel> _writeCommand;
+
+        private ICommand _writeCommand;
         private DelegateCommand _generateParametersCommand;
         private DelegateCommand _toggleParameterUpdateCommand;
 
@@ -92,6 +93,14 @@ namespace Mvvm.ViewModels
         public Queue<double> TimeData => _timeData;
         public Queue<double> ValueData => _valueData;
         public int MaxDataPoints => _maxDataPoints;
+
+
+        public bool IsParameterUpdateActive
+        {
+            get => _isParameterUpdateEnabled;
+            set => SetProperty(ref _isParameterUpdateEnabled, value);
+        }
+
 
         public string StartAddress
         {
@@ -195,21 +204,15 @@ namespace Mvvm.ViewModels
         }
 
 
-        public DelegateCommand<ParameterModel> WriteCommand
+        public ICommand WriteCommand
         {
             get
             {
                 if (_writeCommand == null)
                 {
-                    _writeCommand = new DelegateCommand<ParameterModel>(
-                        param =>
-                        {
-                            if (param != null)
-                            {
-                                OnModbusWrite(param);
-                            }
-                        },
-                        param => param != null // 단순하게 null 체크만 수행
+                    _writeCommand = new ParameterWriteCommand(
+                        param => OnModbusWrite(param),
+                        param => param != null
                     );
                 }
                 return _writeCommand;
@@ -1070,6 +1073,42 @@ namespace Mvvm.ViewModels
             Timestamp = DateTime.Now;
             Event = eventName;
             Details = details;
+        }
+    }
+
+
+
+    // ICommand 인터페이스를 직접 구현하는 커맨드 클래스
+    public class ParameterWriteCommand : ICommand
+    {
+        private readonly Action<ParameterModel> _execute;
+        private readonly Predicate<ParameterModel> _canExecute;
+
+        public ParameterWriteCommand(Action<ParameterModel> execute, Predicate<ParameterModel> canExecute = null)
+        {
+            _execute = execute ?? throw new ArgumentNullException(nameof(execute));
+            _canExecute = canExecute;
+        }
+
+        public event EventHandler CanExecuteChanged
+        {
+            add { CommandManager.RequerySuggested += value; }
+            remove { CommandManager.RequerySuggested -= value; }
+        }
+
+        public bool CanExecute(object parameter)
+        {
+            return _canExecute == null || _canExecute(parameter as ParameterModel);
+        }
+
+        public void Execute(object parameter)
+        {
+            _execute(parameter as ParameterModel);
+        }
+
+        public void RaiseCanExecuteChanged()
+        {
+            CommandManager.InvalidateRequerySuggested();
         }
     }
 }

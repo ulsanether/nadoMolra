@@ -26,7 +26,7 @@ namespace Mvvm.Model
         private string _note;
         #endregion
 
-
+        public string Label { get; set; }
         #region Properties
 
         public SolidColorBrush StatusColor

@@ -8,8 +8,11 @@
     prism:ViewModelLocator.AutoWireViewModel="True"
     Background="#FFC8C8C8">
 
-    <Grid Margin="5">
+    <UserControl.Resources>
+        <viewmodels:BooleanToBrushConverter x:Key="BooleanToBrushConverter" />
+    </UserControl.Resources>
 
+    <Grid Margin="5">
         <StackPanel
             Margin="55,0,0,0"
             HorizontalAlignment="Right"
@@ -26,7 +29,7 @@
                     <TextBlock VerticalAlignment="Center" Text="상태: " />
                     <TextBlock
                         VerticalAlignment="Center"
-                        Foreground="{Binding IsConnected}"
+                        Foreground="{Binding IsConnected, Converter={StaticResource BooleanToBrushConverter}}"
                         Text="{Binding PortState, UpdateSourceTrigger=PropertyChanged}" />
                     <materialDesign:PackIcon Margin="30,0,0,0" Kind="{Binding IsConnected, Converter={StaticResource BooleanToIconConverter}}" />
                 </StackPanel>
@@ -64,4 +67,3 @@
         </StackPanel>
     </Grid>
 </UserControl>
-

@@ -355,21 +355,25 @@ namespace Mvvm.ViewModels
         public void HomePageLoad()
         {
             _regionManager.RequestNavigate("ContentRegion", "HomePage");
+            BottomMessageQueue.Enqueue("홈페이지", "OK", () => { });
         }
 
         private void NavigateToModbusDataViewPage()
         {
             _regionManager.RequestNavigate("ContentRegion", "ModbusDataViewPage");
+            BottomMessageQueue.Enqueue("차트보기창", "OK", () => { });
         }
 
         private void NavigateToParameterWindow()
         {
             _regionManager.RequestNavigate("ContentRegion", "ParameterWindow");
+            BottomMessageQueue.Enqueue("파라메터 보기 창", "OK", () => { });
         }
 
         private void NavigateToSettingWindow()
         {
             _regionManager.RequestNavigate("ContentRegion", "SettingPage");
+            BottomMessageQueue.Enqueue("세팅 창", "OK", () => { });
         }
 
 
@@ -509,8 +513,8 @@ namespace Mvvm.ViewModels
 
             _modbusConnect.LoadDefaultConfig();
 
-
-            MessageBox.Show("설정을 성공적으로 저장했습니다.");
+            BottomMessageQueue.Enqueue("설정을 성공적으로 저장했습니다.", "OK", () => { });
+           
 
 
         }

@@ -6,6 +6,8 @@ using System.Windows.Input;
 using Prism.Commands;
 using System;
 using System.Threading.Tasks;
+using System.Windows.Data;
+using System.Drawing;
 
 namespace Mvvm.ViewModels
 {
@@ -121,4 +123,24 @@ namespace Mvvm.ViewModels
 
         }
     }
+
+
+    public class BooleanToBrushConverter : IValueConverter
+    {
+        public object Convert(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture)
+        {
+            if (value is bool boolValue)
+            {
+                return boolValue ? Brushes.Green : Brushes.Red;
+            }
+            return Brushes.Transparent;
+        }
+
+        public object ConvertBack(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture)
+        {
+            throw new NotImplementedException();
+        }
+    }
+
+
 }
