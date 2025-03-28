@@ -12,7 +12,7 @@ namespace Mvvm.Views
     {
         private readonly MainWindowViewModel _MainWindowViewModel;
 
-        public MainWindow(IRegionManager regionManager, IRegionManager bottomRegionManager, MainBottomBarViewModel mainBottomBarViewModel, ModbusConnect modbusConnect)
+        public MainWindow(IRegionManager regionManager, IRegionManager bottomRegionManager, MainBottomBarViewModel mainBottomBarViewModel, ModbusConnect modbusConnect, HomePageViewModel homePageViewModel)
         {
             InitializeComponent();
 
@@ -22,7 +22,9 @@ namespace Mvvm.Views
                 regionManager,
                 mainBottomBarViewModel,
                 modbusConnect,
-                parameterWindowViewModel);
+                parameterWindowViewModel,
+                homePageViewModel
+                );
 
             DataContext = _MainWindowViewModel;
             mainBottomBarViewModel.SubscribeToPortConnectedEvent(_MainWindowViewModel);

@@ -9,6 +9,9 @@
 
     <converters:CommandParameterTypeConverter x:Key="CommandParameterTypeConverter" />
 
+
+
+
     <Style x:Key="NavigateToParameterWindow" TargetType="{x:Type Button}">
         <Setter Property="Background" Value="{StaticResource MainButtonFontColor}" />
         <Setter Property="Foreground" Value="White" />
@@ -124,6 +127,23 @@
             </Setter.Value>
         </Setter>
     </Style>
+
+
+    <!--  보더 1 스타일  -->
+
+
+
+
+
+
+
+    <!--  보더 2 스타일  -->
+
+
+
+
+
+
 
     <!--  공통 스타일  -->
     <Style x:Key="ModbusValueTextBlock" TargetType="TextBlock">

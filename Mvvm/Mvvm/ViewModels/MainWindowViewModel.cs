@@ -38,6 +38,8 @@ namespace Mvvm.ViewModels
         private byte _slaveId;
         private readonly IRegionManager _regionManager;
         private readonly ParameterWindowViewModel _parameterWindowViewModel;
+        private readonly HomePageViewModel _homePageViewModel;
+
         private string _title = "애플리케이션";
         private readonly Timer _timer;
         private readonly ModbusConnect _modbusConnect;
@@ -247,12 +249,17 @@ namespace Mvvm.ViewModels
         public event Action<List<ParameterModel>> ExcelDataLoaded;
 
         #endregion
-        public MainWindowViewModel(IRegionManager regionManager, MainBottomBarViewModel mainBottomBarViewModel, ModbusConnect modbusConnect, ParameterWindowViewModel parameterWindowViewModel)
+        public MainWindowViewModel(IRegionManager regionManager, MainBottomBarViewModel mainBottomBarViewModel, ModbusConnect modbusConnect, ParameterWindowViewModel parameterWindowViewModel, HomePageViewModel homePageViewModel)
         {
+
+
+            _modbusConnect = modbusConnect;
             _regionManager = regionManager;
             _mainBottomBarViewModel = mainBottomBarViewModel;
-            _modbusConnect = modbusConnect;
             _parameterWindowViewModel = parameterWindowViewModel;
+            _homePageViewModel = homePageViewModel;
+
+
 
             ShowMessageCommand = new DelegateCommand(ShowMessage);
             SomeCommand = new DelegateCommand<ParameterModel>(ExecuteMethod, CanExecuteMethod);
@@ -514,7 +521,7 @@ namespace Mvvm.ViewModels
             _modbusConnect.LoadDefaultConfig();
 
             BottomMessageQueue.Enqueue("설정을 성공적으로 저장했습니다.", "OK", () => { });
-           
+
 
 
         }

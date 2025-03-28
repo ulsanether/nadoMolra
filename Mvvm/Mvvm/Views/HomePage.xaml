@@ -9,114 +9,73 @@
     xmlns:prism="http://prismlibrary.com/"
     mc:Ignorable="av">
 
+
+
+
     <Grid Width="686" Height="642">
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="*" />
-            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="617*" />
+            <ColumnDefinition Width="120" />
         </Grid.ColumnDefinitions>
 
         <Grid.RowDefinitions>
             <RowDefinition Height="*" />
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
-        <Border
-            Width="100"
-            Height="100"
-            Margin="25,60,218,161"
-            av:LayoutOverrides="Width, Height"
-            Background="#FFF2F2F2"
-            BorderBrush="#FFC0A9BA"
-            BorderThickness="1"
-            CornerRadius="6"
-            IsEnabled="False">
-            <Border.Effect>
-                <DropShadowEffect
-                    BlurRadius="5"
-                    Direction="300"
-                    Opacity="0.195"
-                    RenderingBias="Performance" />
-            </Border.Effect>
-            <Label
-                HorizontalAlignment="Center"
-                Content="Label"
-                FontFamily="Yu Gothic UI Semibold"
-                Foreground="{StaticResource MainFontColor}" />
-        </Border>
-        <Border
-            Width="100"
-            Height="100"
-            Margin="172,60,71,161"
-            Background="#FFF2F2F2"
-            BorderBrush="#FFC0A9BA"
-            BorderThickness="1"
-            CornerRadius="6"
-            IsEnabled="False">
-            <Border.Effect>
-                <DropShadowEffect
-                    BlurRadius="5"
-                    Direction="300"
-                    Opacity="0.195"
-                    RenderingBias="Performance" />
-            </Border.Effect>
-            <Label
-                HorizontalAlignment="Center"
-                Content="Label"
-                FontFamily="Yu Gothic UI Semibold"
-                Foreground="{StaticResource MainFontColor}" />
-        </Border>
-        <Border
-            Height="100"
-            Margin="25,185,71,36"
-            av:LayoutOverrides="HorizontalAlignment"
-            BorderBrush="#FFC0A9BA"
-            BorderThickness="1"
-            CornerRadius="6"
-            IsEnabled="False">
-            <Border.Background>
-                <LinearGradientBrush StartPoint="0.5,0" EndPoint="0.5,1">
-                    <LinearGradientBrush.RelativeTransform>
-                        <TransformGroup>
-                            <ScaleTransform CenterX="0.5" CenterY="0.5" />
-                            <SkewTransform CenterX="0.5" CenterY="0.5" />
-                            <RotateTransform Angle="60" CenterX="0.5" CenterY="0.5" />
-                            <TranslateTransform />
-                        </TransformGroup>
-                    </LinearGradientBrush.RelativeTransform>
-                    <GradientStop Color="#FFC793F7" />
-                    <GradientStop Offset="1" Color="#FF4BB3D8" />
-                </LinearGradientBrush>
-            </Border.Background>
-            <Border.Effect>
-                <DropShadowEffect
-                    BlurRadius="5"
-                    Direction="300"
-                    Opacity="0.195"
-                    RenderingBias="Performance" />
-            </Border.Effect>
-            <Label
-                HorizontalAlignment="Center"
-                Content="Label"
-                FontFamily="Yu Gothic UI Semibold"
-                Foreground="{StaticResource SubOneFontColor}" />
-        </Border>
-        <ItemsControl
-            Grid.Row="1"
+
+
+        <DockPanel
+            Grid.RowSpan="2"
+            Grid.ColumnSpan="2"
+            Width="566"
+            HorizontalAlignment="Left"
+            LastChildFill="False">
+            <ScrollViewer Width="566" HorizontalAlignment="Left">
+                <StackPanel
+                    Width="566"
+                    Height="642"
+                    HorizontalAlignment="Left">
+                    <ListBox
+                        x:Name="LeftBoundListBox"
+                        Width="566"
+                        Height="642"
+                        HorizontalAlignment="Left"
+                        dd:DragDrop.CanDragWithMouseRightButton="True"
+                        dd:DragDrop.DropHandler="{Binding}"
+                        dd:DragDrop.DropTargetAdornerBrush="Coral"
+                        dd:DragDrop.IsDragSource="True"
+                        dd:DragDrop.IsDropTarget="True"
+                        dd:DragDrop.UseDefaultEffectDataTemplate="True"
+                        ItemsSource="{Binding Borders1}" />
+                </StackPanel>
+            </ScrollViewer>
+        </DockPanel>
+
+
+        <Grid
+            Grid.RowSpan="2"
             Grid.Column="1"
-            Margin="-10,10,10,-10"
-            dd:DragDrop.DropHandler="{Binding}"
-            dd:DragDrop.IsDragSource="True"
-            dd:DragDrop.IsDropTarget="True"
-            ItemsSource="{Binding Borders}">
-            <ItemsControl.ItemsPanel>
-                <ItemsPanelTemplate>
-                    <Grid />
-                </ItemsPanelTemplate>
-            </ItemsControl.ItemsPanel>
-            <ItemsControl.ItemTemplate>
-                <DataTemplate>
-                    <ContentPresenter Content="{Binding}" />
-                </DataTemplate>
-            </ItemsControl.ItemTemplate>
-        </ItemsControl>
+            av:LayoutOverrides="LeftMargin, RightMargin, TopMargin, BottomMargin"
+            Background="#FFFF4C4C">
+            <ScrollViewer>
+                <DockPanel
+                    Width="120"
+                    Height="642"
+                    av:LayoutOverrides="TopPosition, BottomPosition"
+                    LastChildFill="False">
+                    <TextBlock DockPanel.Dock="Top" Text="Modbus Data" />
+                    <ListView
+                        Width="119"
+                        Height="Auto"
+                        dd:DragDrop.DropHandler="{Binding}"
+                        dd:DragDrop.IsDragSource="True"
+                        dd:DragDrop.IsDropTarget="True"
+                        dd:DragDrop.UseDefaultEffectDataTemplate="True"
+                        ItemsSource="{Binding Borders2}" />
+
+                </DockPanel>
+            </ScrollViewer>
+        </Grid>
+
     </Grid>
 </UserControl>
