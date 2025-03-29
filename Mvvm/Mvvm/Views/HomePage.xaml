@@ -12,9 +12,9 @@
 
 
 
-    <Grid Width="686" Height="642">
+    <Grid Width="1000" Height="642">
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="617*" />
+            <ColumnDefinition Width="817*" />
             <ColumnDefinition Width="120" />
         </Grid.ColumnDefinitions>
 
@@ -46,7 +46,7 @@
                         dd:DragDrop.IsDragSource="True"
                         dd:DragDrop.IsDropTarget="True"
                         dd:DragDrop.UseDefaultEffectDataTemplate="True"
-                        ItemsSource="{Binding Borders1}" />
+                        ItemsSource="{Binding Borders2}" />
                 </StackPanel>
             </ScrollViewer>
         </DockPanel>
@@ -63,16 +63,18 @@
                     Height="642"
                     av:LayoutOverrides="TopPosition, BottomPosition"
                     LastChildFill="False">
-                    <TextBlock DockPanel.Dock="Top" Text="Modbus Data" />
+                    <TextBlock DockPanel.Dock="Top" Text="Modbus Data  2" />
                     <ListView
                         x:Name="ModbusDataName"
                         Width="119"
                         Height="Auto"
+                        dd:DragDrop.CanDragWithMouseRightButton="True"
                         dd:DragDrop.DropHandler="{Binding}"
                         dd:DragDrop.IsDragSource="True"
                         dd:DragDrop.IsDropTarget="True"
                         dd:DragDrop.UseDefaultEffectDataTemplate="True"
-                        ItemsSource="{Binding Borders2}">
+                        ItemsSource="{Binding Borders1}"
+                        ScrollViewer.HorizontalScrollBarVisibility="Auto">
                         <ListView.ItemTemplate>
                             <DataTemplate>
                                 <ContentPresenter Content="{Binding}" />

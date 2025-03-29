@@ -14,6 +14,8 @@ using Mvvm.Model;
 using System.Threading.Tasks;
 using System.Threading;
 using System.Diagnostics;
+using DryIoc;
+using System.Collections.Generic;
 
 namespace Mvvm.ViewModels
 {
@@ -70,12 +72,12 @@ namespace Mvvm.ViewModels
                     Child = new Label
                     {
                         HorizontalAlignment = HorizontalAlignment.Center,
-                        Content = $"Label {i + 1}",
+                        Content = $"Address {i + 1}",
                         FontFamily = new FontFamily("Yu Gothic UI Semibold"),
                         Foreground = (Brush)Application.Current.Resources["MainFontColor"]
                     }
                 };
-                Borders2.Add(border);
+                Borders1.Add(border);
             }
 
         }
@@ -87,16 +89,16 @@ namespace Mvvm.ViewModels
         {
             if (isConnected)
             {
-                // Console.WriteLine("Modbus is connected");
                 _cancellationTokenSource = new CancellationTokenSource();
                 Task.Run(async () => await ReadDataPeriodically(_cancellationTokenSource.Token));
             }
             else
             {
-                // Console.WriteLine("Modbus is disconnected");
                 _cancellationTokenSource?.Cancel();
             }
         }
+
+        List<ParameterModel> parameters = new List<ParameterModel>();
 
         private async Task ReadDataPeriodically(CancellationToken cancellationToken)
         {
@@ -107,26 +109,9 @@ namespace Mvvm.ViewModels
                     int startAddress = Properties.Settings.Default.StartAddress; // Settings에서 시작 주소 가져오기
                     int endAddress = Properties.Settings.Default.EndAddress; // Settings에서 끝 주소 가져오기
                     int numberOfPoints = endAddress - startAddress + 1; // 읽어올 포인트 수 계산
-                    var parameters = await _modbusConnect.ReadModbusData(startAddress, numberOfPoints);
+                     parameters = await _modbusConnect.ReadModbusData(startAddress, numberOfPoints);
                     _modbusConnect.dataBuffer.StoreValues(parameters);
-                    Application.Current.Dispatcher.Invoke(() =>
-                    {
-                        for (int i = 0; i < parameters.Count; i++)
-                        {
-                            if (i < Borders2.Count)
-                            {
-                                var border = Borders2[i];
-                                var label = border.Child as Label;
-                                if (label != null)
-                                {
-                                    label.Content = $"Address: {parameters[i].Address}, Value: {parameters[i].DefaultActual}";
-                                }
-                            }
-                        }
-                    });
-
-
-
+          
                     foreach (var parameter in parameters)
                     {
                         Debug.WriteLine($"Address: {parameter.Address}, Value: {parameter.DefaultActual}");
@@ -182,18 +167,48 @@ namespace Mvvm.ViewModels
 
                 if (sourceCollection == null) return;
 
-                // Border1이 이동할 때 메시지 박스 표시
+
+
+
+                Application.Current.Dispatcher.Invoke(() =>
+                {
+                    for (int i = 0; i < parameters.Count; i++)
+                    {
+                        if (i < Borders1.Count)
+                        {
+                            var border = Borders1[i];
+                            var label = border.Child as Label;
+                            if (label != null)
+                            {
+                                label.Content = $"Address: {parameters[i].Address}, Value: {parameters[i].DefaultActual}";
+                            }
+                        }
+                    }
+                });
+
+
+
+
                 if (sourceCollection == Borders1)
                 {
 
 
+                    for(int i=0; i< Borders1.Count(); i++) {
 
+                        if ()
+                        {
+                            Borders1[i].Child == "1"
+    }
+
+                    }
+
+
+
+                    //왼쪽으로 이동할때는 값과 모든 것을 표시 
+                    MessageBox.Show("Border1이1이동되었습니다.");
                 }
                 else {
-
-
-
-
+                   MessageBox.Show("Border1이 2이동되었습니다.");
                 }
 
 
@@ -247,14 +262,20 @@ namespace Mvvm.ViewModels
         {
             if (Borders1.Contains(item))
             {
+
+   
                 return Borders1;
             }
             else if (Borders2.Contains(item))
             {
+
+            
                 return Borders2;
             }
             else if (Borders3.Contains(item))
             {
+          
+
                 return Borders3;
             }
             return null;
@@ -274,6 +295,8 @@ namespace Mvvm.ViewModels
 
         public void Dropped(IDropInfo dropInfo)
         {
+        MessageBox.Show("Dropped");
+
             // 드롭 완료 후 추가 작업 필요 시 여기에 구현
         }
 
