@@ -31,7 +31,6 @@ namespace Mvvm.Views
         }
         private void StatusUpdateTimer_Tick(object sender, EventArgs e)
         {
-            // 통신 상태 갱신
             _viewModel.UpdateCommunicationStatus();
         }
         private void RefreshTemplate()

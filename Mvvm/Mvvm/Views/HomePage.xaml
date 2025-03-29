@@ -65,13 +65,20 @@
                     LastChildFill="False">
                     <TextBlock DockPanel.Dock="Top" Text="Modbus Data" />
                     <ListView
+                        x:Name="ModbusDataName"
                         Width="119"
                         Height="Auto"
                         dd:DragDrop.DropHandler="{Binding}"
                         dd:DragDrop.IsDragSource="True"
                         dd:DragDrop.IsDropTarget="True"
                         dd:DragDrop.UseDefaultEffectDataTemplate="True"
-                        ItemsSource="{Binding Borders2}" />
+                        ItemsSource="{Binding Borders2}">
+                        <ListView.ItemTemplate>
+                            <DataTemplate>
+                                <ContentPresenter Content="{Binding}" />
+                            </DataTemplate>
+                        </ListView.ItemTemplate>
+                    </ListView>
 
                 </DockPanel>
             </ScrollViewer>

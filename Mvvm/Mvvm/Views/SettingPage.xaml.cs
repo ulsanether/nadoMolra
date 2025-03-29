@@ -33,10 +33,10 @@ public partial class SettingPage : UserControl
         var modbusConnect = new ModbusConnect();
         var mainBottomBarViewModel = new MainBottomBarViewModel(modbusConnect);
         var parameterWindowViewModel = new ParameterWindowViewModel(modbusConnect);
-
+        var homePageViewModel = new HomePageViewModel(modbusConnect);
         var regionManager = new RegionManager();
 
-        _viewModel = new MainWindowViewModel( regionManager, mainBottomBarViewModel, modbusConnect, parameterWindowViewModel);
+        _viewModel = new MainWindowViewModel( regionManager, mainBottomBarViewModel, modbusConnect, parameterWindowViewModel, homePageViewModel);
         DataContext = _viewModel;
     }
 }

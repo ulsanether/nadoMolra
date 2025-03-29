@@ -11,6 +11,9 @@ using Point = System.Windows.Point;
 using System;
 using System.Linq;
 using Mvvm.Model;
+using System.Threading.Tasks;
+using System.Threading;
+using System.Diagnostics;
 
 namespace Mvvm.ViewModels
 {
@@ -18,7 +21,7 @@ namespace Mvvm.ViewModels
     {
 
 
-
+        private CancellationTokenSource _cancellationTokenSource;
 
         private ModbusConnect _modbusConnect;
 
@@ -30,7 +33,7 @@ namespace Mvvm.ViewModels
 
 
 
-
+        
 
 
 
@@ -40,56 +43,103 @@ namespace Mvvm.ViewModels
 
 
             _modbusConnect = modbusConnect;
-
-            Borders1 = new ObservableCollection<Border>
-            {
-                new Border
-                {
-                    Width = 50,
-                    Height = 50,
-                    Margin = new Thickness(0, 0, 0, 0),
-                    Background = new SolidColorBrush(Color.FromRgb(242, 242, 242)),
-                    BorderBrush = new SolidColorBrush(Color.FromRgb(192, 169, 186)),
-                    BorderThickness = new Thickness(1),
-                    CornerRadius = new CornerRadius(6),
-                    IsEnabled = true,
-                    Child = new Label
-                    {
-                        HorizontalAlignment = HorizontalAlignment.Center,
-                        Content = "Label 1",
-                        FontFamily = new FontFamily("Yu Gothic UI Semibold"),
-                        Foreground = (Brush)Application.Current.Resources["MainFontColor"]
-                    }
-                },
-                new Border
-                {
-                    Width = 50,
-                    Height = 50,
-                    Margin = new Thickness(0, 0, 0, 0),
-                    Background = new SolidColorBrush(Color.FromRgb(242, 242, 242)),
-                    BorderBrush = new SolidColorBrush(Color.FromRgb(192, 169, 186)),
-                    BorderThickness = new Thickness(1),
-                    CornerRadius = new CornerRadius(6),
-                    IsEnabled = true,
-                    Child = new Label
-                    {
-                        HorizontalAlignment = HorizontalAlignment.Center,
-                        Content = "Label 2",
-                        FontFamily = new FontFamily("Yu Gothic UI Semibold"),
-                        Foreground = (Brush)Application.Current.Resources["MainFontColor"]
-                    }
-                }
-            };
+            _modbusConnect.ConnectionStatusChanged += ModbusConnect_OnConnectionsStatusChanged;
 
 
 
+            int startAddress = Properties.Settings.Default.StartAddress; // Settings에서 시작 주소 가져오기
+            int endAddress = Properties.Settings.Default.EndAddress; // Settings에서 끝 주소 가져오기
+            int numberOfPoints = endAddress - startAddress + 1; // 읽어올 포인트 수 계산
 
+            Borders1 = new ObservableCollection<Border>();
             Borders2 = new ObservableCollection<Border>();
             Borders3 = new ObservableCollection<Border>();
+
+            for (int i = 0; i < numberOfPoints; i++)
+            {
+                var border = new Border
+                {
+                    Width = 200,
+                    Height = 30,
+                    Margin = new Thickness(0, 0, 0, 0),
+                    Background = new SolidColorBrush(Color.FromRgb(242, 242, 242)),
+                    BorderBrush = new SolidColorBrush(Color.FromRgb(192, 169, 186)),
+                    BorderThickness = new Thickness(1),
+                    CornerRadius = new CornerRadius(6),
+                    IsEnabled = true,
+                    Child = new Label
+                    {
+                        HorizontalAlignment = HorizontalAlignment.Center,
+                        Content = $"Label {i + 1}",
+                        FontFamily = new FontFamily("Yu Gothic UI Semibold"),
+                        Foreground = (Brush)Application.Current.Resources["MainFontColor"]
+                    }
+                };
+                Borders2.Add(border);
+            }
+
         }
 
 
 
+
+        private void ModbusConnect_OnConnectionsStatusChanged(bool isConnected)
+        {
+            if (isConnected)
+            {
+                // Console.WriteLine("Modbus is connected");
+                _cancellationTokenSource = new CancellationTokenSource();
+                Task.Run(async () => await ReadDataPeriodically(_cancellationTokenSource.Token));
+            }
+            else
+            {
+                // Console.WriteLine("Modbus is disconnected");
+                _cancellationTokenSource?.Cancel();
+            }
+        }
+
+        private async Task ReadDataPeriodically(CancellationToken cancellationToken)
+        {
+            while (!cancellationToken.IsCancellationRequested)
+            {
+                try
+                {
+                    int startAddress = Properties.Settings.Default.StartAddress; // Settings에서 시작 주소 가져오기
+                    int endAddress = Properties.Settings.Default.EndAddress; // Settings에서 끝 주소 가져오기
+                    int numberOfPoints = endAddress - startAddress + 1; // 읽어올 포인트 수 계산
+                    var parameters = await _modbusConnect.ReadModbusData(startAddress, numberOfPoints);
+                    _modbusConnect.dataBuffer.StoreValues(parameters);
+                    Application.Current.Dispatcher.Invoke(() =>
+                    {
+                        for (int i = 0; i < parameters.Count; i++)
+                        {
+                            if (i < Borders2.Count)
+                            {
+                                var border = Borders2[i];
+                                var label = border.Child as Label;
+                                if (label != null)
+                                {
+                                    label.Content = $"Address: {parameters[i].Address}, Value: {parameters[i].DefaultActual}";
+                                }
+                            }
+                        }
+                    });
+
+
+
+                    foreach (var parameter in parameters)
+                    {
+                        Debug.WriteLine($"Address: {parameter.Address}, Value: {parameter.DefaultActual}");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"데이터 읽기 중 오류가 발생했습니다: {ex.Message}");
+                }
+
+                await Task.Delay(2000, cancellationToken);
+            }
+        }
         #region IDropTarget 구현
 
 

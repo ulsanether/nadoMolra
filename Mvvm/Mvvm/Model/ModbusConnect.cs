@@ -15,14 +15,15 @@ using NModbus.Serial;
 using ScottPlot;
 using System.Diagnostics;
 using Mvvm.Converters;
-
+using System.Collections.ObjectModel;
+using NLog;
 
 namespace Mvvm.Model
 {
     public class ModbusConnect
     {
         public event Action<bool> ConnectionStatusChanged;
-
+        private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
 
         #region 필드
@@ -66,6 +67,101 @@ namespace Mvvm.Model
             statistics = new CommunicationStatistics();
             dataBuffer = new ModbusDataBuffer();
             LoadDefaultConfig();
+        }
+
+
+        private ushort[] ConvertToUShortArray(double[] input)
+        {
+            return input.Select(x => (ushort)x).ToArray();
+        }
+        public async Task ExecuteGenerateParameters(ObservableCollection<ParameterModel> parameters)
+        {
+            try
+            {
+                int start = Properties.Settings.Default.StartAddress;
+                int end = Properties.Settings.Default.EndAddress;
+                int numberOfPoints = end - start + 1;
+
+                var parame = await ReadModbusData(start, numberOfPoints);
+                foreach (var param in parame)
+                {
+                    var parameter = parameters.FirstOrDefault(p => p.Address == param.Address);
+                    if (parameter != null)
+                    {
+                        parameter.DefaultActual = param.DefaultActual;
+                    }
+                }
+                double[] Temp = { 0, 0 };
+
+                await Application.Current.Dispatcher.InvokeAsync(() =>
+                {
+                    foreach (var parameter in parameters)
+                    {
+                        if (parameter.Endian == "H")
+                        {
+                            if (Temp != null && Temp.Length > 0)
+                                Temp[0] = parameter.DefaultActual;
+                            parameter.DefaultActual = 0;
+                            continue;
+                        }
+                        else if (parameter.Endian == "L")
+                        {
+                            if (Temp != null && Temp.Length > 1)
+                                Temp[1] = parameter.DefaultActual;
+
+                            var ushortTemp = ConvertToUShortArray(Temp);
+
+                            ReadRegisterAsType(ushortTemp, DataType.Int32).ContinueWith(task =>
+                            {
+                                if (task.IsFaulted)
+                                {
+                                    Logger.Error(task.Exception, "파라미터 생성 중 오류 발생");
+                                    MessageBox.Show($"파라미터 생성 중 오류가 발생했습니다: {task.Exception.Message}",
+                                    "오류", MessageBoxButton.OK, MessageBoxImage.Error);
+                                    return;
+                                }
+                                var result = task.Result;
+
+                                Application.Current.Dispatcher.Invoke(() =>
+                                {
+                                    parameter.DefaultActual = result;
+                                });
+                            });
+                        }
+
+                        if (parameter.Func != "N")
+                        {
+                            string[] funcSplit = parameter.Func.Split('_');
+
+                            switch (funcSplit[0])
+                            {
+                                case "+":
+                                    break;
+                                case "-":
+                                    break;
+                                case "*":
+                                    parameter.DefaultActual = parameter.DefaultActual * double.Parse(funcSplit[1]);
+                                    break;
+                                case "/":
+                                    parameter.DefaultActual = parameter.DefaultActual / double.Parse(funcSplit[1]);
+                                    break;
+                                default:
+                                    break;
+                            }
+                        }
+
+                        parameter.NotifyPropertyChanged(nameof(parameter.DefaultActual));
+                    }
+                });
+
+                Logger.Info("파라미터 값 갱신 완료");
+            }
+            catch (Exception ex)
+            {
+                Logger.Error(ex, "파라미터 갱신 중 오류 발생");
+                MessageBox.Show($"파라미터 갱신 중 오류가 발생했습니다: {ex.Message}",
+                    "오류", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
         }
 
 

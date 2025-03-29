@@ -12,12 +12,12 @@ namespace Mvvm.Views
     {
         private readonly MainWindowViewModel _MainWindowViewModel;
 
-        public MainWindow(IRegionManager regionManager, IRegionManager bottomRegionManager, MainBottomBarViewModel mainBottomBarViewModel, ModbusConnect modbusConnect, HomePageViewModel homePageViewModel)
+        public MainWindow(IRegionManager regionManager, IRegionManager bottomRegionManager, MainBottomBarViewModel mainBottomBarViewModel, ModbusConnect modbusConnect)
         {
             InitializeComponent();
 
             var parameterWindowViewModel = new ParameterWindowViewModel(modbusConnect);
-
+            var homePageViewModel = new HomePageViewModel(modbusConnect);
             _MainWindowViewModel = new MainWindowViewModel(
                 regionManager,
                 mainBottomBarViewModel,

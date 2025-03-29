@@ -19,7 +19,8 @@ namespace Mvvm
         {
             var mainBottomBarViewModel = Container.Resolve<MainBottomBarViewModel>();
             var modbusConnect = Container.Resolve<ModbusConnect>();
-            var mainWindow = new MainWindow( Container.Resolve<IRegionManager>(),                 Container.Resolve<IRegionManager>(),
+            var homePageViewModel = Container.Resolve<HomePageViewModel>();
+            var mainWindow = new MainWindow( Container.Resolve<IRegionManager>(),Container.Resolve<IRegionManager>(),
                 mainBottomBarViewModel,
                 modbusConnect);
 

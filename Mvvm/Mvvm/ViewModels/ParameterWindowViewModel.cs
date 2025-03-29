@@ -269,6 +269,7 @@ namespace Mvvm.ViewModels
             _communicationLog = new ObservableCollection<CommunicationLogItem>();
 
             Parameters = new ObservableCollection<ParameterModel>();
+
             ResetChartCommand = new DelegateCommand(ResetChart);
             ExportDataCommand = new DelegateCommand(ExportData);
             ResetStatisticsCommand = new DelegateCommand(ResetStatistics);
@@ -296,104 +297,104 @@ namespace Mvvm.ViewModels
 
         #region Private Methods
 
-
-
-
         private bool CanExecuteWrite(ParameterModel parameter)
         {
             return parameter != null;
         }
-
-
         private async void ExecuteGenerateParameters()
         {
-            try
-            {
-                int start = Properties.Settings.Default.StartAddress;
-                int end = Properties.Settings.Default.EndAddress;
-                int numberOfPoints = end - start + 1;
-
-                var parame = await GetReadModbusData(start, numberOfPoints);
-                foreach (var param in parame)
-                {
-                    var parameter = Parameters.FirstOrDefault(p => p.Address == param.Address);
-                    if (parameter != null)
-                    {
-                        parameter.DefaultActual = param.DefaultActual;
-                    }
-                }
-                double[] Temp = { 0, 0 };
-
-                await Application.Current.Dispatcher.InvokeAsync(() =>
-                {
-                    foreach (var parameter in Parameters)
-                    {
-                        if (parameter.Endian == "H")
-                        {
-                            if (Temp != null && Temp.Length > 0)
-                                Temp[0] = parameter.DefaultActual;
-                            parameter.DefaultActual = 0;
-                            continue;
-                        }
-                        else if (parameter.Endian == "L")
-                        {
-                            if (Temp != null && Temp.Length > 1)
-                                Temp[1] = parameter.DefaultActual;
-
-                            var ushortTemp = ConvertToUShortArray(Temp);
-
-                            _modbusConnect.ReadRegisterAsType(ushortTemp, DataType.Int32).ContinueWith(task =>
-                            {
-                                if (task.IsFaulted)
-                                {
-                                    Logger.Error(task.Exception, "파라미터 생성 중 오류 발생");
-                                    MessageBox.Show($"파라미터 생성 중 오류가 발생했습니다: {task.Exception.Message}",
-                                    "오류", MessageBoxButton.OK, MessageBoxImage.Error);
-                                    return;
-                                }
-                                var result = task.Result;
-
-                                Application.Current.Dispatcher.Invoke(() =>
-                                {
-                                    parameter.DefaultActual = result;
-                                });
-                            });
-                        }
-
-                        if (parameter.Func != "N")
-                        {
-                            string[] funcSplit = parameter.Func.Split('_');
-
-                            switch (funcSplit[0])
-                            {
-                                case "+":
-                                    break;
-                                case "-":
-                                    break;
-                                case "*":
-                                    parameter.DefaultActual = parameter.DefaultActual * double.Parse(funcSplit[1]);
-                                    break;
-                                case "/":
-                                    parameter.DefaultActual = parameter.DefaultActual / double.Parse(funcSplit[1]);
-                                    break;
-                                default:
-                                    break;
-                            }
-                        }
-
-                        parameter.NotifyPropertyChanged(nameof(parameter.DefaultActual));
-                    }
-                });
-
-                Logger.Info("파라미터 값 갱신 완료");
-            }
-            catch (Exception ex)
-            {
-                Logger.Error(ex, "파라미터 갱신 중 오류 발생");
-                MessageBox.Show($"파라미터 갱신 중 오류가 발생했습니다: {ex.Message}",
-                    "오류", MessageBoxButton.OK, MessageBoxImage.Error);
-            }
+            await _modbusConnect.ExecuteGenerateParameters(Parameters);
         }
+
+        //private async void ExecuteGenerateParameters()
+        //{
+        //    try
+        //    {
+        //        int start = Properties.Settings.Default.StartAddress;
+        //        int end = Properties.Settings.Default.EndAddress;
+        //        int numberOfPoints = end - start + 1;
+
+        //        var parame = await GetReadModbusData(start, numberOfPoints);
+        //        foreach (var param in parame)
+        //        {
+        //            var parameter = Parameters.FirstOrDefault(p => p.Address == param.Address);
+        //            if (parameter != null)
+        //            {
+        //                parameter.DefaultActual = param.DefaultActual;
+        //            }
+        //        }
+        //        double[] Temp = { 0, 0 };
+
+        //        await Application.Current.Dispatcher.InvokeAsync(() =>
+        //        {
+        //            foreach (var parameter in Parameters)
+        //            {
+        //                if (parameter.Endian == "H")
+        //                {
+        //                    if (Temp != null && Temp.Length > 0)
+        //                        Temp[0] = parameter.DefaultActual;
+        //                    parameter.DefaultActual = 0;
+        //                    continue;
+        //                }
+        //                else if (parameter.Endian == "L")
+        //                {
+        //                    if (Temp != null && Temp.Length > 1)
+        //                        Temp[1] = parameter.DefaultActual;
+
+        //                    var ushortTemp = ConvertToUShortArray(Temp);
+
+        //                    _modbusConnect.ReadRegisterAsType(ushortTemp, DataType.Int32).ContinueWith(task =>
+        //                    {
+        //                        if (task.IsFaulted)
+        //                        {
+        //                            Logger.Error(task.Exception, "파라미터 생성 중 오류 발생");
+        //                            MessageBox.Show($"파라미터 생성 중 오류가 발생했습니다: {task.Exception.Message}",
+        //                            "오류", MessageBoxButton.OK, MessageBoxImage.Error);
+        //                            return;
+        //                        }
+        //                        var result = task.Result;
+
+        //                        Application.Current.Dispatcher.Invoke(() =>
+        //                        {
+        //                            parameter.DefaultActual = result;
+        //                        });
+        //                    });
+        //                }
+
+        //                if (parameter.Func != "N")
+        //                {
+        //                    string[] funcSplit = parameter.Func.Split('_');
+
+        //                    switch (funcSplit[0])
+        //                    {
+        //                        case "+":
+        //                            break;
+        //                        case "-":
+        //                            break;
+        //                        case "*":
+        //                            parameter.DefaultActual = parameter.DefaultActual * double.Parse(funcSplit[1]);
+        //                            break;
+        //                        case "/":
+        //                            parameter.DefaultActual = parameter.DefaultActual / double.Parse(funcSplit[1]);
+        //                            break;
+        //                        default:
+        //                            break;
+        //                    }
+        //                }
+
+        //                parameter.NotifyPropertyChanged(nameof(parameter.DefaultActual));
+        //            }
+        //        });
+
+        //        Logger.Info("파라미터 값 갱신 완료");
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        Logger.Error(ex, "파라미터 갱신 중 오류 발생");
+        //        MessageBox.Show($"파라미터 갱신 중 오류가 발생했습니다: {ex.Message}",
+        //            "오류", MessageBoxButton.OK, MessageBoxImage.Error);
+        //    }
+        //}
 
 
 
@@ -572,9 +573,6 @@ namespace Mvvm.ViewModels
         {
             return Parameters.ToList();
         }
-
-
-
 
 
         public void RefreshTemplate()
@@ -775,10 +773,7 @@ namespace Mvvm.ViewModels
 
         #region Helper Methods
 
-        private ushort[] ConvertToUShortArray(double[] input)
-        {
-            return input.Select(x => (ushort)x).ToArray();
-        }
+   
 
 
         private void InitializeChart()
@@ -988,6 +983,11 @@ namespace Mvvm.ViewModels
                 await Application.Current.Dispatcher.InvokeAsync(() =>
                 {
                     ExecuteGenerateParameters();
+
+
+
+
+
 
                 });
             }

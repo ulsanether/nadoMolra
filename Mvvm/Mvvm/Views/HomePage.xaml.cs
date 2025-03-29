@@ -12,14 +12,12 @@ namespace Mvvm.Views
     public partial class HomePage : UserControl
     {
 
-
         private readonly HomePageViewModel _ViewModel;
-        private ModbusConnect _modbusConnect;
 
-        public HomePage()
+        public HomePage(ModbusConnect modbusConnect)
         {
             InitializeComponent();
-            _ViewModel = new HomePageViewModel(_modbusConnect);
+            _ViewModel = new HomePageViewModel(modbusConnect);
             DataContext = _ViewModel;
         }
 
