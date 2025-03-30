@@ -7,6 +7,7 @@
     xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:prism="http://prismlibrary.com/"
+    Background="#FFFFE2E2"
     mc:Ignorable="av">
 
 
@@ -21,15 +22,56 @@
         </Grid.ColumnDefinitions>
 
         <Grid.RowDefinitions>
-            <RowDefinition Height="*" />
-            <RowDefinition Height="*" />
+            <RowDefinition Height="120*" />
+            <RowDefinition Height="309*" />
+            <RowDefinition Height="214*" />
         </Grid.RowDefinitions>
 
 
-        <Grid
-            Grid.RowSpan="2"
-            Width="300"
-            HorizontalAlignment="Left">
+
+        <Border
+            Width="260"
+            Height="100"
+            av:LayoutOverrides="Height"
+            BorderBrush="#FFC0A9BA"
+            BorderThickness="1"
+            CornerRadius="6"
+            IsEnabled="False">
+            <Border.Background>
+                <LinearGradientBrush StartPoint="0.5,0" EndPoint="0.5,1">
+                    <LinearGradientBrush.RelativeTransform>
+                        <TransformGroup>
+                            <ScaleTransform CenterX="0.5" CenterY="0.5" />
+                            <SkewTransform CenterX="0.5" CenterY="0.5" />
+                            <RotateTransform Angle="90" CenterX="0.5" CenterY="0.5" />
+                            <TranslateTransform />
+                        </TransformGroup>
+                    </LinearGradientBrush.RelativeTransform>
+                    <GradientStop Color="#FF4AB3D8" />
+                    <GradientStop Offset="1" Color="#FFC793F7" />
+                    <GradientStop Offset="0.438" Color="#FF88A2E7" />
+                    <GradientStop Offset="0.629" Color="#FF88A2E7" />
+                </LinearGradientBrush>
+            </Border.Background>
+            <Border.Effect>
+
+                <DropShadowEffect
+                    BlurRadius="5"
+                    Direction="300"
+                    Opacity="0.195"
+                    RenderingBias="Performance" />
+            </Border.Effect>
+            <Image
+                Width="50"
+                Height="50"
+                Margin="0,0,10,0"
+                HorizontalAlignment="Right"
+                VerticalAlignment="Bottom"
+                Source="/Dictionaries/free-sticker-retro-5928520.png"
+                Stretch="Fill" />
+        </Border>
+
+        <Grid Grid.Row="1" Grid.RowSpan="2">
 
 
             <DockPanel
@@ -41,14 +83,14 @@
                         x:Name="LeftBoundListBox"
                         Width="300"
                         Height="642"
-                        HorizontalAlignment="Left"
                         dd:DragDrop.CanDragWithMouseRightButton="True"
                         dd:DragDrop.DropHandler="{Binding}"
                         dd:DragDrop.DropTargetAdornerBrush="Coral"
                         dd:DragDrop.IsDragSource="True"
                         dd:DragDrop.IsDropTarget="True"
                         dd:DragDrop.UseDefaultEffectDataTemplate="True"
-                        ItemsSource="{Binding Borders2}" />
+                        ItemsSource="{Binding Borders2}"
+                        ScrollViewer.HorizontalScrollBarVisibility="Auto" />
                 </StackPanel>
             </DockPanel>
 
@@ -57,12 +99,16 @@
 
 
         <Grid
-            Grid.RowSpan="2"
+            Grid.RowSpan="3"
             Grid.Column="2"
-            av:LayoutOverrides="LeftMargin, RightMargin, TopMargin, BottomMargin"
-            Background="#FFFF4C4C">
+            av:LayoutOverrides="LeftMargin, RightMargin, TopMargin, BottomMargin">
             <DockPanel LastChildFill="False">
-                <TextBlock DockPanel.Dock="Top" Text="Modbus Data  2" />
+
+                <TextBlock
+                    DockPanel.Dock="Top"
+                    FontSize="13"
+                    Foreground="{DynamicResource MainFontColor}"
+                    Text="MODBUS LIST" />
                 <ListView
                     x:Name="ModbusDataName"
                     Width="170"
@@ -74,6 +120,7 @@
                     dd:DragDrop.IsDragSource="True"
                     dd:DragDrop.IsDropTarget="True"
                     dd:DragDrop.UseDefaultEffectDataTemplate="True"
+                    FontSize="14"
                     ItemsSource="{Binding Borders1}"
                     ScrollViewer.HorizontalScrollBarVisibility="Auto">
                     <ListView.ItemTemplate>
@@ -85,11 +132,23 @@
 
             </DockPanel>
         </Grid>
-        <Grid
-            Grid.RowSpan="2"
+        <GridSplitter
             Grid.Column="1"
-            Width="NaN"
-            HorizontalAlignment="Left">
+            Width="2"
+            Height="0"
+            Margin="552,40,0,0"
+            HorizontalAlignment="Left"
+            VerticalAlignment="Top"
+            av:LayoutOverrides="LeftMargin, RightMargin, TopMargin, BottomMargin"
+            Background="{StaticResource ProgressColor}"
+            Foreground="{StaticResource ProgressColor}" />
+
+        <!--  linear progress bars (the default style  -->
+
+        <Grid
+            Grid.RowSpan="3"
+            Grid.Column="1"
+            Width="NaN">
 
 
             <DockPanel
@@ -108,7 +167,8 @@
                         dd:DragDrop.IsDragSource="True"
                         dd:DragDrop.IsDropTarget="True"
                         dd:DragDrop.UseDefaultEffectDataTemplate="True"
-                        ItemsSource="{Binding Borders3}">
+                        ItemsSource="{Binding Borders3}"
+                        ScrollViewer.HorizontalScrollBarVisibility="Auto">
                         <ListBox.ItemsPanel>
                             <ItemsPanelTemplate>
                                 <WrapPanel Width="560" Orientation="Horizontal" />
@@ -121,6 +181,31 @@
 
 
         </Grid>
+        <Label
+            Width="83"
+            Height="25"
+            Margin="32,15,0,0"
+            HorizontalAlignment="Left"
+            VerticalAlignment="Top"
+            Content="프로젝트 명"
+            FontFamily="Yu Gothic UI Semibold"
+            FontSize="13"
+            Foreground="White">
+            <Label.Background>
+                <ImageBrush />
+            </Label.Background>
+        </Label>
+        <Label
+            Margin="32,38,72,0"
+            VerticalAlignment="Top"
+            av:LayoutOverrides="HorizontalAlignment"
+            Content="AAA같은 프로젝트 로드 어쩌고"
+            FontFamily="Yu Gothic UI Semibold"
+            Foreground="White">
+            <Label.Background>
+                <SolidColorBrush Opacity="0" />
+            </Label.Background>
+        </Label>
 
     </Grid>
 </UserControl>

@@ -37,6 +37,9 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
+    <None Update="Dictionaries\free-sticker-retro-5928520.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Update="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>

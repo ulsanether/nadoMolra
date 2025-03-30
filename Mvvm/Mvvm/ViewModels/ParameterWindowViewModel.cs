@@ -895,10 +895,6 @@ namespace Mvvm.ViewModels
                     ExecuteGenerateParameters();
 
 
-
-
-
-
                 });
             }
             catch (Exception ex)

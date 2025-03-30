@@ -109,13 +109,44 @@ namespace Mvvm.ViewModels
                     int startAddress = Properties.Settings.Default.StartAddress; // Settings에서 시작 주소 가져오기
                     int endAddress = Properties.Settings.Default.EndAddress; // Settings에서 끝 주소 가져오기
                     int numberOfPoints = endAddress - startAddress + 1; // 읽어올 포인트 수 계산
-                     parameters = await _modbusConnect.ReadModbusData(startAddress, numberOfPoints);
+                    parameters = await _modbusConnect.ReadModbusData(startAddress, numberOfPoints);
                     _modbusConnect.dataBuffer.StoreValues(parameters);
-          
-                    foreach (var parameter in parameters)
+
+                    Application.Current.Dispatcher.Invoke(() =>
                     {
-                        Debug.WriteLine($"Address: {parameter.Address}, Value: {parameter.DefaultActual}");
-                    }
+                        for (int i = 0; i < parameters.Count; i++)
+                        {
+                            if (i < Borders1.Count)
+                            {
+                                var border = Borders1[i];
+                                var label = border.Child as Label;
+                                if (label != null)
+                                {
+                                    label.Content = $"Address: {parameters[i].Address}, Value: {parameters[i].DefaultActual}";
+                                }
+                            }
+
+                            if (i < Borders2.Count)
+                            {
+                                var border = Borders2[i];
+                                var label = border.Child as Label;
+                                if (label != null)
+                                {
+                                    label.Content = $"Address: {parameters[i].Address}, Value: {parameters[i].DefaultActual}";
+                                }
+                            }
+
+                            if (i < Borders3.Count)
+                            {
+                                var border = Borders3[i];
+                                var label = border.Child as Label;
+                                if (label != null)
+                                {
+                                    label.Content = $"Address: {parameters[i].Address}, Value: {parameters[i].DefaultActual}";
+                                }
+                            }
+                        }
+                    });
                 }
                 catch (Exception ex)
                 {
@@ -125,6 +156,7 @@ namespace Mvvm.ViewModels
                 await Task.Delay(2000, cancellationToken);
             }
         }
+
         #region IDropTarget 구현
 
 
@@ -158,14 +190,74 @@ namespace Mvvm.ViewModels
                 }
             }
         }
-        public void Drop(IDropInfo dropInfo)  // dd:DragDrop.DropHandler="{Binding}"
+
+
+        // HomePageViewModel.cs 파일에 아래 메소드 추가
+
+        public void RemoveDuplicatesFromBorders1()
+        {
+            // Border1에서 제거할 아이템을 저장할 리스트
+            List<Border> itemsToRemove = new List<Border>();
+
+            // 먼저 Border2와 Border3에 있는 모든 주소를 수집
+            HashSet<int> existingAddresses = new HashSet<int>();
+
+            // Border2에서 주소 수집
+            foreach (var border in Borders2)
+            {
+                int? address = GetAddressFromBorder(border);
+                if (address.HasValue)
+                {
+                    existingAddresses.Add(address.Value);
+                }
+            }
+
+            // Border3에서 주소 수집
+            foreach (var border in Borders3)
+            {
+                int? address = GetAddressFromBorder(border);
+                if (address.HasValue)
+                {
+                    existingAddresses.Add(address.Value);
+                }
+            }
+
+            // Border1에서 중복 주소를 가진 항목 찾기
+            foreach (var border in Borders1)
+            {
+                int? address = GetAddressFromBorder(border);
+                if (address.HasValue && existingAddresses.Contains(address.Value))
+                {
+                    itemsToRemove.Add(border);
+                }
+            }
+
+            // 찾은 중복 항목들을 Border1에서 제거
+            foreach (var item in itemsToRemove)
+            {
+                Borders1.Remove(item);
+            }
+
+            // 중복 제거 완료 메시지 표시
+            if (itemsToRemove.Count > 0)
+            {
+                MessageBox.Show($"Border1에서 중복된 {itemsToRemove.Count}개의 아이템이 제거되었습니다.",
+                    "중복 제거 완료", MessageBoxButton.OK, MessageBoxImage.Information);
+            }
+        }
+
+        public void Drop(IDropInfo dropInfo)
         {
             if (dropInfo.Data is Border sourceItem)
             {
                 var sourceCollection = GetCollectionContainingItem(sourceItem);
-
                 if (sourceCollection == null) return;
 
+                // 소스 아이템의 주소 가져오기
+                int? sourceItemAddress = GetAddressFromBorder(sourceItem);
+                if (sourceItemAddress == null) return;
+
+                // UI 업데이트
                 Application.Current.Dispatcher.Invoke(() =>
                 {
                     for (int i = 0; i < parameters.Count; i++)
@@ -179,23 +271,41 @@ namespace Mvvm.ViewModels
                                 label.Content = $"Address: {parameters[i].Address}, Value: {parameters[i].DefaultActual}";
                             }
                         }
+
+                        if (i < Borders2.Count)
+                        {
+                            var border = Borders2[i];
+                            var label = border.Child as Label;
+                            if (label != null)
+                            {
+                                label.Content = $"Address: {parameters[i].Address}, Value: {parameters[i].DefaultActual}";
+                            }
+                        }
+
+                        if (i < Borders3.Count)
+                        {
+                            var border = Borders3[i];
+                            var label = border.Child as Label;
+                            if (label != null)
+                            {
+                                label.Content = $"Address: {parameters[i].Address}, Value: {parameters[i].DefaultActual}";
+                            }
+                        }
                     }
                 });
-
-                if (sourceCollection == Borders1)
-                {
-                //    MessageBox.Show("Border1이 이동되었습니다.");
-                }
-                else if (sourceCollection == Borders2)
-                {
-                  //  MessageBox.Show("Border2가 이동되었습니다.");
-                }
 
                 if (dropInfo.TargetItem is Border targetItem)
                 {
                     var targetCollection = GetCollectionContainingItem(targetItem);
                     if (targetCollection != null)
                     {
+                        // 주소 중복 검사
+                        if (HasDuplicateAddress(targetCollection, sourceItemAddress.Value, sourceItem))
+                        {
+                            MessageBox.Show($"컬렉션에 이미 주소 {sourceItemAddress}가 존재합니다!", "중복 주소 오류", MessageBoxButton.OK, MessageBoxImage.Warning);
+                            return;
+                        }
+
                         int sourceIndex = sourceCollection.IndexOf(sourceItem);
                         int targetIndex = targetCollection.IndexOf(targetItem);
 
@@ -208,109 +318,35 @@ namespace Mvvm.ViewModels
                                 targetIndex--;
                             }
 
-                            if (targetCollection == Borders1)
-                            {
-                                // Borders1로 이동할 때 크기 조정
-                                sourceItem.Width = 100;
-                                sourceItem.Height = 30;
-                            }
-
-                            else if (targetCollection == Borders2)
-                            {
-                                sourceItem.Width = 50;
-                                sourceItem.Height = 30;
-                            }
-
-                            else if (targetCollection == Borders3)
-                            {
-                           
-                                sourceItem.Width = 100; // 적절한 가로 크기
-                                sourceItem.Height = 100; // 적절한 세로 크기
-
-                                // 짝수/홀수 인덱스에 따라 다른 여백 적용 (바둑판 형태)
-                                int row = targetIndex / 2; // 행 계산
-                                int column = targetIndex % 2; // 열 계산
-
-                           
-                                sourceItem.Margin = new Thickness(
-                                    column * 5, // 왼쪽 여백 (열에 따라 조정)
-                                    row * 5,    // 상단 여백 (행에 따라 조정)
-                                    5,          // 오른쪽 여백
-                                    5           // 하단 여백
-                                );
-                            }
-                  
-
+                            ResizeBorder(sourceItem, targetCollection);
                             targetCollection.Insert(targetIndex, sourceItem);
                         }
                     }
                 }
                 else if (dropInfo.TargetCollection is IList targetCollection)
                 {
-                    int sourceIndex = sourceCollection.IndexOf(sourceItem);
-                    if (sourceIndex != -1)
+                    if (targetCollection is ObservableCollection<Border> borderCollection)
                     {
-                        sourceCollection.RemoveAt(sourceIndex);
-
-                        if (targetCollection is ObservableCollection<Border> borderCollection)
+                        // 주소 중복 검사
+                        if (HasDuplicateAddress(borderCollection, sourceItemAddress.Value, sourceItem))
                         {
+                            MessageBox.Show($"컬렉션에 이미 주소 {sourceItemAddress}가 존재합니다!", "중복 주소 오류", MessageBoxButton.OK, MessageBoxImage.Warning);
+                            return;
+                        }
+
+                        int sourceIndex = sourceCollection.IndexOf(sourceItem);
+                        if (sourceIndex != -1)
+                        {
+                            sourceCollection.RemoveAt(sourceIndex);
+
                             if (dropInfo.InsertIndex >= 0 && dropInfo.InsertIndex <= borderCollection.Count)
                             {
-                                if (borderCollection == Borders3)
-                                {
-                                    // 바둑판 형식으로 배치하기 위한 사이즈 및 여백 조정
-                                    sourceItem.Width = 100; // 적절한 가로 크기
-                                    sourceItem.Height = 100; // 적절한 세로 크기
-
-                                    // 짝수/홀수 인덱스에 따라 다른 여백 적용 (바둑판 형태)
-                                    int row = dropInfo.InsertIndex / 2; // 행 계산
-                                    int column = dropInfo.InsertIndex % 2; // 열 계산
-
-                                    // 바둑판 형태로 여백 조정
-                                    sourceItem.Margin = new Thickness(
-                                        column * 5, // 왼쪽 여백 (열에 따라 조정)
-                                        row * 5,    // 상단 여백 (행에 따라 조정)
-                                        5,          // 오른쪽 여백
-                                        5           // 하단 여백
-                                    );
-                                }
-                                else if (borderCollection == Borders1)
-                                {
-                                    // Borders1로 이동할 때 크기 조정
-                                    sourceItem.Width = 120;
-                                    sourceItem.Height = 50;
-                                }
-
+                                ResizeBorder(sourceItem, borderCollection, dropInfo.InsertIndex);
                                 borderCollection.Insert(dropInfo.InsertIndex, sourceItem);
                             }
                             else
                             {
-                                if (borderCollection == Borders3)
-                                {
-                                    // 바둑판 형식으로 배치하기 위한 사이즈 및 여백 조정
-                                    sourceItem.Width = 270; // 적절한 가로 크기
-                                    sourceItem.Height = 300; // 적절한 세로 크기
-
-                                    // 마지막 아이템의 경우 인덱스 계산
-                                    int index = borderCollection.Count;
-                                    int row = index / 2; // 행 계산
-                                    int column = index % 2; // 열 계산
-
-                                    // 바둑판 형태로 여백 조정
-                                    sourceItem.Margin = new Thickness(
-                                        column * 5, // 왼쪽 여백 (열에 따라 조정)
-                                        row * 5,    // 상단 여백 (행에 따라 조정)
-                                        5,          // 오른쪽 여백
-                                        5           // 하단 여백
-                                    );
-                                }
-                                else if (borderCollection == Borders1)
-                                {
-                                    // Borders1로 이동할 때 크기 조정
-                                    sourceItem.Width = 120;
-                                    sourceItem.Height = 50;
-                                }
-
+                                ResizeBorder(sourceItem, borderCollection, borderCollection.Count);
                                 borderCollection.Add(sourceItem);
                             }
                         }
@@ -318,6 +354,85 @@ namespace Mvvm.ViewModels
                 }
             }
         }
+
+        // Border에서 주소값 추출
+        private int? GetAddressFromBorder(Border border)
+        {
+            if (border?.Child is Label label && label.Content != null)
+            {
+                string content = label.Content.ToString();
+                if (content.StartsWith("Address: "))
+                {
+                    int commaIndex = content.IndexOf(',');
+                    if (commaIndex > 0)
+                    {
+                        string addressStr = content.Substring(9, commaIndex - 9);
+                        if (int.TryParse(addressStr, out int address))
+                        {
+                            return address;
+                        }
+                    }
+                }
+            }
+            return null;
+        }
+
+        // 컬렉션에 동일한 주소가 있는지 확인
+        private bool HasDuplicateAddress(ObservableCollection<Border> collection, int address, Border excludeItem)
+        {
+            foreach (var item in collection)
+            {
+                // 비교 대상에서 자기 자신 제외
+                if (item == excludeItem)
+                    continue;
+
+                int? itemAddress = GetAddressFromBorder(item);
+                if (itemAddress.HasValue && itemAddress.Value == address)
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        // Border 크기 조정 및 마진 설정 메서드
+        private void ResizeBorder(Border border, ObservableCollection<Border> targetCollection, int? insertIndex = null)
+        {
+            if (targetCollection == Borders1)
+            {
+                // Borders1로 이동할 때 크기 조정
+                border.Width = 120;
+                border.Height = 50;
+                border.Margin = new Thickness(0, 0, 0, 0);
+            }
+            else if (targetCollection == Borders2)
+            {
+                // Borders2로 이동할 때 크기 조정
+                border.Width = 200;
+                border.Height = 40;
+                border.Margin = new Thickness(0, 0, 0, 0);
+            }
+            else if (targetCollection == Borders3)
+            {
+                // Borders3로 이동할 때 크기 조정 및 바둑판 형식 배치
+                border.Width = 150;
+                border.Height = 150;
+
+                int index = insertIndex ?? targetCollection.Count;
+                int row = index / 2;
+                int column = index % 2;
+
+                border.Margin = new Thickness(
+                    column * 5,
+                    row * 5,
+                    5,
+                    5
+                );
+            }
+        }
+
+
+
 
 
         private ObservableCollection<Border> GetCollectionContainingItem(Border item)

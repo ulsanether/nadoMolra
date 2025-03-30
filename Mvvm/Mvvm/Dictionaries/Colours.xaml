@@ -9,7 +9,9 @@
     <SolidColorBrush x:Key="MainFontColor" Color="#FF009BD1" />
     <SolidColorBrush x:Key="SubOneFontColor" Color="White" />
     <SolidColorBrush x:Key="SubTwoFontColor" Color="#FF009BD1" />
+    <SolidColorBrush x:Key="ProgressColor" Color="#FFB46FFE" />
 
+    <SolidColorBrush x:Key="GBlue" Color="#FF4AB3D8" />
 
     <!--  MainBar Button color  -->
     <SolidColorBrush x:Key="MainButtonFontColor" Color="#FF009BD1" />
