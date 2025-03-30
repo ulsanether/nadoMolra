@@ -61,7 +61,7 @@ namespace Mvvm.ViewModels
             {
                 var border = new Border
                 {
-                    Width = 200,
+                    Width = 120,
                     Height = 30,
                     Margin = new Thickness(0, 0, 0, 0),
                     Background = new SolidColorBrush(Color.FromRgb(242, 242, 242)),
@@ -72,7 +72,7 @@ namespace Mvvm.ViewModels
                     Child = new Label
                     {
                         HorizontalAlignment = HorizontalAlignment.Center,
-                        Content = $"Address {i + 1}",
+                        Content = $"Add {i + 1}",
                         FontFamily = new FontFamily("Yu Gothic UI Semibold"),
                         Foreground = (Brush)Application.Current.Resources["MainFontColor"]
                     }
@@ -184,11 +184,11 @@ namespace Mvvm.ViewModels
 
                 if (sourceCollection == Borders1)
                 {
-                    MessageBox.Show("Border1이 이동되었습니다.");
+                //    MessageBox.Show("Border1이 이동되었습니다.");
                 }
                 else if (sourceCollection == Borders2)
                 {
-                    MessageBox.Show("Border2가 이동되었습니다.");
+                  //  MessageBox.Show("Border2가 이동되었습니다.");
                 }
 
                 if (dropInfo.TargetItem is Border targetItem)
@@ -208,17 +208,30 @@ namespace Mvvm.ViewModels
                                 targetIndex--;
                             }
 
-                            if (targetCollection == Borders3)
+                            if (targetCollection == Borders1)
                             {
-                                // 바둑판 형식으로 배치하기 위한 사이즈 및 여백 조정
-                                sourceItem.Width = 270; // 적절한 가로 크기
-                                sourceItem.Height = 300; // 적절한 세로 크기
+                                // Borders1로 이동할 때 크기 조정
+                                sourceItem.Width = 100;
+                                sourceItem.Height = 30;
+                            }
+
+                            else if (targetCollection == Borders2)
+                            {
+                                sourceItem.Width = 50;
+                                sourceItem.Height = 30;
+                            }
+
+                            else if (targetCollection == Borders3)
+                            {
+                           
+                                sourceItem.Width = 100; // 적절한 가로 크기
+                                sourceItem.Height = 100; // 적절한 세로 크기
 
                                 // 짝수/홀수 인덱스에 따라 다른 여백 적용 (바둑판 형태)
                                 int row = targetIndex / 2; // 행 계산
                                 int column = targetIndex % 2; // 열 계산
 
-                                // 바둑판 형태로 여백 조정
+                           
                                 sourceItem.Margin = new Thickness(
                                     column * 5, // 왼쪽 여백 (열에 따라 조정)
                                     row * 5,    // 상단 여백 (행에 따라 조정)
@@ -226,6 +239,7 @@ namespace Mvvm.ViewModels
                                     5           // 하단 여백
                                 );
                             }
+                  
 
                             targetCollection.Insert(targetIndex, sourceItem);
                         }
@@ -244,8 +258,9 @@ namespace Mvvm.ViewModels
                             {
                                 if (borderCollection == Borders3)
                                 {
-                                    sourceItem.Width = 200; 
-                                    sourceItem.Height = 200; 
+                                    // 바둑판 형식으로 배치하기 위한 사이즈 및 여백 조정
+                                    sourceItem.Width = 100; // 적절한 가로 크기
+                                    sourceItem.Height = 100; // 적절한 세로 크기
 
                                     // 짝수/홀수 인덱스에 따라 다른 여백 적용 (바둑판 형태)
                                     int row = dropInfo.InsertIndex / 2; // 행 계산
@@ -258,6 +273,12 @@ namespace Mvvm.ViewModels
                                         5,          // 오른쪽 여백
                                         5           // 하단 여백
                                     );
+                                }
+                                else if (borderCollection == Borders1)
+                                {
+                                    // Borders1로 이동할 때 크기 조정
+                                    sourceItem.Width = 120;
+                                    sourceItem.Height = 50;
                                 }
 
                                 borderCollection.Insert(dropInfo.InsertIndex, sourceItem);
@@ -282,6 +303,12 @@ namespace Mvvm.ViewModels
                                         5,          // 오른쪽 여백
                                         5           // 하단 여백
                                     );
+                                }
+                                else if (borderCollection == Borders1)
+                                {
+                                    // Borders1로 이동할 때 크기 조정
+                                    sourceItem.Width = 120;
+                                    sourceItem.Height = 50;
                                 }
 
                                 borderCollection.Add(sourceItem);
@@ -326,7 +353,6 @@ namespace Mvvm.ViewModels
 
         public void Dropped(IDropInfo dropInfo)
         {
-        MessageBox.Show("Dropped");
 
             // 드롭 완료 후 추가 작업 필요 시 여기에 구현
         }

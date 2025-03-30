@@ -28,18 +28,18 @@
 
         <Grid
             Grid.RowSpan="2"
-            Width="NaN"
+            Width="300"
             HorizontalAlignment="Left">
 
 
             <DockPanel
-                Width="566"
-                HorizontalAlignment="Center"
+                Width="300"
+                HorizontalAlignment="Left"
                 LastChildFill="False">
                 <StackPanel>
                     <ListBox
                         x:Name="LeftBoundListBox"
-                        Width="566"
+                        Width="300"
                         Height="642"
                         HorizontalAlignment="Left"
                         dd:DragDrop.CanDragWithMouseRightButton="True"
@@ -61,33 +61,29 @@
             Grid.Column="2"
             av:LayoutOverrides="LeftMargin, RightMargin, TopMargin, BottomMargin"
             Background="#FFFF4C4C">
-            <ScrollViewer>
-                <DockPanel
-                    Width="120"
-                    Height="642"
-                    av:LayoutOverrides="TopPosition, BottomPosition"
-                    LastChildFill="False">
-                    <TextBlock DockPanel.Dock="Top" Text="Modbus Data  2" />
-                    <ListView
-                        x:Name="ModbusDataName"
-                        Width="119"
-                        Height="Auto"
-                        dd:DragDrop.CanDragWithMouseRightButton="True"
-                        dd:DragDrop.DropHandler="{Binding}"
-                        dd:DragDrop.IsDragSource="True"
-                        dd:DragDrop.IsDropTarget="True"
-                        dd:DragDrop.UseDefaultEffectDataTemplate="True"
-                        ItemsSource="{Binding Borders1}"
-                        ScrollViewer.HorizontalScrollBarVisibility="Auto">
-                        <ListView.ItemTemplate>
-                            <DataTemplate>
-                                <ContentPresenter Content="{Binding}" />
-                            </DataTemplate>
-                        </ListView.ItemTemplate>
-                    </ListView>
+            <DockPanel LastChildFill="False">
+                <TextBlock DockPanel.Dock="Top" Text="Modbus Data  2" />
+                <ListView
+                    x:Name="ModbusDataName"
+                    Width="170"
+                    Height="Auto"
+                    HorizontalContentAlignment="Stretch"
+                    VerticalContentAlignment="Stretch"
+                    dd:DragDrop.CanDragWithMouseRightButton="True"
+                    dd:DragDrop.DropHandler="{Binding}"
+                    dd:DragDrop.IsDragSource="True"
+                    dd:DragDrop.IsDropTarget="True"
+                    dd:DragDrop.UseDefaultEffectDataTemplate="True"
+                    ItemsSource="{Binding Borders1}"
+                    ScrollViewer.HorizontalScrollBarVisibility="Auto">
+                    <ListView.ItemTemplate>
+                        <DataTemplate>
+                            <ContentPresenter Content="{Binding}" />
+                        </DataTemplate>
+                    </ListView.ItemTemplate>
+                </ListView>
 
-                </DockPanel>
-            </ScrollViewer>
+            </DockPanel>
         </Grid>
         <Grid
             Grid.RowSpan="2"
