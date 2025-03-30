@@ -64,6 +64,8 @@ namespace Mvvm.ViewModels
             }
         }
 
+
+
         private void ModbusConnect_OnConnectionsStatusChanged(bool isConnected)
         {
             if (isConnected)
@@ -89,10 +91,16 @@ namespace Mvvm.ViewModels
                     int endAddress = Properties.Settings.Default.EndAddress;
                     int numberOfPoints = endAddress - startAddress + 1;
 
-                    parameters = await _modbusConnect.ReadModbusData(startAddress, numberOfPoints);
-                    _modbusConnect.dataBuffer.StoreValues(parameters);
+                    if (_modbusConnect != null)
+                    {
+                        parameters = await _modbusConnect.ReadModbusData(startAddress, numberOfPoints);
+                        _modbusConnect.dataBuffer.StoreValues(parameters);
+                    }
 
-                    await Application.Current.Dispatcher.InvokeAsync(() => UpdateBorderContents());
+                    if (parameters != null)
+                    {
+                        await Application.Current.Dispatcher.InvokeAsync(() => UpdateBorderContents());
+                    }
                 }
                 catch (OperationCanceledException)
                 {
@@ -113,6 +121,19 @@ namespace Mvvm.ViewModels
                 }
             }
         }
+
+
+        public void StartDataReading()
+        {
+            _cancellationTokenSource = new CancellationTokenSource();
+            Task.Run(async () => await ReadDataPeriodically(_cancellationTokenSource.Token));
+        }
+
+        public void StopDataReading()
+        {
+            _cancellationTokenSource?.Cancel();
+        }
+
 
         private void UpdateBorderContents()
         {

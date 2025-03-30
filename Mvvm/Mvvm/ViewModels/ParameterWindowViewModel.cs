@@ -285,7 +285,7 @@ namespace Mvvm.ViewModels
 
 
             // 차트 갱신 타이머 설정
-            _chartUpdateTimer = new Timer(2000);
+            _chartUpdateTimer = new Timer(200);
             _chartUpdateTimer.Elapsed += async (sender, e) => await UpdateChart();
             _chartUpdateTimer.Start();
 
@@ -296,6 +296,22 @@ namespace Mvvm.ViewModels
 
 
         #region Private Methods
+
+
+        public void StartDataReading()
+        {
+            StartDataCollection();
+            StartParameterUpdateTimer();
+        }
+
+        public void StopDataReading()
+        {
+            StopDataCollection();
+            StopParameterUpdateTimer();
+        }
+
+
+
 
         private bool CanExecuteWrite(ParameterModel parameter)
         {
@@ -669,14 +685,14 @@ namespace Mvvm.ViewModels
 
         public void Cleanup()
         {
-            StopDataCollection();
-            StopParameterUpdateTimer(); 
+            // StopDataCollection();
+            StopParameterUpdateTimer();
 
             try
             {
                 if (_parameterUpdateTimer != null)
                 {
-                    _parameterUpdateTimer.Elapsed -= DataUpdateTimerElapsed; 
+                    _parameterUpdateTimer.Elapsed -= DataUpdateTimerElapsed;
                     _parameterUpdateTimer.Dispose();
                     _parameterUpdateTimer = null;
                 }
@@ -714,6 +730,7 @@ namespace Mvvm.ViewModels
                 _modbusConnect.ConnectionStatusChanged -= OnConnectionStatusChanged;
             }
         }
+
 
 
         #endregion
@@ -863,7 +880,6 @@ namespace Mvvm.ViewModels
         }
 
 
-
         private async Task UpdateChart()
         {
             if (_wpfPlot == null) return;
@@ -890,7 +906,7 @@ namespace Mvvm.ViewModels
                 timeData.Enqueue(DateTime.Now.ToOADate());
                 valueData.Enqueue(parameter.DefaultActual);
 
-                if (timeData.Count > MaxDataPoints)
+                while (timeData.Count > 10)  //차트 데이터 수량 50개 까지 
                 {
                     timeData.Dequeue();
                     valueData.Dequeue();
@@ -979,7 +995,7 @@ namespace Mvvm.ViewModels
 
                 if (_parameterUpdateTimer == null)
                 {
-                    _parameterUpdateTimer = new Timer(1000); // 1초 간격
+                    _parameterUpdateTimer = new Timer(200); // 1초 간격
                     _parameterUpdateTimer.Elapsed += DataUpdateTimerElapsed;
                     _parameterUpdateTimer.AutoReset = false; // 단일 타이머 이벤트 후 중지
                 }
@@ -991,7 +1007,7 @@ namespace Mvvm.ViewModels
                     }
                     catch (ObjectDisposedException)
                     {
-                        _parameterUpdateTimer = new Timer(1000);
+                        _parameterUpdateTimer = new Timer(200);
                         _parameterUpdateTimer.Elapsed += DataUpdateTimerElapsed;
                         _parameterUpdateTimer.AutoReset = false;
                     }

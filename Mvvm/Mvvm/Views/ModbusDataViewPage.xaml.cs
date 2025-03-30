@@ -57,11 +57,17 @@ namespace Mvvm.Views
             //    _viewModel.UpdateCommunicationStatus();
         //    });
         }
+        private void UserControl_Loaded(object sender, RoutedEventArgs e)
+        {
+            _viewModel.StartDataReading();
+
+        }
 
         private void UserControl_Unloaded(object sender, RoutedEventArgs e)
         {
-            _viewModel.Cleanup();
-    
+            _viewModel.StopDataReading();
+
         }
+
     }
 }

@@ -43,16 +43,17 @@ namespace Mvvm.Views
                 itemsControl.ItemsSource = itemsSource;
             }
         }
+        private void UserControl_Loaded(object sender, RoutedEventArgs e)
+        {
+            _viewModel.StartDataReading();
+        }
+
         private void UserControl_Unloaded(object sender, RoutedEventArgs e)
         {
-            _viewModel.Cleanup();
+            _viewModel.StopDataReading();
             _statusUpdateTimer.Stop();
         }
-        private void NumberValidationTextBox(object sender, System.Windows.Input.TextCompositionEventArgs e)
-        {
-            var regex = new System.Text.RegularExpressions.Regex("[^0-9]+");
-            e.Handled = regex.IsMatch(e.Text);
-        }
+
     }
 }
 
