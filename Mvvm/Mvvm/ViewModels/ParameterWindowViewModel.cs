@@ -641,13 +641,14 @@ namespace Mvvm.ViewModels
 
         private void StartDataCollection()
         {
-            _chartUpdateTimer.Start();
+            _chartUpdateTimer?.Start();
         }
 
         private void StopDataCollection()
         {
-            _chartUpdateTimer.Stop();
+            _chartUpdateTimer?.Stop();
         }
+
         #endregion
 
 
@@ -669,21 +670,57 @@ namespace Mvvm.ViewModels
         public void Cleanup()
         {
             StopDataCollection();
-            StopParameterUpdateTimer(); // 파라미터 갱신 타이머 중지
-            _parameterUpdateTimer?.Dispose(); // 리소스 해제
-            _modbusDataVieewDataUpdateTimer?.Stop();
-            _modbusDataVieewDataUpdateTimer?.Dispose();
+            StopParameterUpdateTimer(); 
+
+            try
+            {
+                if (_parameterUpdateTimer != null)
+                {
+                    _parameterUpdateTimer.Elapsed -= DataUpdateTimerElapsed; 
+                    _parameterUpdateTimer.Dispose();
+                    _parameterUpdateTimer = null;
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.Error(ex, "파라미터 업데이트 타이머 정리 중 오류 발생");
+            }
+
+            try
+            {
+                if (_chartUpdateTimer != null)
+                {
+                    _chartUpdateTimer.Dispose();
+                    _chartUpdateTimer = null;
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.Error(ex, "차트 업데이트 타이머 정리 중 오류 발생");
+            }
+
+            try
+            {
+                _modbusDataVieewDataUpdateTimer?.Stop();
+                _modbusDataVieewDataUpdateTimer?.Dispose();
+            }
+            catch (Exception ex)
+            {
+                Logger.Error(ex, "모드버스 데이터 뷰 타이머 정리 중 오류 발생");
+            }
+
             if (_modbusConnect != null)
             {
                 _modbusConnect.ConnectionStatusChanged -= OnConnectionStatusChanged;
             }
         }
 
+
         #endregion
 
         #region Helper Methods
 
-   
+
 
 
         private void InitializeChart()
@@ -888,13 +925,21 @@ namespace Mvvm.ViewModels
                     return;
                 }
 
-                _parameterUpdateTimer.Stop();
+                try
+                {
+                    _parameterUpdateTimer?.Stop();
+                }
+                catch (ObjectDisposedException)
+                {
+                    _parameterUpdateTimer = null;
+                    _isParameterUpdateEnabled = false;
+                    AddLog("타이머", "타이머가 이미 폐기되었습니다. 파라미터 업데이트를 중단합니다");
+                    return;
+                }
 
                 await Application.Current.Dispatcher.InvokeAsync(() =>
                 {
                     ExecuteGenerateParameters();
-
-
                 });
             }
             catch (Exception ex)
@@ -904,20 +949,27 @@ namespace Mvvm.ViewModels
             }
             finally
             {
-                // 타이머가 활성화 상태이고 네트워크가 연결된 경우에만 다시 시작
-                if (_isParameterUpdateEnabled && _modbusConnect.IsConnected())
+                if (_isParameterUpdateEnabled && _modbusConnect.IsConnected() && _parameterUpdateTimer != null)
                 {
-                    _parameterUpdateTimer.Start();
+                    try
+                    {
+                        _parameterUpdateTimer.Start();
+                    }
+                    catch (ObjectDisposedException)
+                    {
+                        _parameterUpdateTimer = null;
+                        _isParameterUpdateEnabled = false;
+                        AddLog("타이머", "타이머가 이미 폐기되었습니다. 파라미터 업데이트를 중단합니다");
+                    }
                 }
             }
         }
 
-        // 파라미터 갱신 타이머 시작
+
         private void StartParameterUpdateTimer()
         {
             try
             {
-                // 연결이 되어 있는 경우에만 타이머 시작
                 if (!_modbusConnect.IsConnected())
                 {
                     AddLog("타이머", "네트워크가 연결되지 않아 파라미터 업데이트 타이머를 시작할 수 없습니다");
@@ -930,6 +982,19 @@ namespace Mvvm.ViewModels
                     _parameterUpdateTimer = new Timer(1000); // 1초 간격
                     _parameterUpdateTimer.Elapsed += DataUpdateTimerElapsed;
                     _parameterUpdateTimer.AutoReset = false; // 단일 타이머 이벤트 후 중지
+                }
+                else
+                {
+                    try
+                    {
+                        _parameterUpdateTimer.Enabled = false;
+                    }
+                    catch (ObjectDisposedException)
+                    {
+                        _parameterUpdateTimer = new Timer(1000);
+                        _parameterUpdateTimer.Elapsed += DataUpdateTimerElapsed;
+                        _parameterUpdateTimer.AutoReset = false;
+                    }
                 }
 
                 _parameterUpdateTimer.Start();
@@ -944,16 +1009,28 @@ namespace Mvvm.ViewModels
             }
         }
 
-        // 파라미터 갱신 타이머 중지
+
+
         private void StopParameterUpdateTimer()
         {
             if (_parameterUpdateTimer != null)
             {
-                _parameterUpdateTimer.Stop();
-                Logger.Info("파라미터 자동 갱신 타이머 중지");
-                AddLog("타이머", "파라미터 자동 갱신이 중지되었습니다");
+                try
+                {
+                    _parameterUpdateTimer.Stop();
+                    Logger.Info("파라미터 자동 갱신 타이머 중지");
+                    AddLog("타이머", "파라미터 자동 갱신이 중지되었습니다");
+                }
+                catch (ObjectDisposedException)
+                {
+                
+                    _parameterUpdateTimer = null;
+                    Logger.Info("이미 폐기된 타이머");
+                    AddLog("타이머", "이미 폐기된 타이머에 접근 시도");
+                }
             }
         }
+
 
 
         private void ExportData()

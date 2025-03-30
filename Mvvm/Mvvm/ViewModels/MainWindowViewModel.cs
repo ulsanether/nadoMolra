@@ -390,11 +390,12 @@ namespace Mvvm.ViewModels
         {
             if (portComBox == null) return;
 
-            var ports = SerialPort.GetPortNames();
+
+            var ports = await Task.Run(() => SerialPort.GetPortNames());
 
             try
             {
-                portComBox.Dispatcher.Invoke(() =>
+                await portComBox.Dispatcher.InvokeAsync(() =>
                 {
                     portComBox.ItemsSource = ports;
                     _portComBox = portComBox;
@@ -403,7 +404,6 @@ namespace Mvvm.ViewModels
             catch (Exception e)
             {
                 MessageBox.Show("에러내용 :" + e.Message);
-
                 throw;
             }
 
@@ -416,6 +416,7 @@ namespace Mvvm.ViewModels
                 ShowError("에러.");
             }
         }
+
 
         protected void OnPropertyChanged([CallerMemberName] string propertyName = null)
         {

@@ -7,7 +7,6 @@
     xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:prism="http://prismlibrary.com/"
-    Background="#FFFFE2E2"
     mc:Ignorable="av">
 
 
@@ -15,8 +14,8 @@
 
     <Grid Width="1000" Height="642">
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="200*" />
-            <ColumnDefinition Width="400*" />
+            <ColumnDefinition Width="40*" />
+            <ColumnDefinition Width="43*" />
 
             <ColumnDefinition Width="170" />
         </Grid.ColumnDefinitions>
@@ -24,15 +23,13 @@
         <Grid.RowDefinitions>
             <RowDefinition Height="120*" />
             <RowDefinition Height="309*" />
-            <RowDefinition Height="214*" />
+            <RowDefinition Height="250*" />
         </Grid.RowDefinitions>
 
 
 
         <Border
-            Width="260"
-            Height="100"
-            av:LayoutOverrides="Height"
+            Margin="31,10,31,10"
             BorderBrush="#FFC0A9BA"
             BorderThickness="1"
             CornerRadius="6"
@@ -71,18 +68,30 @@
                 Stretch="Fill" />
         </Border>
 
-        <Grid Grid.Row="1" Grid.RowSpan="2">
+        <Grid
+            Grid.Row="1"
+            Width="400"
+            Margin="4,0,0,0"
+            av:LayoutOverrides="LeftMargin, RightMargin, TopMargin, BottomMargin">
 
 
             <DockPanel
-                Width="300"
+                Width="400"
                 HorizontalAlignment="Left"
                 LastChildFill="False">
-                <StackPanel>
+                <TextBlock
+                    Width="400"
+                    Height="17.29"
+                    DockPanel.Dock="Top"
+                    FontSize="13"
+                    Foreground="{DynamicResource MainFontColor}"
+                    Text="MODBUS LIST 1" />
+                <StackPanel Width="400">
                     <ListBox
                         x:Name="LeftBoundListBox"
-                        Width="300"
-                        Height="642"
+                        Width="400"
+                        Height="500"
+                        HorizontalAlignment="Left"
                         dd:DragDrop.CanDragWithMouseRightButton="True"
                         dd:DragDrop.DropHandler="{Binding}"
                         dd:DragDrop.DropTargetAdornerBrush="Coral"
@@ -90,7 +99,60 @@
                         dd:DragDrop.IsDropTarget="True"
                         dd:DragDrop.UseDefaultEffectDataTemplate="True"
                         ItemsSource="{Binding Borders2}"
-                        ScrollViewer.HorizontalScrollBarVisibility="Auto" />
+                        ScrollViewer.HorizontalScrollBarVisibility="Auto">
+                        <ListBox.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <WrapPanel
+                                    Width="400"
+                                    Height="329"
+                                    VerticalAlignment="Top"
+                                    Orientation="Horizontal" />
+                            </ItemsPanelTemplate>
+                        </ListBox.ItemsPanel>
+                    </ListBox>
+
+
+                </StackPanel>
+            </DockPanel>
+
+
+        </Grid>
+        <Grid
+            Grid.Row="2"
+            Width="400"
+            Margin="4,0,-4,0">
+
+
+            <DockPanel
+                Width="400"
+                HorizontalAlignment="Left"
+                LastChildFill="False">
+                <TextBlock
+                    Width="400"
+                    Height="17.29"
+                    DockPanel.Dock="Top"
+                    FontSize="13"
+                    Foreground="{DynamicResource MainFontColor}"
+                    Text="MODBUS LIST 1-2" />
+                <StackPanel Width="400">
+                    <ListBox
+                        x:Name="LeftBoundListBox2"
+                        Width="400"
+                        Height="500"
+                        dd:DragDrop.CanDragWithMouseRightButton="True"
+                        dd:DragDrop.DropHandler="{Binding}"
+                        dd:DragDrop.DropTargetAdornerBrush="Coral"
+                        dd:DragDrop.IsDragSource="True"
+                        dd:DragDrop.IsDropTarget="True"
+                        dd:DragDrop.UseDefaultEffectDataTemplate="True"
+                        ItemsSource="{Binding Borders4}"
+                        ScrollViewer.HorizontalScrollBarVisibility="Auto">
+                        <ListBox.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <WrapPanel Width="400" Orientation="Horizontal" />
+                            </ItemsPanelTemplate>
+                        </ListBox.ItemsPanel>
+                    </ListBox>
                 </StackPanel>
             </DockPanel>
 
@@ -133,10 +195,10 @@
             </DockPanel>
         </Grid>
         <GridSplitter
-            Grid.Column="1"
+            Grid.Column="2"
             Width="2"
             Height="0"
-            Margin="552,40,0,0"
+            Margin="44,40,0,0"
             HorizontalAlignment="Left"
             VerticalAlignment="Top"
             av:LayoutOverrides="LeftMargin, RightMargin, TopMargin, BottomMargin"
@@ -152,14 +214,22 @@
 
 
             <DockPanel
-                Width="566"
+                Width="430"
+                Height="500"
                 HorizontalAlignment="Center"
+                VerticalAlignment="Top"
                 LastChildFill="False">
-                <StackPanel>
+                <TextBlock
+                    Height="17.29"
+                    DockPanel.Dock="Top"
+                    FontSize="13"
+                    Foreground="{DynamicResource MainFontColor}"
+                    Text="MODBUS LIST 2-1" />
+                <StackPanel Width="430">
                     <ListBox
                         x:Name="LeftBoundListBox1"
-                        Width="566"
-                        Height="642"
+                        Width="430"
+                        Height="479"
                         HorizontalAlignment="Left"
                         dd:DragDrop.CanDragWithMouseRightButton="True"
                         dd:DragDrop.DropHandler="{Binding}"
@@ -171,7 +241,7 @@
                         ScrollViewer.HorizontalScrollBarVisibility="Auto">
                         <ListBox.ItemsPanel>
                             <ItemsPanelTemplate>
-                                <WrapPanel Width="560" Orientation="Horizontal" />
+                                <WrapPanel Width="400" Orientation="Horizontal" />
                             </ItemsPanelTemplate>
                         </ListBox.ItemsPanel>
                     </ListBox>
@@ -187,6 +257,7 @@
             Margin="32,15,0,0"
             HorizontalAlignment="Left"
             VerticalAlignment="Top"
+            av:LayoutOverrides="LeftMargin, RightMargin, TopMargin, BottomMargin"
             Content="프로젝트 명"
             FontFamily="Yu Gothic UI Semibold"
             FontSize="13"
@@ -198,7 +269,7 @@
         <Label
             Margin="32,38,72,0"
             VerticalAlignment="Top"
-            av:LayoutOverrides="HorizontalAlignment"
+            av:LayoutOverrides="HorizontalAlignment, LeftMargin, RightMargin, TopMargin, BottomMargin"
             Content="AAA같은 프로젝트 로드 어쩌고"
             FontFamily="Yu Gothic UI Semibold"
             Foreground="White">
@@ -206,6 +277,49 @@
                 <SolidColorBrush Opacity="0" />
             </Label.Background>
         </Label>
+        <Grid
+            Grid.Row="2"
+            Grid.Column="1"
+            Width="400"
+            Margin="4,0,-4,0">
+
+
+            <DockPanel
+                Width="400"
+                HorizontalAlignment="Left"
+                LastChildFill="False">
+                <TextBlock
+                    Width="400"
+                    Height="17.29"
+                    DockPanel.Dock="Top"
+                    FontSize="13"
+                    Foreground="{DynamicResource MainFontColor}"
+                    Text="MODBUS LIST 2-2" />
+                <StackPanel Width="400">
+                    <ListBox
+                        x:Name="LeftBoundListBox3"
+                        Width="400"
+                        Height="500"
+                        dd:DragDrop.CanDragWithMouseRightButton="True"
+                        dd:DragDrop.DropHandler="{Binding}"
+                        dd:DragDrop.DropTargetAdornerBrush="Coral"
+                        dd:DragDrop.IsDragSource="True"
+                        dd:DragDrop.IsDropTarget="True"
+                        dd:DragDrop.UseDefaultEffectDataTemplate="True"
+                        ItemsSource="{Binding Borders5}"
+                        ScrollViewer.HorizontalScrollBarVisibility="Auto">
+
+                        <ListBox.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <WrapPanel Width="400" Orientation="Horizontal" />
+                            </ItemsPanelTemplate>
+                        </ListBox.ItemsPanel>
+                    </ListBox>
+                </StackPanel>
+            </DockPanel>
+
+
+        </Grid>
 
     </Grid>
 </UserControl>

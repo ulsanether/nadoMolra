@@ -9,6 +9,122 @@
 
     <converters:CommandParameterTypeConverter x:Key="CommandParameterTypeConverter" />
 
+    <!--  보더1 스타일  -->
+    <Style x:Key="DefaultBorderStyle" TargetType="{x:Type Border}">
+        <Setter Property="Width" Value="120" />
+        <Setter Property="Height" Value="30" />
+        <Setter Property="Margin" Value="0,0,0,0" />
+        <Setter Property="Background">
+            <Setter.Value>
+                <SolidColorBrush Color="#F2F2F2" />
+            </Setter.Value>
+        </Setter>
+        <Setter Property="BorderBrush" Value="#C0A9BA" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="CornerRadius" Value="6" />
+        <Setter Property="IsEnabled" Value="True" />
+    </Style>
+
+    <Style x:Key="DefaultBorderLabelStyle" TargetType="{x:Type Label}">
+        <Setter Property="HorizontalAlignment" Value="Center" />
+        <Setter Property="FontFamily" Value="Yu Gothic UI Semibold" />
+        <Setter Property="Foreground" Value="{StaticResource MainFontColor}" />
+    </Style>
+
+    <!--  ContentControl을 위한 ControlTemplate  -->
+    <ControlTemplate x:Key="BorderWithLabelTemplate" TargetType="{x:Type ContentControl}">
+        <Border Style="{StaticResource DefaultBorderStyle}">
+            <Label Content="{TemplateBinding Content}" Style="{StaticResource DefaultBorderLabelStyle}" />
+        </Border>
+    </ControlTemplate>
+
+    <Style
+        x:Key="Borders1Style"
+        BasedOn="{StaticResource DefaultBorderStyle}"
+        TargetType="{x:Type Border}">
+        <Setter Property="Width" Value="120" />
+        <Setter Property="Height" Value="50" />
+    </Style>
+
+    <!--  보더 2 스타일 아직 없ㅇ므  -->
+    <Style
+        x:Key="Borders2Style"
+        BasedOn="{StaticResource DefaultBorderStyle}"
+        TargetType="{x:Type Border}">
+        <Setter Property="Width" Value="100" />
+        <Setter Property="Height" Value="200" />
+    </Style>
+
+    <!--  보더 3 스타일 아직 없ㅇ므  -->
+    <!--  보더 3 스타일 수정  -->
+    <Style
+    x:Key="Borders3Style"
+    BasedOn="{StaticResource DefaultBorderStyle}"
+    TargetType="{x:Type Border}">
+        <Setter Property="Width" Value="150" />
+        <Setter Property="Height" Value="150" />
+        <Setter Property="Background">
+            <Setter.Value>
+                <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                    <GradientStop Color="#F9F9F9" Offset="0"/>
+                    <GradientStop Color="#E0E0E0" Offset="1"/>
+                </LinearGradientBrush>
+            </Setter.Value>
+        </Setter>
+        <Setter Property="Effect">
+            <Setter.Value>
+                <DropShadowEffect BlurRadius="3" ShadowDepth="1" Opacity="0.2"/>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- Border3 버튼 스타일 -->
+    <Style x:Key="Border3ButtonStyle" TargetType="{x:Type Button}">
+        <Setter Property="Background" Value="#4A85D8"/>
+        <Setter Property="Foreground" Value="White"/>
+        <Setter Property="FontWeight" Value="SemiBold"/>
+        <Setter Property="BorderThickness" Value="0"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="{x:Type Button}">
+                    <Border Background="{TemplateBinding Background}" 
+                        CornerRadius="4">
+                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter Property="Background" Value="#3C6EB5"/>
+                        </Trigger>
+                        <Trigger Property="IsPressed" Value="True">
+                            <Setter Property="Background" Value="#2C5594"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+
+    <!--  보더 4 스타일 아직 없ㅇ므  -->
+    <Style
+        x:Key="Borders4Style"
+        BasedOn="{StaticResource DefaultBorderStyle}"
+        TargetType="{x:Type Border}">
+        <Setter Property="Width" Value="50" />
+        <Setter Property="Height" Value="30" />
+    </Style>
+
+    <!--  보더 5 스타일 아직 없ㅇ므  -->
+    <Style
+        x:Key="Borders5Style"
+        BasedOn="{StaticResource DefaultBorderStyle}"
+        TargetType="{x:Type Border}">
+        <Setter Property="Width" Value="100" />
+        <Setter Property="Height" Value="50" />
+    </Style>
+
+
+
 
     <Style x:Key="MainHomePageButton" TargetType="{x:Type Button}">
         <Setter Property="Background" Value="{StaticResource MainButtonFontColor}" />
