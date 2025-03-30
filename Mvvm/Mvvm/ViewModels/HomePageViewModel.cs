@@ -158,7 +158,6 @@ namespace Mvvm.ViewModels
                 }
             }
         }
-
         public void Drop(IDropInfo dropInfo)  // dd:DragDrop.DropHandler="{Binding}"
         {
             if (dropInfo.Data is Border sourceItem)
@@ -166,9 +165,6 @@ namespace Mvvm.ViewModels
                 var sourceCollection = GetCollectionContainingItem(sourceItem);
 
                 if (sourceCollection == null) return;
-
-
-
 
                 Application.Current.Dispatcher.Invoke(() =>
                 {
@@ -186,33 +182,14 @@ namespace Mvvm.ViewModels
                     }
                 });
 
-
-
-
                 if (sourceCollection == Borders1)
                 {
-
-
-                    for(int i=0; i< Borders1.Count(); i++) {
-
-                        if ()
-                        {
-                            Borders1[i].Child == "1"
-    }
-
-                    }
-
-
-
-                    //왼쪽으로 이동할때는 값과 모든 것을 표시 
-                    MessageBox.Show("Border1이1이동되었습니다.");
+                    MessageBox.Show("Border1이 이동되었습니다.");
                 }
-                else {
-                   MessageBox.Show("Border1이 2이동되었습니다.");
+                else if (sourceCollection == Borders2)
+                {
+                    MessageBox.Show("Border2가 이동되었습니다.");
                 }
-
-
-
 
                 if (dropInfo.TargetItem is Border targetItem)
                 {
@@ -231,6 +208,25 @@ namespace Mvvm.ViewModels
                                 targetIndex--;
                             }
 
+                            if (targetCollection == Borders3)
+                            {
+                                // 바둑판 형식으로 배치하기 위한 사이즈 및 여백 조정
+                                sourceItem.Width = 270; // 적절한 가로 크기
+                                sourceItem.Height = 300; // 적절한 세로 크기
+
+                                // 짝수/홀수 인덱스에 따라 다른 여백 적용 (바둑판 형태)
+                                int row = targetIndex / 2; // 행 계산
+                                int column = targetIndex % 2; // 열 계산
+
+                                // 바둑판 형태로 여백 조정
+                                sourceItem.Margin = new Thickness(
+                                    column * 5, // 왼쪽 여백 (열에 따라 조정)
+                                    row * 5,    // 상단 여백 (행에 따라 조정)
+                                    5,          // 오른쪽 여백
+                                    5           // 하단 여백
+                                );
+                            }
+
                             targetCollection.Insert(targetIndex, sourceItem);
                         }
                     }
@@ -246,10 +242,48 @@ namespace Mvvm.ViewModels
                         {
                             if (dropInfo.InsertIndex >= 0 && dropInfo.InsertIndex <= borderCollection.Count)
                             {
+                                if (borderCollection == Borders3)
+                                {
+                                    sourceItem.Width = 200; 
+                                    sourceItem.Height = 200; 
+
+                                    // 짝수/홀수 인덱스에 따라 다른 여백 적용 (바둑판 형태)
+                                    int row = dropInfo.InsertIndex / 2; // 행 계산
+                                    int column = dropInfo.InsertIndex % 2; // 열 계산
+
+                                    // 바둑판 형태로 여백 조정
+                                    sourceItem.Margin = new Thickness(
+                                        column * 5, // 왼쪽 여백 (열에 따라 조정)
+                                        row * 5,    // 상단 여백 (행에 따라 조정)
+                                        5,          // 오른쪽 여백
+                                        5           // 하단 여백
+                                    );
+                                }
+
                                 borderCollection.Insert(dropInfo.InsertIndex, sourceItem);
                             }
                             else
                             {
+                                if (borderCollection == Borders3)
+                                {
+                                    // 바둑판 형식으로 배치하기 위한 사이즈 및 여백 조정
+                                    sourceItem.Width = 270; // 적절한 가로 크기
+                                    sourceItem.Height = 300; // 적절한 세로 크기
+
+                                    // 마지막 아이템의 경우 인덱스 계산
+                                    int index = borderCollection.Count;
+                                    int row = index / 2; // 행 계산
+                                    int column = index % 2; // 열 계산
+
+                                    // 바둑판 형태로 여백 조정
+                                    sourceItem.Margin = new Thickness(
+                                        column * 5, // 왼쪽 여백 (열에 따라 조정)
+                                        row * 5,    // 상단 여백 (행에 따라 조정)
+                                        5,          // 오른쪽 여백
+                                        5           // 하단 여백
+                                    );
+                                }
+
                                 borderCollection.Add(sourceItem);
                             }
                         }
@@ -258,28 +292,25 @@ namespace Mvvm.ViewModels
             }
         }
 
+
         private ObservableCollection<Border> GetCollectionContainingItem(Border item)
         {
             if (Borders1.Contains(item))
             {
-
-   
                 return Borders1;
             }
             else if (Borders2.Contains(item))
             {
-
-            
                 return Borders2;
             }
             else if (Borders3.Contains(item))
             {
-          
-
                 return Borders3;
             }
             return null;
         }
+
+
         #endregion
 
         #region IDragSource 구현

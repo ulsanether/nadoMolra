@@ -219,6 +219,23 @@
                 </LinearGradientBrush>
             </materialDesign:Snackbar.Background>
         </materialDesign:Snackbar>
+        <Button
+            Grid.Row="0"
+            Width="80"
+            Height="60"
+            Margin="99,0,0,0"
+            HorizontalAlignment="Left"
+            Command="{Binding NavigateToHomePageCommand}"
+            Style="{StaticResource MainHomePageButton}">
+            <StackPanel>
+                <TextBlock
+                    Width="80"
+                    Margin="5,40,0,0"
+                    FontSize="9"
+                    Foreground="White"
+                    Text="홈" />
+            </StackPanel>
+        </Button>
 
     </Grid>
 

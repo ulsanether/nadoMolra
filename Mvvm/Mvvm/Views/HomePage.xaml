@@ -14,8 +14,10 @@
 
     <Grid Width="1000" Height="642">
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="817*" />
-            <ColumnDefinition Width="120" />
+            <ColumnDefinition Width="200*" />
+            <ColumnDefinition Width="400*" />
+
+            <ColumnDefinition Width="170" />
         </Grid.ColumnDefinitions>
 
         <Grid.RowDefinitions>
@@ -24,17 +26,17 @@
         </Grid.RowDefinitions>
 
 
-        <DockPanel
+        <Grid
             Grid.RowSpan="2"
-            Grid.ColumnSpan="2"
-            Width="566"
-            HorizontalAlignment="Left"
-            LastChildFill="False">
-            <ScrollViewer Width="566" HorizontalAlignment="Left">
-                <StackPanel
-                    Width="566"
-                    Height="642"
-                    HorizontalAlignment="Left">
+            Width="NaN"
+            HorizontalAlignment="Left">
+
+
+            <DockPanel
+                Width="566"
+                HorizontalAlignment="Center"
+                LastChildFill="False">
+                <StackPanel>
                     <ListBox
                         x:Name="LeftBoundListBox"
                         Width="566"
@@ -48,13 +50,15 @@
                         dd:DragDrop.UseDefaultEffectDataTemplate="True"
                         ItemsSource="{Binding Borders2}" />
                 </StackPanel>
-            </ScrollViewer>
-        </DockPanel>
+            </DockPanel>
+
+
+        </Grid>
 
 
         <Grid
             Grid.RowSpan="2"
-            Grid.Column="1"
+            Grid.Column="2"
             av:LayoutOverrides="LeftMargin, RightMargin, TopMargin, BottomMargin"
             Background="#FFFF4C4C">
             <ScrollViewer>
@@ -84,6 +88,42 @@
 
                 </DockPanel>
             </ScrollViewer>
+        </Grid>
+        <Grid
+            Grid.RowSpan="2"
+            Grid.Column="1"
+            Width="NaN"
+            HorizontalAlignment="Left">
+
+
+            <DockPanel
+                Width="566"
+                HorizontalAlignment="Center"
+                LastChildFill="False">
+                <StackPanel>
+                    <ListBox
+                        x:Name="LeftBoundListBox1"
+                        Width="566"
+                        Height="642"
+                        HorizontalAlignment="Left"
+                        dd:DragDrop.CanDragWithMouseRightButton="True"
+                        dd:DragDrop.DropHandler="{Binding}"
+                        dd:DragDrop.DropTargetAdornerBrush="Coral"
+                        dd:DragDrop.IsDragSource="True"
+                        dd:DragDrop.IsDropTarget="True"
+                        dd:DragDrop.UseDefaultEffectDataTemplate="True"
+                        ItemsSource="{Binding Borders3}">
+                        <ListBox.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <WrapPanel Width="560" Orientation="Horizontal" />
+                            </ItemsPanelTemplate>
+                        </ListBox.ItemsPanel>
+                    </ListBox>
+
+                </StackPanel>
+            </DockPanel>
+
+
         </Grid>
 
     </Grid>
