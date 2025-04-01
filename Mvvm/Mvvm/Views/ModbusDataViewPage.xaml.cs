@@ -19,7 +19,7 @@ namespace Mvvm.Views
             _viewModel = viewModel;
             _viewModel.InitializeWithPlot(WpfPlot);
             DataContext = _viewModel;
-     
+
 
             // 차트 초기 설정
             WpfPlot.Plot.YLabel("값");
@@ -29,34 +29,6 @@ namespace Mvvm.Views
 
 
 
-        private void RefreshTemplate()
-        {
-            // UI 스레드에서 실행되도록 보장
-            //Dispatcher.Invoke(() =>
-            //{
-            //    // Parameters DataGrid 새로고침
-            //    if (ParametersDataGrid != null)
-            //    {
-            //        ParametersDataGrid.Items.Refresh();
-            //    }
-
-            //    // Plot 업데이트
-            //    if (WpfPlot != null)
-            //    {
-            //        _viewModel.UpdatePlot();
-            //        WpfPlot.Refresh();
-            //    }
-
-            //    // CommunicationLog ListView 새로고침
-            //    if (CommunicationLogListView != null)
-            //    {
-            //        CommunicationLogListView.Items.Refresh();
-            //    }
-
-            //    // 통신 상태 업데이트
-            //    _viewModel.UpdateCommunicationStatus();
-        //    });
-        }
         private void UserControl_Loaded(object sender, RoutedEventArgs e)
         {
             _viewModel.StartDataReading();

@@ -319,7 +319,11 @@ namespace Mvvm.ViewModels
         }
         private async void ExecuteGenerateParameters()
         {
-            await _modbusConnect.ExecuteGenerateParameters(Parameters);
+
+                _modbusConnect.ExecuteGenerateParameters(Parameters);
+
+
+
         }
 
 
@@ -906,7 +910,7 @@ namespace Mvvm.ViewModels
                 timeData.Enqueue(DateTime.Now.ToOADate());
                 valueData.Enqueue(parameter.DefaultActual);
 
-                while (timeData.Count > 10)  //차트 데이터 수량 50개 까지 
+                while (timeData.Count > 10)  //차트 데이터 수량 50개 까지
                 {
                     timeData.Dequeue();
                     valueData.Dequeue();
@@ -1039,7 +1043,7 @@ namespace Mvvm.ViewModels
                 }
                 catch (ObjectDisposedException)
                 {
-                
+
                     _parameterUpdateTimer = null;
                     Logger.Info("이미 폐기된 타이머");
                     AddLog("타이머", "이미 폐기된 타이머에 접근 시도");
