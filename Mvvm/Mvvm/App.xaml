@@ -10,9 +10,6 @@
     xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml">
     <Application.Resources>
         <ResourceDictionary>
-
-
-
             <ResourceDictionary.MergedDictionaries>
                 <ResourceDictionary Source="Dictionaries/Colours.xaml" />
                 <ResourceDictionary Source="Dictionaries/Icons.xaml" />
@@ -29,6 +26,8 @@
 
             <!--  BooleanToIconConverter 추가  -->
             <converters:BooleanToIconConverter x:Key="BooleanToIconConverter" />
+
+
         </ResourceDictionary>
     </Application.Resources>
 </prism:PrismApplication>

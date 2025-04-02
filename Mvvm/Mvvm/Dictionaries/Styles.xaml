@@ -38,6 +38,9 @@
         </Border>
     </ControlTemplate>
 
+
+
+    <!--  보더 1 스타일 왼위의 보더  -->
     <Style
         x:Key="Borders1Style"
         BasedOn="{StaticResource DefaultBorderStyle}"
@@ -45,6 +48,9 @@
         <Setter Property="Width" Value="120" />
         <Setter Property="Height" Value="50" />
     </Style>
+
+
+
 
     <!--  보더 2 스타일 아직 없ㅇ므  -->
     <Style

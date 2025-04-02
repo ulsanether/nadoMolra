@@ -47,8 +47,8 @@ namespace Mvvm.Model.IniFileRead
                         var func = GetCellValue(worksheet, row, 7);
                         var note = GetCellValue(worksheet, row, 8);
                         var endian = GetCellValue(worksheet, row, 9);
-                        var symbols = GetCellValue(worksheet, row, 10); // 추가된 부분
-                        var style = GetCellValue(worksheet, row, 11); // 추가된 부분
+                        var symbols = GetCellValue(worksheet, row, 10);
+                        var style = GetCellValue(worksheet, row, 11); 
 
                         if (!string.IsNullOrWhiteSpace(description))
                             modbusData.Add(index, (size, description, unit, defaultValue, normalRange, func, note, endian, symbols, style));

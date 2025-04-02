@@ -327,6 +327,7 @@ namespace Mvvm.ViewModels
 
 
         // Borders2용 내용 설정 도우미 메서드
+
         private void SetupBorders2Content(Border border, string content, ParameterModel parameter)
         {
             // 그리드가 이미 있는지 확인
@@ -540,7 +541,6 @@ namespace Mvvm.ViewModels
                 value = extractedValue;
             }
 
-            // 기존 그리드가 있는 경우 태그와 내용 업데이트
             if (border.Child is Grid existingGrid)
             {
                 foreach (var child in existingGrid.Children)
@@ -549,7 +549,6 @@ namespace Mvvm.ViewModels
                     {
                         btn.Tag = content;
 
-                        // 파라미터가 있는 경우 버튼 텍스트 업데이트
                         if (parameter != null)
                         {
                             btn.Content = $"{parameter.Address:D3}";
@@ -557,15 +556,13 @@ namespace Mvvm.ViewModels
                     }
                     else if (child is Image img && parameter != null)
                     {
-                        // 파라미터 값에 따라 이미지 동적 변경 가능
                         if (parameter.DefaultActual > 50)
                         {
-                            img.Source = new BitmapImage(new Uri("/Dictionaries/free-sticker-retro-5928520.png", UriKind.Relative));
+                            img.Source = new BitmapImage(new Uri("/Dictionaries/fsticker_retro.png", UriKind.Relative));
                         }
                     }
                     else if (child is StackPanel infoPanel)
                     {
-                        // StackPanel 내의 주소와 값 TextBlock 업데이트
                         if (infoPanel.Children.Count >= 2)
                         {
                             if (infoPanel.Children[0] is TextBlock addressBlock)
@@ -1206,4 +1203,7 @@ namespace Mvvm.ViewModels
             return new List<EventHandler<RoutedPropertyChangedEventArgs<double>>>();
         }
     }
+
+
+
 }

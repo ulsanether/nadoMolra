@@ -63,7 +63,6 @@
                 Margin="0,0,10,0"
                 HorizontalAlignment="Right"
                 VerticalAlignment="Bottom"
-                Source="/Dictionaries/free-sticker-retro-5928520.png"
                 Stretch="Fill" />
         </Border>
 
