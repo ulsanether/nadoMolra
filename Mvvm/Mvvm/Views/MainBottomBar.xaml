@@ -14,7 +14,7 @@
 
     <Grid Margin="5">
         <StackPanel
-            Margin="55,0,0,0"
+            Margin="0,0,100,0"
             HorizontalAlignment="Right"
             VerticalAlignment="Center"
             Background="White"
@@ -64,6 +64,15 @@
                     <TextBlock VerticalAlignment="Center" Text="{Binding BaudRate, UpdateSourceTrigger=PropertyChanged}" />
                 </StackPanel>
             </Border>
+
+            <Button
+                Command="{Binding AlertCommand}"
+                Style="{StaticResource AlertButtonStyle}"
+                ToolTip="알림" />
         </StackPanel>
+
+
+
+
     </Grid>
 </UserControl>

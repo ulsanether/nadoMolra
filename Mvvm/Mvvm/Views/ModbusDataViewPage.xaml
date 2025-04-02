@@ -19,7 +19,7 @@
         <Grid>
             <TabControl x:Name="MainTabControl">
                 <!--  실시간 차트 탭  -->
-                <TabItem Header="실시간 차트">
+                <TabItem x:Name="realTimeChartTabItem" Header="실시간 차트">
                     <Grid>
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto" />
@@ -112,7 +112,7 @@
                 </TabItem>
 
                 <!--  Set Point Table 탭  -->
-                <TabItem Header="Set Point Table">
+                <TabItem x:Name="setPointTableTabItem" Header="Set Point Table">
                     <Grid>
                         <DataGrid
                             x:Name="ParametersDataGrid"
@@ -162,7 +162,7 @@
                 </TabItem>
 
                 <!--  통신 상태 탭  -->
-                <TabItem Header="통신 상태">
+                <TabItem x:Name="connectStateTabItem" Header="통신 상태">
                     <Grid Margin="10">
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto" />
@@ -255,7 +255,7 @@
                                     Content="데이터 내보내기"
                                     Style="{StaticResource MaterialDesignRaisedButton}" />
                                 <Button
-                                    Width="100"
+                                    Width="121"
                                     Margin="5"
                                     Command="{Binding ResetStatisticsCommand}"
                                     Content="통계 초기화"

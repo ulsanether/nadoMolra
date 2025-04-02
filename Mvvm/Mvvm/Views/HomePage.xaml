@@ -16,7 +16,6 @@
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="40*" />
             <ColumnDefinition Width="43*" />
-
             <ColumnDefinition Width="170" />
         </Grid.ColumnDefinitions>
 
@@ -252,13 +251,14 @@
 
         </Grid>
         <Label
-            Width="83"
+            x:Name="SubTitleName"
+            Width="168"
             Height="25"
             Margin="32,15,0,0"
             HorizontalAlignment="Left"
             VerticalAlignment="Top"
             av:LayoutOverrides="LeftMargin, RightMargin, TopMargin, BottomMargin"
-            Content="프로젝트 명"
+            Content="{Binding SubTitleName}"
             FontFamily="Yu Gothic UI Semibold"
             FontSize="13"
             Foreground="White">
@@ -267,10 +267,11 @@
             </Label.Background>
         </Label>
         <Label
+            x:Name="SubTitleNote"
             Margin="32,38,72,0"
             VerticalAlignment="Top"
             av:LayoutOverrides="HorizontalAlignment, LeftMargin, RightMargin, TopMargin, BottomMargin"
-            Content="AAA같은 프로젝트 로드 어쩌고"
+            Content="{Binding SubTitleNote}"
             FontFamily="Yu Gothic UI Semibold"
             Foreground="White">
             <Label.Background>
@@ -317,8 +318,6 @@
                     </ListBox>
                 </StackPanel>
             </DockPanel>
-
-
         </Grid>
 
     </Grid>

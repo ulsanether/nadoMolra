@@ -17,21 +17,86 @@ using System.Diagnostics;
 using DryIoc;
 using System.Collections.Generic;
 using System.Windows.Media.Imaging;
-using System.Windows.Controls.Primitives; 
-using MaterialDesignThemes.Wpf; 
+using System.Windows.Controls.Primitives;
+using MaterialDesignThemes.Wpf;
+using OfficeOpenXml.Sorting;
+using System.Windows.Input;
+using Prism.Commands;
 
 namespace Mvvm.ViewModels
 {
     public class HomePageViewModel : BindableBase, IDropTarget, IDragSource
     {
+        #region Fields
         private CancellationTokenSource _cancellationTokenSource;
         private ModbusConnect _modbusConnect;
+
+
+
+
+        private string _SubTitleName = "프로젝트 제목";
+        private string _SubTitleNote = "이곳은 프로젝트에 대한 설명을 적는 곳입니다. 엑셀 파일에서 가져와야 합니다.";
+        #endregion
+
+
+        #region Properties
 
         public ObservableCollection<Border> Borders1 { get; set; }
         public ObservableCollection<Border> Borders2 { get; set; }
         public ObservableCollection<Border> Borders3 { get; set; }
         public ObservableCollection<Border> Borders4 { get; set; }
         public ObservableCollection<Border> Borders5 { get; set; }
+
+
+
+
+
+        #region 서브 타이틀 이름  이것도 엑셀 파일에서 가져와야 함.
+
+        public string SubTitleName
+        {
+            get => _SubTitleName;
+            set => SetProperty(ref _SubTitleName, value);
+        }
+
+        public string SubTitleNote
+        {
+            get => _SubTitleNote;
+            set => SetProperty(ref _SubTitleNote, value);
+        }
+
+
+        #endregion
+
+
+        //알림 아이콘
+
+        private bool _hasAlert;
+        private int _alertCountl;
+        private string _iconColor = "Black";
+
+        public bool HasAlert{
+            get => _hasAlert;
+            set => SetProperty(ref _hasAlert, value);
+        }
+
+        public int AlertCount{
+            get => _alertCountl;
+            set => SetProperty(ref _alertCountl, value);
+        }
+
+        public string IconColor
+        {
+            get => _iconColor;
+            set => SetProperty(ref _iconColor, value);
+        }
+
+        public ICommand AlertCommand{ get; }
+
+
+
+        #endregion
+
 
         public HomePageViewModel(ModbusConnect modbusConnect)
         {
@@ -41,6 +106,9 @@ namespace Mvvm.ViewModels
             int startAddress = Properties.Settings.Default.StartAddress;
             int endAddress = Properties.Settings.Default.EndAddress;
             int numberOfPoints = endAddress - startAddress + 1;
+
+
+            AlertCommand = new DelegateCommand(AlertCommandExecute);
 
             Borders1 = new ObservableCollection<Border>();
             Borders2 = new ObservableCollection<Border>();
@@ -64,7 +132,14 @@ namespace Mvvm.ViewModels
             }
         }
 
+        private void AlertCommandExecute(){
 
+
+            HasAlert = !HasAlert;
+            AlertCount = HasAlert ? AlertCount + 1 : 0;
+            IconColor = HasAlert ? "Red" : "Black";
+
+        }
 
         private void ModbusConnect_OnConnectionsStatusChanged(bool isConnected)
         {
@@ -80,6 +155,7 @@ namespace Mvvm.ViewModels
         }
 
         List<ParameterModel> parameters = new List<ParameterModel>();
+
 
         private async Task ReadDataPeriodically(CancellationToken cancellationToken)
         {
@@ -99,7 +175,16 @@ namespace Mvvm.ViewModels
 
                     if (parameters != null)
                     {
-                        await Application.Current.Dispatcher.InvokeAsync(() => UpdateBorderContents());
+                        try
+                        {
+                            await Application.Current.Dispatcher.InvokeAsync(() => UpdateBorderContents());
+                        }
+                        catch (Exception ex)
+                        {
+
+                        MessageBox.Show($"데이터 업데이트 중 오류가 발생했습니다: {ex.Message}", "오류", MessageBoxButton.OK, MessageBoxImage.Error);
+                            throw;
+                        }
                     }
                 }
                 catch (OperationCanceledException)

@@ -58,45 +58,47 @@
     <!--  보더 3 스타일 아직 없ㅇ므  -->
     <!--  보더 3 스타일 수정  -->
     <Style
-    x:Key="Borders3Style"
-    BasedOn="{StaticResource DefaultBorderStyle}"
-    TargetType="{x:Type Border}">
+        x:Key="Borders3Style"
+        BasedOn="{StaticResource DefaultBorderStyle}"
+        TargetType="{x:Type Border}">
         <Setter Property="Width" Value="150" />
         <Setter Property="Height" Value="150" />
         <Setter Property="Background">
             <Setter.Value>
                 <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
-                    <GradientStop Color="#F9F9F9" Offset="0"/>
-                    <GradientStop Color="#E0E0E0" Offset="1"/>
+                    <GradientStop Offset="0" Color="#F9F9F9" />
+                    <GradientStop Offset="1" Color="#E0E0E0" />
                 </LinearGradientBrush>
             </Setter.Value>
         </Setter>
         <Setter Property="Effect">
             <Setter.Value>
-                <DropShadowEffect BlurRadius="3" ShadowDepth="1" Opacity="0.2"/>
+                <DropShadowEffect
+                    BlurRadius="3"
+                    Opacity="0.2"
+                    ShadowDepth="1" />
             </Setter.Value>
         </Setter>
     </Style>
 
-    <!-- Border3 버튼 스타일 -->
+    <!--  Border3 버튼 스타일  -->
     <Style x:Key="Border3ButtonStyle" TargetType="{x:Type Button}">
-        <Setter Property="Background" Value="#4A85D8"/>
-        <Setter Property="Foreground" Value="White"/>
-        <Setter Property="FontWeight" Value="SemiBold"/>
-        <Setter Property="BorderThickness" Value="0"/>
+        <Setter Property="Background" Value="#4A85D8" />
+        <Setter Property="Foreground" Value="White" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+        <Setter Property="BorderThickness" Value="0" />
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="{x:Type Button}">
-                    <Border Background="{TemplateBinding Background}" 
-                        CornerRadius="4">
-                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    <Border Background="{TemplateBinding Background}" CornerRadius="4">
+                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
                     </Border>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsMouseOver" Value="True">
-                            <Setter Property="Background" Value="#3C6EB5"/>
+                            <Setter Property="Background" Value="#3C6EB5" />
                         </Trigger>
                         <Trigger Property="IsPressed" Value="True">
-                            <Setter Property="Background" Value="#2C5594"/>
+                            <Setter Property="Background" Value="#2C5594" />
                         </Trigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>
@@ -125,6 +127,44 @@
 
 
 
+    <!--  바텀 페이지 아이콘  -->
+
+    <Style x:Key="AlertButtonStyle" TargetType="Button">
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Grid>
+                        <Path
+                            x:Name="IconPath"
+                            Width="30"
+                            Height="30"
+                            Data="{StaticResource AlertIcon}"
+                            Fill="{Binding IconColor}" />
+                        <TextBlock
+                            x:Name="AlertCount"
+                            Margin="0,0,5,5"
+                            HorizontalAlignment="Right"
+                            VerticalAlignment="Top"
+                            FontWeight="Bold"
+                            Foreground="Red"
+                            Text="{Binding AlertCount}" />
+                    </Grid>
+                    <ControlTemplate.Triggers>
+                        <DataTrigger Binding="{Binding HasAlert}" Value="True">
+                            <Setter TargetName="IconPath" Property="Fill" Value="Red" />
+                            <Setter TargetName="IconPath" Property="Data" Value="{StaticResource AlertFillIcon}" />
+                        </DataTrigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+
+
+
+
+    <!--  메인 페이지 아이콘들  -->
 
     <Style x:Key="MainHomePageButton" TargetType="{x:Type Button}">
         <Setter Property="Background" Value="{StaticResource MainButtonFontColor}" />
@@ -140,21 +180,21 @@
                         CornerRadius="1">
                         <Grid>
                             <Path
-                                Width="15"
-                                Height="20"
+                                Width="20"
+                                Height="25"
                                 Margin="0,0,0,15"
                                 HorizontalAlignment="Center"
-                                Data="{StaticResource ExcelOpenIcon}"
+                                Data="{StaticResource HomeIcon}"
                                 Fill="Black"
                                 Opacity="0.2"
                                 Stretch="Fill" />
                             <Path
                                 x:Name="PathIcon"
-                                Width="15"
-                                Height="20"
+                                Width="20"
+                                Height="25"
                                 Margin="0,0,0,15"
                                 HorizontalAlignment="Center"
-                                Data="{StaticResource ExcelOpenIcon}"
+                                Data="{StaticResource HomeIcon}"
                                 Fill="{StaticResource MainButtonPath}"
                                 Stretch="Fill" />
 
@@ -198,21 +238,21 @@
                         CornerRadius="1">
                         <Grid>
                             <Path
-                                Width="15"
-                                Height="20"
+                                Width="20"
+                                Height="25"
                                 Margin="0,0,0,15"
                                 HorizontalAlignment="Center"
-                                Data="{StaticResource BasicIcon}"
+                                Data="{StaticResource ParameterOpenIcon}"
                                 Fill="Black"
                                 Opacity="0.2"
                                 Stretch="Fill" />
                             <Path
                                 x:Name="PathIcon"
-                                Width="15"
-                                Height="20"
+                                Width="20"
+                                Height="25"
                                 Margin="0,0,0,15"
                                 HorizontalAlignment="Center"
-                                Data="{StaticResource BasicIcon}"
+                                Data="{StaticResource ParameterOpenIcon}"
                                 Fill="{StaticResource MainButtonPath}"
                                 Stretch="Fill" />
 
@@ -256,21 +296,21 @@
                         CornerRadius="1">
                         <Grid>
                             <Path
-                                Width="15"
-                                Height="20"
+                                Width="20"
+                                Height="25"
                                 Margin="0,0,0,15"
                                 HorizontalAlignment="Center"
-                                Data="{StaticResource ExcelOpenIcon}"
+                                Data="{StaticResource ModbusDataOpenIcon}"
                                 Fill="Black"
                                 Opacity="0.2"
                                 Stretch="Fill" />
                             <Path
                                 x:Name="PathIcon"
-                                Width="15"
-                                Height="20"
+                                Width="20"
+                                Height="25"
                                 Margin="0,0,0,15"
                                 HorizontalAlignment="Center"
-                                Data="{StaticResource ExcelOpenIcon}"
+                                Data="{StaticResource ModbusDataOpenIcon}"
                                 Fill="{StaticResource MainButtonPath}"
                                 Stretch="Fill" />
 

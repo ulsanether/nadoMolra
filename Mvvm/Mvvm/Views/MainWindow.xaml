@@ -40,9 +40,10 @@
             Mode="PrimaryDark">
             <StackPanel Orientation="Horizontal">
                 <TextBlock
+                    Width="150"
                     Margin="16,0,0,0"
                     VerticalAlignment="Center"
-                    Text="모드버스" />
+                    Text="{Binding Title}" />
             </StackPanel>
         </materialDesign:ColorZone>
         <!--  버튼  -->
@@ -86,9 +87,9 @@
         <ContentControl Grid.Row="1" prism:RegionManager.RegionName="ContentRegion" />
 
         <Button
-            Width="30"
-            Height="30"
-            Margin="0,-2,380,0"
+            Width="35"
+            Height="35"
+            Margin="0,0,380,-2"
             HorizontalAlignment="Right"
             VerticalAlignment="Center"
             Background="{x:Null}"
@@ -97,9 +98,10 @@
             Foreground="{Binding IconColor}"
             Style="{StaticResource MaterialDesignFloatingActionLightButton}"
             ToolTip="MaterialDesignFloatingActionLightButton">
-            <Fluent:FluentIcon Icon="{Binding Icon}" />
-
+            <Path Data="{StaticResource ConnectPlugIcon}" Fill="{Binding IconColor}" />
         </Button>
+
+
         <ComboBox
             x:Name="PortComboBox"
             Width="120"
@@ -223,15 +225,17 @@
             Grid.Row="0"
             Width="80"
             Height="60"
-            Margin="99,0,0,0"
+            Margin="140,0,0,0"
             HorizontalAlignment="Left"
             Command="{Binding NavigateToHomePageCommand}"
             Style="{StaticResource MainHomePageButton}">
             <StackPanel>
                 <TextBlock
                     Width="80"
-                    Margin="5,40,0,0"
-                    FontSize="9"
+                    Margin="0,40,0,0"
+                    Padding="34,0,0,0"
+                    HorizontalAlignment="Left"
+                    FontSize="10"
                     Foreground="White"
                     Text="홈" />
             </StackPanel>

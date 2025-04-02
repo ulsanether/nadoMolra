@@ -30,8 +30,8 @@ namespace Mvvm.Model.IniFileRead
                     var worksheet = package.Workbook.Worksheets[0];
                     var rowCount = worksheet.Dimension?.Rows ?? 0;
 
-                    // 헤더를 제외하고 2번째 행부터 데이터 읽기
-                    for (var row = 3; row <= rowCount; row++)
+
+                    for (var row = 6; row <= rowCount; row++)
                     {
                         var indexValue = worksheet.Cells[row, 1].Value;
                         if (indexValue == null) continue;

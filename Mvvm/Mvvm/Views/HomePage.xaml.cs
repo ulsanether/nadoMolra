@@ -23,12 +23,10 @@ namespace Mvvm.Views
             _viewModel = new HomePageViewModel(modbusConnect);
             DataContext = _viewModel;
         }
-
         private void UserControl_Loaded(object sender, RoutedEventArgs e)
         {
             _viewModel.StartDataReading();
         }
-
         private void UserControl_Unloaded(object sender, RoutedEventArgs e)
         {
             _viewModel.StopDataReading();

@@ -24,6 +24,8 @@ using Accord;
 
 using Mvvm.Model;
 using Mvvm.Converters;
+using System.ServiceModel.Channels;
+using System.IO;
 
 
 namespace Mvvm.ViewModels
@@ -36,6 +38,8 @@ namespace Mvvm.ViewModels
 
 
         #region Fields
+
+
         private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
         private readonly int _maxDataPoints = 1000;
@@ -44,6 +48,9 @@ namespace Mvvm.ViewModels
         private readonly ModbusConnect _modbusConnect;
 
         private readonly Timer _modbusDataVieewDataUpdateTimer;
+
+        private CommunicationStatistics _statistics;
+
         private Timer _chartUpdateTimer;
         private Timer _parameterUpdateTimer;
 
@@ -60,7 +67,7 @@ namespace Mvvm.ViewModels
         private IPlottable _dataPlot;
         private bool _autoScale;
         private string _selectedChartType;
-        private string _statistics;
+
 
         private bool _isCardView;
 
@@ -75,7 +82,12 @@ namespace Mvvm.ViewModels
         private DelegateCommand _addButtonClickCommand;
 
         private ICommand _writeCommand;
+
+
         private DelegateCommand _generateParametersCommand;
+        //
+
+
         private DelegateCommand _toggleParameterUpdateCommand;
 
 
@@ -173,19 +185,17 @@ namespace Mvvm.ViewModels
             get => _selectedChartType;
             set => SetProperty(ref _selectedChartType, value);
         }
-        public string Statistics
+        public CommunicationStatistics Statistics
         {
             get => _statistics;
             set => SetProperty(ref _statistics, value);
         }
+
+        //디버그용 버튼
         public DelegateCommand GenerateParametersCommand =>
     _generateParametersCommand ??= new DelegateCommand(
-
-
         ExecuteGenerateParameters,
-
         () => true
-
 
         );
 
@@ -269,6 +279,7 @@ namespace Mvvm.ViewModels
             _communicationLog = new ObservableCollection<CommunicationLogItem>();
 
             Parameters = new ObservableCollection<ParameterModel>();
+            _statistics = new CommunicationStatistics();
 
             ResetChartCommand = new DelegateCommand(ResetChart);
             ExportDataCommand = new DelegateCommand(ExportData);
@@ -306,8 +317,8 @@ namespace Mvvm.ViewModels
 
         public void StopDataReading()
         {
-            StopDataCollection();
-            StopParameterUpdateTimer();
+        //    StopDataCollection();
+         //   StopParameterUpdateTimer();
         }
 
 
@@ -607,6 +618,22 @@ namespace Mvvm.ViewModels
 
 
 
+        //데이터 로그 항목 나중에 넣을 것.
+        private void UpdateStatistics()
+        {
+            Statistics.TotalReads = _modbusConnect.Statistics.TotalReads;
+            Statistics.SuccessfulReads = _modbusConnect.Statistics.SuccessfulReads;
+            Statistics.ErrorCount = _modbusConnect.Statistics.ErrorCount;
+            Statistics.ReconnectAttempts = _modbusConnect.Statistics.ReconnectAttempts;
+            Statistics.SuccessfulReconnects = _modbusConnect.Statistics.SuccessfulReconnects;
+            Statistics.LastSuccessfulRead = _modbusConnect.Statistics.LastSuccessfulRead;
+            Statistics.LastError = _modbusConnect.Statistics.LastError;
+            Statistics.SuccessRate = _modbusConnect.Statistics.SuccessRate;
+            Statistics.ReconnectSuccessRate = _modbusConnect.Statistics.ReconnectSuccessRate;
+        }
+
+
+
 
         private void AddLog(string eventName, string details)
         {
@@ -636,7 +663,7 @@ namespace Mvvm.ViewModels
                 {
                     _modbusDataVieewDataUpdateTimer?.Start();
                     LoadModbusData();
-
+                    UpdateStatistics();
                     if (!_isParameterUpdateEnabled)
                     {
                         _isParameterUpdateEnabled = true;
@@ -648,7 +675,7 @@ namespace Mvvm.ViewModels
                 {
                     _modbusDataVieewDataUpdateTimer?.Stop();
                     IsRealTimeUpdate = false;
-
+                    UpdateStatistics();
                     if (_isParameterUpdateEnabled)
                     {
                         _isParameterUpdateEnabled = false;
@@ -658,6 +685,10 @@ namespace Mvvm.ViewModels
                 }
             });
         }
+
+
+
+
 
         private void StartDataCollection()
         {
@@ -957,10 +988,21 @@ namespace Mvvm.ViewModels
                     return;
                 }
 
-                await Application.Current.Dispatcher.InvokeAsync(() =>
+                try
                 {
-                    ExecuteGenerateParameters();
-                });
+                    await Application.Current.Dispatcher.InvokeAsync(() =>
+                     {
+                         ExecuteGenerateParameters();
+                     });
+                }
+                catch (Exception ex)
+                {
+
+                   MessageBox.Show($"파라미터 생성 중 오류가 발생했습니다: {ex.Message}",
+                        "오류", MessageBoxButton.OK, MessageBoxImage.Error);
+
+                    throw;
+                }
             }
             catch (Exception ex)
             {
@@ -1053,15 +1095,40 @@ namespace Mvvm.ViewModels
 
 
 
+
         private void ExportData()
         {
-            // 데이터 내보내기 로직
-        }
+            try
+            {
+                string filePath = "ModbusLog.txt";
+                using (StreamWriter writer = new StreamWriter(filePath, false))
+                {
+                    foreach (var logItem in _communicationLog)
+                    {
+                        writer.WriteLine($"{logItem.Timestamp:yyyy-MM-dd HH:mm:ss} - {logItem.Event}: {logItem.Details}");
+                    }
+                }
 
+                MessageBox.Show("로그가 ModbusLog.txt 파일로 저장되었습니다.", "저장 완료", MessageBoxButton.OK, MessageBoxImage.Information);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"로그 저장 중 오류가 발생했습니다: {ex.Message}", "오류", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
         private void ResetStatistics()
         {
-            // 통계 초기화 로직
+            Application.Current.Dispatcher.Invoke(() =>
+            {
+                _communicationLog.Clear();
+                RaisePropertyChanged(nameof(CommunicationLog));
+            });
         }
+
+
+
+
+
         #endregion
     }
 

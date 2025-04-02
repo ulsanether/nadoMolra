@@ -21,12 +21,12 @@ namespace Mvvm.Views
             DataContext = _viewModel;
             _viewModel.RefreshTemplateAction = RefreshTemplate;
 
-            _statusUpdateTimer = new DispatcherTimer
-            {
-                Interval = TimeSpan.FromMilliseconds(100)
-            };
-            _statusUpdateTimer.Tick += StatusUpdateTimer_Tick;
-          _statusUpdateTimer.Start();
+            //_statusUpdateTimer = new DispatcherTimer
+            //{
+            //    Interval = TimeSpan.FromMilliseconds(100)
+            //};
+         //   _statusUpdateTimer.Tick += StatusUpdateTimer_Tick;
+        //  _statusUpdateTimer.Start();
 
         }
         private void StatusUpdateTimer_Tick(object sender, EventArgs e)

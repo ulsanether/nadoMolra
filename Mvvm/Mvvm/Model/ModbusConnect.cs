@@ -31,7 +31,7 @@ namespace Mvvm.Model
 
         private readonly int MAX_RECONNECT_ATTEMPTS = 3;
         private readonly Dictionary<ushort, DataType> dataTypeMap = new Dictionary<ushort, DataType>();
-        private readonly CommunicationStatistics statistics;
+        public CommunicationStatistics statistics { get; set; }
 
         private DateTime lastDataReceived;
         private IModbusMaster ?master = null;
@@ -52,7 +52,7 @@ namespace Mvvm.Model
         #endregion
 
         public string portName;
-
+        public CommunicationStatistics Statistics => statistics;
         public SerialPortConfig serialPortConfig { get; set; }
         public readonly ModbusDataBuffer dataBuffer;
 
@@ -74,6 +74,24 @@ namespace Mvvm.Model
         {
             return input.Select(x => (ushort)x).ToArray();
         }
+
+
+   public void UpdateStatistics()
+{
+    statistics.TotalReads++;
+    if (true) // 성공 조건 만들어야 함.
+    {
+        statistics.SuccessfulReads++;
+        statistics.LastSuccessfulRead = DateTime.Now;
+    }
+    else
+    {
+        statistics.ErrorCount++;
+        statistics.LastError = DateTime.Now;
+    }
+
+}
+
         public async Task ExecuteGenerateParameters(ObservableCollection<ParameterModel> parameters)
         {
             try
@@ -261,13 +279,17 @@ namespace Mvvm.Model
             };
 
 
-            MessageBox.Show(serialPortConfig.BaudRate.ToString(), "BaudRate", MessageBoxButton.OK, MessageBoxImage.Information);
+            try
+            {
+                await Task.Run(() => port.Open());
 
+            }
+            catch (Exception ex)
+            {
 
-            await Task.Run(() =>
-
-            port.Open());
-
+                ShowMessage($"포트를 열 수가 없습니다 : {ex.Message}", "오류", true);
+                throw;
+            }
             var factory = new ModbusFactory();
             master = factory.CreateRtuMaster(port);
             master.Transport.ReadTimeout = 2000;
@@ -294,12 +316,22 @@ namespace Mvvm.Model
             {
                 var registers = new ushort[numberOfPoints];
 
-                registers = await Task.Run(() =>
-                    master.ReadHoldingRegisters(
-                        serialPortConfig.slaveId,
-                        (ushort)startAddress,
-                        (ushort)numberOfPoints));
+                try
+                {
+                    UpdateStatistics();
+                    registers = await Task.Run(() =>
+                               master.ReadHoldingRegisters(
+                                   serialPortConfig.slaveId,
+                                   (ushort)startAddress,
+                                   (ushort)numberOfPoints));
 
+                }
+                catch (Exception ex)
+                {
+                    UpdateStatistics();
+                    MessageBox.Show($"{ex.Message} 데이터를 읽을수 없습니다.");
+                    throw;
+                }
                 statistics.RecordSuccessfulRead();
                 lastDataReceived = DateTime.Now;
 
@@ -314,7 +346,7 @@ namespace Mvvm.Model
             {
                 statistics.RecordError();
                 ShowMessage($"데이터 읽기 실패: {ex.Message}", "오류", true);
-
+                UpdateStatistics();
                 var lastValues = dataBuffer.GetLastValues(numberOfPoints);
                 return lastValues;
             }
@@ -512,13 +544,13 @@ namespace Mvvm.Model
 
     public class CommunicationStatistics
     {
-        public int TotalReads { get; private set; }
-        public int SuccessfulReads { get; private set; }
-        public int ErrorCount { get; private set; }
-        public int ReconnectAttempts { get; private set; }
-        public int SuccessfulReconnects { get; private set; }
-        public DateTime LastSuccessfulRead { get; private set; }
-        public DateTime LastError { get; private set; }
+        public int TotalReads { get; set; }
+        public int SuccessfulReads { get;  set; }
+        public int ErrorCount { get;  set; }
+        public int ReconnectAttempts { get; set; }
+        public int SuccessfulReconnects { get;  set; }
+        public DateTime LastSuccessfulRead { get; set; }
+        public DateTime LastError { get; set; }
 
         public double SuccessRate => TotalReads == 0 ? 0 : (double)SuccessfulReads / TotalReads * 100;
         public double ReconnectSuccessRate => ReconnectAttempts == 0 ? 0 : (double)SuccessfulReconnects / ReconnectAttempts * 100;
