@@ -1,0 +1,75 @@
+//보여야할 창. 
+
+   
+왼위                          왼아            오위            오아
+1 Sliders Vertical              1              1               1
+2 Sliders Horizontal
+3 
+4
+
+
+
+
+
+
+
+
+
+
+//고급모드 
+MainWindow
+1.HomePage 버튼     : true
+2.ModbusData 버튼   : true
+3.Parameter 버튼    : true
+
+
+
+ParameterWindow   : true
+1.AdvencedView
+2.
+3.
+4.
+5.
+6.
+7.
+8.
+9.
+10.
+
+
+ModbusDataWindow   : true
+
+
+1.
+2.
+3.
+4.
+5.
+6.
+
+
+
+SettingPage : true
+
+
+
+//일반 모드 
+MainWindow  : true
+1.HomePage 버튼     : false
+2.ModbusData 버튼   : true
+3.Parameter 버튼    : true
+
+
+
+
+
+
+
+//미니멀 모드 
+
+MainWindow  : true
+1.HomePage 버튼     : true
+2.ModbusData 버튼   : false
+3.Parameter 버튼    : false
+
+

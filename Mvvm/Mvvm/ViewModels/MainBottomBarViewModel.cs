@@ -8,6 +8,7 @@ using System;
 using System.Threading.Tasks;
 using System.Windows.Data;
 using System.Drawing;
+using ImTools;
 
 namespace Mvvm.ViewModels
 {
@@ -21,6 +22,8 @@ namespace Mvvm.ViewModels
         private string _portName;
         private string _portState;
         private bool _isConnected;
+        private bool _alertButton;
+
         #endregion
 
 
@@ -28,6 +31,14 @@ namespace Mvvm.ViewModels
         #region 프로퍼티
         public ICommand AdvancedModeCommand => new DelegateCommand(OnAdvancedModeCommand);
         public event EventHandler AdvancedModeChanged;
+
+        public bool AlertButton{
+
+            get=>_alertButton;
+            set => SetProperty(ref _alertButton, value);
+
+        }
+
 
         public bool IsConnected
         {
