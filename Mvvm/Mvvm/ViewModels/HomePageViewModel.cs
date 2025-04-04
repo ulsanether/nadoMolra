@@ -49,8 +49,6 @@ namespace Mvvm.ViewModels
 
 
 
-
-
         #region 서브 타이틀 이름  이것도 엑셀 파일에서 가져와야 함.
 
         public string SubTitleName
@@ -65,11 +63,8 @@ namespace Mvvm.ViewModels
             set => SetProperty(ref _SubTitleNote, value);
         }
 
-
         #endregion
 
-
-        //알림 아이콘
 
         private bool _hasAlert;
         private int _alertCountl;
@@ -133,7 +128,6 @@ namespace Mvvm.ViewModels
         }
 
         private void AlertCommandExecute(){
-
 
             HasAlert = !HasAlert;
             AlertCount = HasAlert ? AlertCount + 1 : 0;
@@ -232,6 +226,7 @@ namespace Mvvm.ViewModels
             UpdateBorderCollection(Borders3, parameterMap);
             UpdateBorderCollection(Borders4, parameterMap);
             UpdateBorderCollection(Borders5, parameterMap);
+
         }
 
         private void UpdateBorderCollection(ObservableCollection<Border> collection, Dictionary<int, ParameterModel> parameterMap)
@@ -242,7 +237,7 @@ namespace Mvvm.ViewModels
 
                 if (!borderAddress.HasValue)
                 {
-                    // 새 Border에 주소가 없는 경우
+
                     foreach (var param in parameters)
                     {
                         bool isAddressUsed = false;
@@ -260,13 +255,11 @@ namespace Mvvm.ViewModels
                         {
                             if (collection == Borders3)
                             {
-                                // Borders3인 경우 Grid를 사용하여 이미지와 버튼 설정
                                 string content = $"Address: {param.Address}, Value: {param.DefaultActual}, Status: {(param.IsMonitoring ? "true" : "false")}";
                                 SetupBorders3Content(border, content, param);
                             }
                             else if (collection == Borders2)
                             {
-                                // Borders2인 경우 Grid를 사용하여 슬라이더 설정
                                 string content = $"Address: {param.Address}, Value: {param.DefaultActual}, Status: {(param.IsMonitoring ? "true" : "false")}";
                                 SetupBorders2Content(border, content, param);
                             }
@@ -286,13 +279,12 @@ namespace Mvvm.ViewModels
                 {
                     if (collection == Borders3)
                     {
-                        // Borders3인 경우 Grid를 사용하여 이미지와 버튼 설정
                         string content = $"Address: {parameter.Address}, Value: {parameter.DefaultActual}, Status: {(parameter.IsMonitoring ? "true" : "false")}";
                         SetupBorders3Content(border, content, parameter);
                     }
                     else if (collection == Borders2)
                     {
-                        // Borders2인 경우 Grid를 사용하여 슬라이더 설정
+
                         string content = $"Address: {parameter.Address}, Value: {parameter.DefaultActual}, Status: {(parameter.IsMonitoring ? "true" : "false")}";
                         SetupBorders2Content(border, content, parameter);
                     }
@@ -1013,17 +1005,14 @@ namespace Mvvm.ViewModels
                 img.Source = new BitmapImage(new Uri("/Dictionaries/free-sticker-retro-5928520.png", UriKind.Relative));
                 Grid.SetRow(img, 1);
 
-                // 버튼 생성
                 Button btn = new Button();
                 btn.Content = "설정";
                 btn.Margin = new Thickness(5);
                 btn.Style = (Style)Application.Current.Resources["Border3ButtonStyle"];
                 Grid.SetRow(btn, 2);
 
-                // 텍스트 정보를 버튼의 Tag에 저장
                 btn.Tag = originalContent;
 
-                // 버튼 클릭 이벤트
                 btn.Click += (sender, e) => {
                     Button clickedBtn = sender as Button;
                     if (clickedBtn != null)
@@ -1036,12 +1025,10 @@ namespace Mvvm.ViewModels
                     }
                 };
 
-                // 그리드에 요소 추가
                 grid.Children.Add(infoPanel);
                 grid.Children.Add(img);
                 grid.Children.Add(btn);
 
-                // 그리드를 Border의 새 자식으로 설정
                 border.Child = grid;
             }
             else if (targetCollection == Borders4)
@@ -1050,10 +1037,8 @@ namespace Mvvm.ViewModels
                 border.Height = 30;
                 border.Margin = new Thickness(0, 0, 0, 0);
 
-                // 기존 라벨 유지
                 if (border.Child is Label label)
                 {
-                    // 라벨 스타일 유지
                 }
             }
             else if (targetCollection == Borders5)
