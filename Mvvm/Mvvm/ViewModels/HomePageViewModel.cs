@@ -27,6 +27,508 @@ namespace Mvvm.ViewModels
 {
     public class HomePageViewModel : BindableBase, IDropTarget, IDragSource
     {
+
+        #region UI 컴포넌트 생성 함수들
+
+        /// <summary>
+        /// 슬라이더를 생성하는 함수 (방향과 타입 선택 가능)
+        /// </summary>
+        /// <param name="border">슬라이더가 추가될 Border</param>
+        /// <param name="content">표시할 내용</param>
+        /// <param name="parameter">표시할 파라미터</param>
+        /// <param name="orientation">슬라이더 방향 (가로/세로)</param>
+        /// <param name="isDiscrete">이산적(Discrete) 슬라이더 여부</param>
+        private void SetupSlider(Border border, string content, ParameterModel parameter, Orientation orientation = Orientation.Horizontal, bool isDiscrete = true)
+        {
+            // 현재 border가 그리드를 포함하고 있는지 확인
+            if (!(border.Child is Grid))
+            {
+                // 새로운 그리드 생성
+                Grid grid = new Grid();
+                grid.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Auto) }); // 주소 표시 영역
+                grid.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Auto) }); // 값 표시 영역
+                grid.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) }); // 슬라이더 영역
+
+                // 주소 표시 TextBlock
+                TextBlock addressBlock = new TextBlock();
+                addressBlock.FontWeight = FontWeights.Bold;
+                addressBlock.FontSize = 14;
+                addressBlock.HorizontalAlignment = HorizontalAlignment.Center;
+                addressBlock.Foreground = new SolidColorBrush(Colors.DarkBlue);
+                addressBlock.Margin = new Thickness(0, 5, 0, 0);
+                Grid.SetRow(addressBlock, 0);
+
+                // 값 표시 TextBlock
+                TextBlock valueBlock = new TextBlock();
+                valueBlock.FontSize = 14;
+                valueBlock.HorizontalAlignment = HorizontalAlignment.Center;
+                valueBlock.Foreground = new SolidColorBrush(Colors.DarkGreen);
+                valueBlock.Margin = new Thickness(0, 5, 0, 10);
+                Grid.SetRow(valueBlock, 1);
+
+                // MaterialDesign 슬라이더 생성
+                Slider slider = new Slider();
+                slider.Orientation = orientation;
+                slider.Minimum = 0;
+                slider.Maximum = 100;
+
+                // 방향에 따른 크기 설정
+                if (orientation == Orientation.Vertical)
+                {
+                    slider.Height = 120;
+                    slider.Width = double.NaN; // Auto
+                }
+                else // Horizontal
+                {
+                    slider.Width = 120;
+                    slider.Height = double.NaN; // Auto
+                }
+
+                slider.Margin = new Thickness(10);
+                slider.VerticalAlignment = VerticalAlignment.Stretch;
+                slider.HorizontalAlignment = HorizontalAlignment.Center;
+
+                // Discrete 여부에 따른 설정
+                if (isDiscrete)
+                {
+                    slider.TickFrequency = 10;
+                    slider.IsSnapToTickEnabled = true;
+                    slider.TickPlacement = TickPlacement.BottomRight;
+                    slider.Style = (Style)Application.Current.Resources["MaterialDesignDiscreteSlider"];
+                }
+                else
+                {
+                    slider.Style = (Style)Application.Current.Resources["MaterialDesignSlider"];
+                }
+
+                // SliderAssist 설정
+                MaterialDesignThemes.Wpf.SliderAssist.SetOnlyShowFocusVisualWhileDragging(slider, true);
+
+                Grid.SetRow(slider, 2);
+
+                // 값 변경 이벤트 핸들러
+                slider.ValueChanged += (sender, e) => {
+                    if (valueBlock != null)
+                    {
+                        valueBlock.Text = $"값: {e.NewValue:F2}";
+
+                        // 실제 파라미터 값 업데이트 로직은 이곳에 구현
+                    }
+                };
+
+                // 그리드에 요소 추가
+                grid.Children.Add(addressBlock);
+                grid.Children.Add(valueBlock);
+                grid.Children.Add(slider);
+
+                // 그리드를 Border의 새 자식으로 설정
+                border.Child = grid;
+            }
+
+            // 데이터 업데이트 (추후 구현)
+            // TODO: 슬라이더 값 업데이트
+        }
+
+        /// <summary>
+        /// 평점 표시(Rating Bar) 생성 함수
+        /// </summary>
+        /// <param name="border">RatingBar가 추가될 Border</param>
+        /// <param name="content">표시할 내용</param>
+        /// <param name="parameter">표시할 파라미터</param>
+        /// <param name="mode">RatingBar 모드 (Default, Preview, Fractional)</param>
+        private void SetupRatingBar(Border border, string content, ParameterModel parameter, RatingBarMode mode = RatingBarMode.Default)
+        {
+            if (!(border.Child is Grid))
+            {
+                // 새로운 그리드 생성
+                Grid grid = new Grid();
+                grid.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Auto) }); // 주소 표시 영역
+                grid.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Auto) }); // 값 표시 영역
+                grid.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) }); // RatingBar 영역
+
+                // 주소 표시 TextBlock
+                TextBlock addressBlock = new TextBlock();
+                addressBlock.FontWeight = FontWeights.Bold;
+                addressBlock.FontSize = 14;
+                addressBlock.HorizontalAlignment = HorizontalAlignment.Center;
+                addressBlock.Foreground = new SolidColorBrush(Colors.DarkBlue);
+                addressBlock.Margin = new Thickness(0, 5, 0, 0);
+                Grid.SetRow(addressBlock, 0);
+
+                // 값 표시 TextBlock
+                TextBlock valueBlock = new TextBlock();
+                valueBlock.FontSize = 14;
+                valueBlock.HorizontalAlignment = HorizontalAlignment.Center;
+                valueBlock.Foreground = new SolidColorBrush(Colors.DarkGreen);
+                valueBlock.Margin = new Thickness(0, 5, 0, 10);
+                Grid.SetRow(valueBlock, 1);
+
+                // RatingBar 생성 (MaterialDesignInXAML에서 제공하지 않으므로 직접 구현)
+                StackPanel ratingPanel = new StackPanel();
+                ratingPanel.Orientation = Orientation.Horizontal;
+                ratingPanel.HorizontalAlignment = HorizontalAlignment.Center;
+
+                // 별 5개 생성
+                for (int i = 0; i < 5; i++)
+                {
+                    PackIcon star = new PackIcon();
+                    star.Kind = PackIconKind.Star;
+                    star.Width = 24;
+                    star.Height = 24;
+                    star.Margin = new Thickness(2);
+                    star.Foreground = new SolidColorBrush(Colors.Gray);
+
+                    // 모드에 따른 설정
+                    switch (mode)
+                    {
+                        case RatingBarMode.Preview:
+                            star.MouseEnter += (sender, e) => {
+                                // 마우스 오버 시 미리보기 효과 (추후 구현)
+                            };
+                            break;
+                        case RatingBarMode.Fractional:
+                            // 부분 채우기를 위한 설정 (추후 구현)
+                            break;
+                        default: // Default
+                            star.MouseLeftButtonDown += (sender, e) => {
+                                // 클릭 시 별점 설정 (추후 구현)
+                            };
+                            break;
+                    }
+
+                    ratingPanel.Children.Add(star);
+                }
+
+                Grid.SetRow(ratingPanel, 2);
+
+                // 그리드에 요소 추가
+                grid.Children.Add(addressBlock);
+                grid.Children.Add(valueBlock);
+                grid.Children.Add(ratingPanel);
+
+                // 그리드를 Border의 새 자식으로 설정
+                border.Child = grid;
+            }
+
+            // 데이터 업데이트 (추후 구현)
+            // TODO: RatingBar 값 업데이트
+        }
+
+        /// <summary>
+        /// 팝업 박스 생성 함수
+        /// </summary>
+        /// <param name="border">팝업 박스가 추가될 Border</param>
+        /// <param name="content">표시할 내용</param>
+        /// <param name="parameter">표시할 파라미터</param>
+        private void SetupPopupBox(Border border, string content, ParameterModel parameter)
+        {
+            if (!(border.Child is Grid))
+            {
+                // 새로운 그리드 생성
+                Grid grid = new Grid();
+                grid.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Auto) }); // 주소 표시 영역
+                grid.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Auto) }); // 값 표시 영역
+                grid.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) }); // 팝업 박스 영역
+
+                // 주소 표시 TextBlock
+                TextBlock addressBlock = new TextBlock();
+                addressBlock.FontWeight = FontWeights.Bold;
+                addressBlock.FontSize = 14;
+                addressBlock.HorizontalAlignment = HorizontalAlignment.Center;
+                addressBlock.Foreground = new SolidColorBrush(Colors.DarkBlue);
+                addressBlock.Margin = new Thickness(0, 5, 0, 0);
+                Grid.SetRow(addressBlock, 0);
+
+                // 값 표시 TextBlock
+                TextBlock valueBlock = new TextBlock();
+                valueBlock.FontSize = 14;
+                valueBlock.HorizontalAlignment = HorizontalAlignment.Center;
+                valueBlock.Foreground = new SolidColorBrush(Colors.DarkGreen);
+                valueBlock.Margin = new Thickness(0, 5, 0, 10);
+                Grid.SetRow(valueBlock, 1);
+
+                // PopupBox 생성
+                PopupBox popupBox = new PopupBox();
+                popupBox.PlacementMode = PopupBoxPlacementMode.BottomAndAlignCentres;
+                popupBox.HorizontalAlignment = HorizontalAlignment.Center;
+
+                // 팝업 박스 아이콘 설정
+                PackIcon popupIcon = new PackIcon();
+                popupIcon.Kind = PackIconKind.Settings;
+                popupIcon.Width = 24;
+                popupIcon.Height = 24;
+                popupBox.ToggleContent = popupIcon;
+
+                // 팝업 내용 설정
+                StackPanel popupContent = new StackPanel();
+                popupContent.Width = 150;
+
+                // 몇 가지 예시 항목 추가
+                for (int i = 0; i < 3; i++)
+                {
+                    Button btn = new Button();
+                    btn.Content = $"설정 옵션 {i + 1}";
+                    btn.Margin = new Thickness(2);
+                    btn.Click += (sender, e) => {
+                        // 버튼 클릭 처리 (추후 구현)
+                    };
+                    popupContent.Children.Add(btn);
+                }
+
+                popupBox.PopupContent = popupContent;
+                Grid.SetRow(popupBox, 2);
+
+                // 그리드에 요소 추가
+                grid.Children.Add(addressBlock);
+                grid.Children.Add(valueBlock);
+                grid.Children.Add(popupBox);
+
+                // 그리드를 Border의 새 자식으로 설정
+                border.Child = grid;
+            }
+
+            // 데이터 업데이트 (추후 구현)
+            // TODO: PopupBox 상태 업데이트
+        }
+
+        /// <summary>
+        /// 커스텀 버튼 생성 함수
+        /// </summary>
+        /// <param name="border">버튼이 추가될 Border</param>
+        /// <param name="content">표시할 내용</param>
+        /// <param name="parameter">표시할 파라미터</param>
+        /// <param name="buttonStyle">버튼 스타일 (추후 확장 가능)</param>
+        private void SetupCustomButton(Border border, string content, ParameterModel parameter, string buttonStyle = "Default")
+        {
+            if (!(border.Child is Grid))
+            {
+                // 새로운 그리드 생성
+                Grid grid = new Grid();
+                grid.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Auto) }); // 주소 표시 영역
+                grid.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Auto) }); // 값 표시 영역
+                grid.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) }); // 버튼 영역
+
+                // 주소 표시 TextBlock
+                TextBlock addressBlock = new TextBlock();
+                addressBlock.FontWeight = FontWeights.Bold;
+                addressBlock.FontSize = 14;
+                addressBlock.HorizontalAlignment = HorizontalAlignment.Center;
+                addressBlock.Foreground = new SolidColorBrush(Colors.DarkBlue);
+                addressBlock.Margin = new Thickness(0, 5, 0, 0);
+                Grid.SetRow(addressBlock, 0);
+
+                // 값 표시 TextBlock
+                TextBlock valueBlock = new TextBlock();
+                valueBlock.FontSize = 14;
+                valueBlock.HorizontalAlignment = HorizontalAlignment.Center;
+                valueBlock.Foreground = new SolidColorBrush(Colors.DarkGreen);
+                valueBlock.Margin = new Thickness(0, 5, 0, 10);
+                Grid.SetRow(valueBlock, 1);
+
+                // 버튼 생성
+                Button customButton = new Button();
+
+                // 버튼 스타일에 따른 설정
+                switch (buttonStyle.ToLower())
+                {
+                    case "raised":
+                        customButton.Style = (Style)Application.Current.Resources["MaterialDesignRaisedButton"];
+                        break;
+                    case "outlined":
+                        customButton.Style = (Style)Application.Current.Resources["MaterialDesignOutlinedButton"];
+                        break;
+                    case "flat":
+                        customButton.Style = (Style)Application.Current.Resources["MaterialDesignFlatButton"];
+                        break;
+                    default: // Default
+                        customButton.Style = (Style)Application.Current.Resources["MaterialDesignRaisedButton"];
+                        break;
+                }
+
+                // 버튼 내용 설정
+                customButton.Content = parameter != null ? $"{parameter.Address}" : "버튼";
+                customButton.Margin = new Thickness(10);
+                customButton.HorizontalAlignment = HorizontalAlignment.Center;
+                customButton.VerticalAlignment = VerticalAlignment.Center;
+
+                // 버튼 클릭 이벤트
+                customButton.Click += (sender, e) => {
+                    // 버튼 클릭 처리 (추후 구현)
+                    MessageBox.Show($"버튼 클릭: {(parameter != null ? parameter.Address.ToString() : "없음")}", "버튼 클릭", MessageBoxButton.OK, MessageBoxImage.Information);
+                };
+
+                Grid.SetRow(customButton, 2);
+
+                // 그리드에 요소 추가
+                grid.Children.Add(addressBlock);
+                grid.Children.Add(valueBlock);
+                grid.Children.Add(customButton);
+
+                // 그리드를 Border의 새 자식으로 설정
+                border.Child = grid;
+            }
+
+            // 데이터 업데이트 (추후 구현)
+            // TODO: 버튼 상태 업데이트
+        }
+
+        /// <summary>
+        /// 원형 진행바(CircularProgressBar) 생성 함수
+        /// </summary>
+        /// <param name="border">원형 진행바가 추가될 Border</param>
+        /// <param name="content">표시할 내용</param>
+        /// <param name="parameter">표시할 파라미터</param>
+        private void SetupCircularProgressBar(Border border, string content, ParameterModel parameter)
+        {
+            if (!(border.Child is Grid))
+            {
+                // 새로운 그리드 생성
+                Grid grid = new Grid();
+                grid.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Auto) }); // 주소 표시 영역
+                grid.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Auto) }); // 값 표시 영역
+                grid.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) }); // 원형 진행바 영역
+
+                // 주소 표시 TextBlock
+                TextBlock addressBlock = new TextBlock();
+                addressBlock.FontWeight = FontWeights.Bold;
+                addressBlock.FontSize = 14;
+                addressBlock.HorizontalAlignment = HorizontalAlignment.Center;
+                addressBlock.Foreground = new SolidColorBrush(Colors.DarkBlue);
+                addressBlock.Margin = new Thickness(0, 5, 0, 0);
+                Grid.SetRow(addressBlock, 0);
+
+                // 값 표시 TextBlock
+                TextBlock valueBlock = new TextBlock();
+                valueBlock.FontSize = 14;
+                valueBlock.HorizontalAlignment = HorizontalAlignment.Center;
+                valueBlock.Foreground = new SolidColorBrush(Colors.DarkGreen);
+                valueBlock.Margin = new Thickness(0, 5, 0, 10);
+                Grid.SetRow(valueBlock, 1);
+
+                // 원형 진행바 생성 (MaterialDesignInXAML의 ProgressBar 사용)
+                ProgressBar circularProgress = new ProgressBar();
+                circularProgress.Style = (Style)Application.Current.Resources["MaterialDesignCircularProgressBar"];
+                circularProgress.Width = 80;
+                circularProgress.Height = 80;
+                circularProgress.Minimum = 0;
+                circularProgress.Maximum = 100;
+                circularProgress.Value = parameter != null ? parameter.DefaultActual : 0;
+                circularProgress.HorizontalAlignment = HorizontalAlignment.Center;
+                circularProgress.VerticalAlignment = VerticalAlignment.Center;
+
+                // 값 텍스트를 원형 진행바 위에 표시
+                Grid progressGrid = new Grid();
+                TextBlock progressValue = new TextBlock();
+                progressValue.Text = parameter != null ? $"{parameter.DefaultActual:F0}%" : "0%";
+                progressValue.HorizontalAlignment = HorizontalAlignment.Center;
+                progressValue.VerticalAlignment = VerticalAlignment.Center;
+                progressValue.FontWeight = FontWeights.Bold;
+
+                progressGrid.Children.Add(circularProgress);
+                progressGrid.Children.Add(progressValue);
+
+                Grid.SetRow(progressGrid, 2);
+
+                // 그리드에 요소 추가
+                grid.Children.Add(addressBlock);
+                grid.Children.Add(valueBlock);
+                grid.Children.Add(progressGrid);
+
+                // 그리드를 Border의 새 자식으로 설정
+                border.Child = grid;
+            }
+
+            // 데이터 업데이트 (추후 구현)
+            // TODO: 원형 진행바 값 업데이트
+        }
+
+        /// <summary>
+        /// 표시 컴포넌트 선택 및 생성 함수
+        /// </summary>
+        /// <param name="border">컴포넌트가 추가될 Border</param>
+        /// <param name="content">표시할 내용</param>
+        /// <param name="parameter">표시할 파라미터</param>
+        /// <param name="componentType">생성할 컴포넌트 타입</param>
+        public void SetupUIComponent(Border border, string content, ParameterModel parameter, UIComponentType componentType)
+        {
+            switch (componentType)
+            {
+                case UIComponentType.HorizontalSlider:
+                    SetupSlider(border, content, parameter, Orientation.Horizontal, true);
+                    break;
+                case UIComponentType.VerticalSlider:
+                    SetupSlider(border, content, parameter, Orientation.Vertical, true);
+                    break;
+                case UIComponentType.HorizontalContinuousSlider:
+                    SetupSlider(border, content, parameter, Orientation.Horizontal, false);
+                    break;
+                case UIComponentType.VerticalContinuousSlider:
+                    SetupSlider(border, content, parameter, Orientation.Vertical, false);
+                    break;
+                case UIComponentType.DefaultRatingBar:
+                    SetupRatingBar(border, content, parameter, RatingBarMode.Default);
+                    break;
+                case UIComponentType.PreviewRatingBar:
+                    SetupRatingBar(border, content, parameter, RatingBarMode.Preview);
+                    break;
+                case UIComponentType.FractionalRatingBar:
+                    SetupRatingBar(border, content, parameter, RatingBarMode.Fractional);
+                    break;
+                case UIComponentType.PopupBox:
+                    SetupPopupBox(border, content, parameter);
+                    break;
+                case UIComponentType.Button:
+                    SetupCustomButton(border, content, parameter);
+                    break;
+                case UIComponentType.CircularProgressBar:
+                    SetupCircularProgressBar(border, content, parameter);
+                    break;
+                default:
+                    // 기본적으로 레이블 표시
+                    if (border.Child is Label label)
+                    {
+                        string status = parameter != null && parameter.IsMonitoring ? "true" : "false";
+                        label.Content = parameter != null
+                            ? $"Address: {parameter.Address}, Value: {parameter.DefaultActual}, Status: {status}"
+                            : content;
+                    }
+                    break;
+            }
+        }
+
+        /// <summary>
+        /// UI 컴포넌트 유형 열거형
+        /// </summary>
+        public enum UIComponentType
+        {
+            HorizontalSlider,
+            VerticalSlider,
+            HorizontalContinuousSlider,
+            VerticalContinuousSlider,
+            DefaultRatingBar,
+            PreviewRatingBar,
+            FractionalRatingBar,
+            PopupBox,
+            Button,
+            CircularProgressBar,
+            Label // 기본 레이블
+        }
+
+        /// <summary>
+        /// Rating Bar 모드 열거형
+        /// </summary>
+        public enum RatingBarMode
+        {
+            Default,
+            Preview,
+            Fractional
+        }
+
+        #endregion
+
+
+
+
         #region Fields
         private CancellationTokenSource _cancellationTokenSource;
         private ModbusConnect _modbusConnect;
@@ -318,6 +820,12 @@ namespace Mvvm.ViewModels
 
 
 
+  
+
+
+
+
+
         // Borders2용 내용 설정 도우미 메서드
 
         private void SetupBorders2Content(Border border, string content, ParameterModel parameter)
@@ -361,8 +869,17 @@ namespace Mvvm.ViewModels
                 slider.IsSnapToTickEnabled = true;
                 slider.TickPlacement = TickPlacement.BottomRight;
 
+
+                
+
+
+
                 // Material Design 슬라이더 스타일 설정
                 slider.Style = (Style)Application.Current.Resources["MaterialDesignDiscreteSlider"];
+
+
+
+
 
                 // SliderAssist를 사용하기 위해 직접 클래스를 사용
                 MaterialDesignThemes.Wpf.SliderAssist.SetOnlyShowFocusVisualWhileDragging(slider, true);
@@ -1188,6 +1705,10 @@ namespace Mvvm.ViewModels
             return new List<EventHandler<RoutedPropertyChangedEventArgs<double>>>();
         }
     }
+
+
+
+
 
 
 

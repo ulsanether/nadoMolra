@@ -126,8 +126,7 @@
                 HorizontalAlignment="Left"
                 LastChildFill="False">
                 <TextBlock
-                    Width="400"
-                    Height="17.29"
+                    Height="17"
                     DockPanel.Dock="Top"
                     FontSize="13"
                     Foreground="{DynamicResource MainFontColor}"
