@@ -820,7 +820,7 @@ namespace Mvvm.ViewModels
 
 
 
-  
+
 
 
 
@@ -870,21 +870,18 @@ namespace Mvvm.ViewModels
                 slider.TickPlacement = TickPlacement.BottomRight;
 
 
-                
-
-
 
                 // Material Design 슬라이더 스타일 설정
                 slider.Style = (Style)Application.Current.Resources["MaterialDesignDiscreteSlider"];
 
 
 
-
-
                 // SliderAssist를 사용하기 위해 직접 클래스를 사용
                 MaterialDesignThemes.Wpf.SliderAssist.SetOnlyShowFocusVisualWhileDragging(slider, true);
-                // SetValueTooltipFormatter는 제거 (버전에 없음)
 
+
+
+                // SetValueTooltipFormatter는 제거 (버전에 없음)
                 Grid.SetRow(slider, 2);
 
                 // 값 변경 이벤트 핸들러
