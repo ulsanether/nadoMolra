@@ -537,7 +537,7 @@ namespace Mvvm.ViewModels
 
 
         private string _SubTitleName = "프로젝트 제목";
-        private string _SubTitleNote = "이곳은 프로젝트에 대한 설명을 적는 곳입니다. 엑셀 파일에서 가져와야 합니다.";
+        private string _SubTitleNote = "이곳은 프로젝트에 대한 설명. 엑셀 파일에서 가져와야 합니다.";
         #endregion
 
 
@@ -1330,6 +1330,8 @@ namespace Mvvm.ViewModels
             }
             return false;
         }
+
+
         private void ResizeBorder(Border border, ObservableCollection<Border> targetCollection, int? insertIndex = null)
         {
             if (targetCollection == Borders1)

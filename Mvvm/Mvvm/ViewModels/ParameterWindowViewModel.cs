@@ -10,21 +10,14 @@ using ScottPlot;
 using ScottPlot.WPF;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Threading;
 using NLog;
 
 using Timer = System.Timers.Timer;
 using System.Threading.Tasks;
 using System.Windows.Input;
-using System.Collections.Specialized;
-using ImTools;
-using FluentIcons.Common;
-using System.Net.Sockets;
-using Accord;
 
 using Mvvm.Model;
 using Mvvm.Converters;
-using System.ServiceModel.Channels;
 using System.IO;
 
 
@@ -328,6 +321,9 @@ namespace Mvvm.ViewModels
         {
             return parameter != null;
         }
+
+
+
         private async void ExecuteGenerateParameters()
         {
 
@@ -446,8 +442,6 @@ namespace Mvvm.ViewModels
                             case "-":
                                 break;
                             case "*":
-
-
                                 newValue /= int.Parse(funcSplit[1]);
                                 await _modbusConnect.WriteRegister(parameter.Index, newValue);
                                 parameter.DefaultActual = newValue * int.Parse(funcSplit[1]);

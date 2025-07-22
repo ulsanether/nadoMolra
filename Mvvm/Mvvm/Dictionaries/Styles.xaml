@@ -52,7 +52,7 @@
 
 
 
-    <!--  보더 2 스타일 아직 없ㅇ므  -->
+    <!--  보더 2 스타일 아직 없음  -->
     <Style
         x:Key="Borders2Style"
         BasedOn="{StaticResource DefaultBorderStyle}"
