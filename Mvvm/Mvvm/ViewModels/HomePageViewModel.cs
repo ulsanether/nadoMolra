@@ -1564,6 +1564,8 @@ namespace Mvvm.ViewModels
                 // 기존 라벨 유지
                 if (border.Child is Label label)
                 {
+
+
                     // 라벨 스타일 유지
                 }
             }

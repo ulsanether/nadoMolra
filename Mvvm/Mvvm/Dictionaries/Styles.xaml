@@ -61,7 +61,10 @@
         <Setter Property="Height" Value="200" />
     </Style>
 
-    <!--  보더 3 스타일 아직 없ㅇ므  -->
+
+
+
+    <!--  보더 3 스타일 아직 없음  -->
     <!--  보더 3 스타일 수정  -->
     <Style
         x:Key="Borders3Style"

@@ -76,10 +76,10 @@ namespace Mvvm.Model
         }
 
 
-   public void UpdateStatistics()
+   public void UpdateStatistics(bool errorCount)
 {
     statistics.TotalReads++;
-    if (true) // 성공 조건 만들어야 함.
+    if (errorCount) // 성공 조건 만들어야 함.
     {
         statistics.SuccessfulReads++;
         statistics.LastSuccessfulRead = DateTime.Now;
@@ -318,7 +318,7 @@ namespace Mvvm.Model
 
                 try
                 {
-                    UpdateStatistics();
+                    UpdateStatistics(true);
                     registers = await Task.Run(() =>
                                master.ReadHoldingRegisters(
                                    serialPortConfig.slaveId,
@@ -328,7 +328,7 @@ namespace Mvvm.Model
                 }
                 catch (Exception ex)
                 {
-                    UpdateStatistics();
+                    UpdateStatistics(false);
                     MessageBox.Show($"{ex.Message} 데이터를 읽을수 없습니다.");
                     throw;
                 }
@@ -346,7 +346,7 @@ namespace Mvvm.Model
             {
                 statistics.RecordError();
                 ShowMessage($"데이터 읽기 실패: {ex.Message}", "오류", true);
-                UpdateStatistics();
+                UpdateStatistics(false);
                 var lastValues = dataBuffer.GetLastValues(numberOfPoints);
                 return lastValues;
             }
