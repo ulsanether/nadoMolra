@@ -247,7 +247,7 @@
             Margin="230,0,0,0"
             HorizontalAlignment="Left"
             Command="{Binding NavigateToHomePageCommand}"
-            Style="{StaticResource MainHomePageButton}">
+            Style="{StaticResource CustomPageButton}">
             <StackPanel>
                 <TextBlock
                     Width="80"

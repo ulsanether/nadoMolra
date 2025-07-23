@@ -348,6 +348,67 @@
         </Setter>
     </Style>
 
+    <Style x:Key="CustomPageButton" TargetType="{x:Type Button}">
+        <Setter Property="Background" Value="{StaticResource MainButtonFontColor}" />
+        <Setter Property="Foreground" Value="White" />
+        <Setter Property="FontSize" Value="15" />
+        <Setter Property="SnapsToDevicePixels" Value="True" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="{x:Type Button}">
+                    <Border
+                        Background="{TemplateBinding Background}"
+                        BorderBrush="White"
+                        CornerRadius="1">
+                        <Grid>
+                            <Path
+                                Width="20"
+                                Height="25"
+                                Margin="0,0,0,15"
+                                HorizontalAlignment="Center"
+                                Data="{StaticResource NewTaskIcon}"
+                                Fill="Black"
+                                Opacity="0.2"
+                                Stretch="Fill" />
+                            <Path
+                                x:Name="PathIcon"
+                                Width="20"
+                                Height="25"
+                                Margin="0,0,0,15"
+                                HorizontalAlignment="Center"
+                                Data="{StaticResource HomeIcon}"
+                                Fill="{StaticResource MainButtonPath}"
+                                Stretch="Fill" />
+
+                            <ContentPresenter
+                                x:Name="MyContentPresenter"
+                                Margin="0,0,5,0"
+                                HorizontalAlignment="Right"
+                                VerticalAlignment="Center"
+                                Content="{TemplateBinding Content}" />
+                        </Grid>
+                    </Border>
+
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter Property="Background" Value="{StaticResource MainButtonOverOneColor}" />
+                            <Setter Property="Foreground" Value="White" />
+                            <Setter TargetName="PathIcon" Property="Fill" Value="Transparent" />
+                        </Trigger>
+
+                        <Trigger Property="IsPressed" Value="True">
+                            <Setter Property="Background" Value="{StaticResource MainButtonClickColor}" />
+                            <Setter Property="Foreground" Value="White" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+
+
+
 
     <!--  보더 1 스타일  -->
 
