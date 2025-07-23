@@ -26,7 +26,8 @@
         <Grid
             x:Name="AdvencedView"
             Grid.Row="0"
-            Margin="0,0,0,10">
+            Margin="0,0,0,10"
+            Visibility="Collapsed">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="Auto" />
                 <ColumnDefinition Width="80" />
@@ -96,12 +97,13 @@
         <!--  파라미터 표시 영역  -->
         <ScrollViewer
             Grid.Row="1"
-            HorizontalAlignment="Center"
-            VerticalAlignment="Center">
+            Grid.RowSpan="1"
+            HorizontalAlignment="Center">
             <ItemsControl
                 x:Name="ParameterItemsControl"
+                HorizontalContentAlignment="Stretch"
                 ItemTemplateSelector="{StaticResource ParameterTemplateSelector}"
-                ItemsSource="{Binding Parameters}">
+                ItemsSource="{Binding Parameters}" HorizontalAlignment="Stretch">
                 <ItemsControl.ItemsPanel>
                     <ItemsPanelTemplate>
                         <WrapPanel Background="LightGray" IsItemsHost="True" />

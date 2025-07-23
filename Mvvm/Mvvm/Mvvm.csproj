@@ -12,6 +12,9 @@
     <Page Remove="Enum\**" />
   </ItemGroup>
   <ItemGroup>
+    <None Remove="Views\fsticker_retro.png" />
+  </ItemGroup>
+  <ItemGroup>
     <PackageReference Include="Accord.Statistics" Version="3.8.0" />
     <PackageReference Include="devexpress.wpf.core" Version="24.1.6-pre-24252" />
     <PackageReference Include="EPPlus" Version="6.2.10" />
@@ -47,5 +50,8 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Resources\" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Views\fsticker_retro.png" />
   </ItemGroup>
 </Project>

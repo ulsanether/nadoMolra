@@ -5,8 +5,7 @@
     xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
     xmlns:prism="http://prismlibrary.com/"
     xmlns:viewmodels="clr-namespace:Mvvm.ViewModels"
-    prism:ViewModelLocator.AutoWireViewModel="True"
-    Background="#FFC8C8C8">
+    prism:ViewModelLocator.AutoWireViewModel="True">
 
     <UserControl.Resources>
         <viewmodels:BooleanToBrushConverter x:Key="BooleanToBrushConverter" />

@@ -314,7 +314,7 @@ namespace Mvvm.Model
         {
             try
             {
-                var registers = new ushort[numberOfPoints];
+                ushort[]? registers = new ushort[numberOfPoints];
 
                 try
                 {

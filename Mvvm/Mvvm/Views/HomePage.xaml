@@ -12,23 +12,29 @@
 
 
 
-    <Grid Width="1000" Height="642">
+    <Grid
+        Width="1000"
+        Height="642"
+        Margin="5,0,0,0">
+        <Grid.Background>
+            <ImageBrush />
+        </Grid.Background>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="40*" />
-            <ColumnDefinition Width="43*" />
-            <ColumnDefinition Width="170" />
+            <ColumnDefinition Width="200*" />
+            <ColumnDefinition Width="229*" />
+            <ColumnDefinition Width="142" />
         </Grid.ColumnDefinitions>
 
         <Grid.RowDefinitions>
-            <RowDefinition Height="120*" />
-            <RowDefinition Height="309*" />
-            <RowDefinition Height="250*" />
+            <RowDefinition Height="93*" />
+            <RowDefinition Height="313*" />
+            <RowDefinition Height="236*" />
         </Grid.RowDefinitions>
 
 
 
         <Border
-            Margin="31,10,31,10"
+            Margin="5,10,5,10"
             BorderBrush="#FFC0A9BA"
             BorderThickness="1"
             CornerRadius="6"
@@ -57,19 +63,12 @@
                     Opacity="0.195"
                     RenderingBias="Performance" />
             </Border.Effect>
-            <Image
-                Width="50"
-                Height="50"
-                Margin="0,0,10,0"
-                HorizontalAlignment="Right"
-                VerticalAlignment="Bottom"
-                Stretch="Fill" />
+
         </Border>
 
         <Grid
             Grid.Row="1"
-            Width="400"
-            Margin="4,0,0,0"
+            Margin="4,0,-4,0"
             av:LayoutOverrides="LeftMargin, RightMargin, TopMargin, BottomMargin">
 
 
@@ -82,14 +81,14 @@
                     Height="17.29"
                     DockPanel.Dock="Top"
                     FontSize="13"
-                    Foreground="{DynamicResource MainFontColor}"
-                    Text="MODBUS LIST 1" />
-                <StackPanel Width="400">
+                    Foreground="{DynamicResource MainFontColor}"><Run Language="ko-kr" Text="Slider Window" /></TextBlock>
+                <StackPanel Width="400" Background="#FFFF8E8E">
+
                     <ListBox
                         x:Name="LeftBoundListBox"
                         Width="400"
                         Height="500"
-                        HorizontalAlignment="Left"
+                        HorizontalAlignment="Center"
                         dd:DragDrop.CanDragWithMouseRightButton="True"
                         dd:DragDrop.DropHandler="{Binding}"
                         dd:DragDrop.DropTargetAdornerBrush="Coral"
@@ -115,10 +114,7 @@
 
 
         </Grid>
-        <Grid
-            Grid.Row="2"
-            Width="400"
-            Margin="4,0,-4,0">
+        <Grid Grid.Row="2" Margin="4,0,-4,0">
 
 
             <DockPanel
@@ -131,7 +127,7 @@
                     FontSize="13"
                     Foreground="{DynamicResource MainFontColor}"
                     Text="MODBUS LIST 1-2" />
-                <StackPanel Width="400">
+                <StackPanel Width="400" Background="Black">
                     <ListBox
                         x:Name="LeftBoundListBox2"
                         Width="400"
@@ -170,7 +166,7 @@
                     Text="MODBUS LIST" />
                 <ListView
                     x:Name="ModbusDataName"
-                    Width="170"
+                    Width="140"
                     Height="Auto"
                     HorizontalContentAlignment="Stretch"
                     VerticalContentAlignment="Stretch"
@@ -212,7 +208,7 @@
 
             <DockPanel
                 Width="430"
-                Height="500"
+                Height="400"
                 HorizontalAlignment="Center"
                 VerticalAlignment="Top"
                 LastChildFill="False">
@@ -221,8 +217,8 @@
                     DockPanel.Dock="Top"
                     FontSize="13"
                     Foreground="{DynamicResource MainFontColor}"
-                    Text="MODBUS LIST 2-1" />
-                <StackPanel Width="430">
+                    Text="Window  " />
+                <StackPanel Width="430" Background="#FFA02525">
                     <ListBox
                         x:Name="LeftBoundListBox1"
                         Width="430"
@@ -266,6 +262,7 @@
         </Label>
         <Label
             x:Name="SubTitleNote"
+            Height="8"
             Margin="32,38,72,0"
             VerticalAlignment="Top"
             av:LayoutOverrides="HorizontalAlignment, LeftMargin, RightMargin, TopMargin, BottomMargin"
@@ -279,25 +276,25 @@
         <Grid
             Grid.Row="2"
             Grid.Column="1"
-            Width="400"
-            Margin="4,0,-4,0">
-
-
+            Margin="15,0,15,0"
+            Background="#FF0061FF">
             <DockPanel
-                Width="400"
-                HorizontalAlignment="Left"
+                Width="428"
+                Margin="0,0,0,0"
+                HorizontalAlignment="Center"
                 LastChildFill="False">
                 <TextBlock
                     Width="400"
                     Height="17.29"
+                    Margin="5,0,0,0"
                     DockPanel.Dock="Top"
                     FontSize="13"
                     Foreground="{DynamicResource MainFontColor}"
                     Text="MODBUS LIST 2-2" />
-                <StackPanel Width="400">
+                <StackPanel Width="430">
                     <ListBox
                         x:Name="LeftBoundListBox3"
-                        Width="400"
+                        Width="420"
                         Height="500"
                         dd:DragDrop.CanDragWithMouseRightButton="True"
                         dd:DragDrop.DropHandler="{Binding}"

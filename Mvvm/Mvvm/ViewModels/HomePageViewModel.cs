@@ -5,21 +5,16 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 using Prism.Mvvm;
-using Mvvm.ViewModels;
-using Accord;
-using Point = System.Windows.Point;
 using System;
 using System.Linq;
 using Mvvm.Model;
 using System.Threading.Tasks;
 using System.Threading;
 using System.Diagnostics;
-using DryIoc;
 using System.Collections.Generic;
 using System.Windows.Media.Imaging;
 using System.Windows.Controls.Primitives;
 using MaterialDesignThemes.Wpf;
-using OfficeOpenXml.Sorting;
 using System.Windows.Input;
 using Prism.Commands;
 
@@ -28,504 +23,7 @@ namespace Mvvm.ViewModels
     public class HomePageViewModel : BindableBase, IDropTarget, IDragSource
     {
 
-        #region UI 컴포넌트 생성 함수들
-
-        /// <summary>
-        /// 슬라이더를 생성하는 함수 (방향과 타입 선택 가능)
-        /// </summary>
-        /// <param name="border">슬라이더가 추가될 Border</param>
-        /// <param name="content">표시할 내용</param>
-        /// <param name="parameter">표시할 파라미터</param>
-        /// <param name="orientation">슬라이더 방향 (가로/세로)</param>
-        /// <param name="isDiscrete">이산적(Discrete) 슬라이더 여부</param>
-        private void SetupSlider(Border border, string content, ParameterModel parameter, Orientation orientation = Orientation.Horizontal, bool isDiscrete = true)
-        {
-            // 현재 border가 그리드를 포함하고 있는지 확인
-            if (!(border.Child is Grid))
-            {
-                // 새로운 그리드 생성
-                Grid grid = new Grid();
-                grid.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Auto) }); // 주소 표시 영역
-                grid.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Auto) }); // 값 표시 영역
-                grid.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) }); // 슬라이더 영역
-
-                // 주소 표시 TextBlock
-                TextBlock addressBlock = new TextBlock();
-                addressBlock.FontWeight = FontWeights.Bold;
-                addressBlock.FontSize = 14;
-                addressBlock.HorizontalAlignment = HorizontalAlignment.Center;
-                addressBlock.Foreground = new SolidColorBrush(Colors.DarkBlue);
-                addressBlock.Margin = new Thickness(0, 5, 0, 0);
-                Grid.SetRow(addressBlock, 0);
-
-                // 값 표시 TextBlock
-                TextBlock valueBlock = new TextBlock();
-                valueBlock.FontSize = 14;
-                valueBlock.HorizontalAlignment = HorizontalAlignment.Center;
-                valueBlock.Foreground = new SolidColorBrush(Colors.DarkGreen);
-                valueBlock.Margin = new Thickness(0, 5, 0, 10);
-                Grid.SetRow(valueBlock, 1);
-
-                // MaterialDesign 슬라이더 생성
-                Slider slider = new Slider();
-                slider.Orientation = orientation;
-                slider.Minimum = 0;
-                slider.Maximum = 100;
-
-                // 방향에 따른 크기 설정
-                if (orientation == Orientation.Vertical)
-                {
-                    slider.Height = 120;
-                    slider.Width = double.NaN; // Auto
-                }
-                else // Horizontal
-                {
-                    slider.Width = 120;
-                    slider.Height = double.NaN; // Auto
-                }
-
-                slider.Margin = new Thickness(10);
-                slider.VerticalAlignment = VerticalAlignment.Stretch;
-                slider.HorizontalAlignment = HorizontalAlignment.Center;
-
-                // Discrete 여부에 따른 설정
-                if (isDiscrete)
-                {
-                    slider.TickFrequency = 10;
-                    slider.IsSnapToTickEnabled = true;
-                    slider.TickPlacement = TickPlacement.BottomRight;
-                    slider.Style = (Style)Application.Current.Resources["MaterialDesignDiscreteSlider"];
-                }
-                else
-                {
-                    slider.Style = (Style)Application.Current.Resources["MaterialDesignSlider"];
-                }
-
-                // SliderAssist 설정
-                MaterialDesignThemes.Wpf.SliderAssist.SetOnlyShowFocusVisualWhileDragging(slider, true);
-
-                Grid.SetRow(slider, 2);
-
-                // 값 변경 이벤트 핸들러
-                slider.ValueChanged += (sender, e) => {
-                    if (valueBlock != null)
-                    {
-                        valueBlock.Text = $"값: {e.NewValue:F2}";
-
-                        // 실제 파라미터 값 업데이트 로직은 이곳에 구현
-                    }
-                };
-
-                // 그리드에 요소 추가
-                grid.Children.Add(addressBlock);
-                grid.Children.Add(valueBlock);
-                grid.Children.Add(slider);
-
-                // 그리드를 Border의 새 자식으로 설정
-                border.Child = grid;
-            }
-
-            // 데이터 업데이트 (추후 구현)
-            // TODO: 슬라이더 값 업데이트
-        }
-
-        /// <summary>
-        /// 평점 표시(Rating Bar) 생성 함수
-        /// </summary>
-        /// <param name="border">RatingBar가 추가될 Border</param>
-        /// <param name="content">표시할 내용</param>
-        /// <param name="parameter">표시할 파라미터</param>
-        /// <param name="mode">RatingBar 모드 (Default, Preview, Fractional)</param>
-        private void SetupRatingBar(Border border, string content, ParameterModel parameter, RatingBarMode mode = RatingBarMode.Default)
-        {
-            if (!(border.Child is Grid))
-            {
-                // 새로운 그리드 생성
-                Grid grid = new Grid();
-                grid.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Auto) }); // 주소 표시 영역
-                grid.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Auto) }); // 값 표시 영역
-                grid.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) }); // RatingBar 영역
-
-                // 주소 표시 TextBlock
-                TextBlock addressBlock = new TextBlock();
-                addressBlock.FontWeight = FontWeights.Bold;
-                addressBlock.FontSize = 14;
-                addressBlock.HorizontalAlignment = HorizontalAlignment.Center;
-                addressBlock.Foreground = new SolidColorBrush(Colors.DarkBlue);
-                addressBlock.Margin = new Thickness(0, 5, 0, 0);
-                Grid.SetRow(addressBlock, 0);
-
-                // 값 표시 TextBlock
-                TextBlock valueBlock = new TextBlock();
-                valueBlock.FontSize = 14;
-                valueBlock.HorizontalAlignment = HorizontalAlignment.Center;
-                valueBlock.Foreground = new SolidColorBrush(Colors.DarkGreen);
-                valueBlock.Margin = new Thickness(0, 5, 0, 10);
-                Grid.SetRow(valueBlock, 1);
-
-                // RatingBar 생성 (MaterialDesignInXAML에서 제공하지 않으므로 직접 구현)
-                StackPanel ratingPanel = new StackPanel();
-                ratingPanel.Orientation = Orientation.Horizontal;
-                ratingPanel.HorizontalAlignment = HorizontalAlignment.Center;
-
-                // 별 5개 생성
-                for (int i = 0; i < 5; i++)
-                {
-                    PackIcon star = new PackIcon();
-                    star.Kind = PackIconKind.Star;
-                    star.Width = 24;
-                    star.Height = 24;
-                    star.Margin = new Thickness(2);
-                    star.Foreground = new SolidColorBrush(Colors.Gray);
-
-                    // 모드에 따른 설정
-                    switch (mode)
-                    {
-                        case RatingBarMode.Preview:
-                            star.MouseEnter += (sender, e) => {
-                                // 마우스 오버 시 미리보기 효과 (추후 구현)
-                            };
-                            break;
-                        case RatingBarMode.Fractional:
-                            // 부분 채우기를 위한 설정 (추후 구현)
-                            break;
-                        default: // Default
-                            star.MouseLeftButtonDown += (sender, e) => {
-                                // 클릭 시 별점 설정 (추후 구현)
-                            };
-                            break;
-                    }
-
-                    ratingPanel.Children.Add(star);
-                }
-
-                Grid.SetRow(ratingPanel, 2);
-
-                // 그리드에 요소 추가
-                grid.Children.Add(addressBlock);
-                grid.Children.Add(valueBlock);
-                grid.Children.Add(ratingPanel);
-
-                // 그리드를 Border의 새 자식으로 설정
-                border.Child = grid;
-            }
-
-            // 데이터 업데이트 (추후 구현)
-            // TODO: RatingBar 값 업데이트
-        }
-
-        /// <summary>
-        /// 팝업 박스 생성 함수
-        /// </summary>
-        /// <param name="border">팝업 박스가 추가될 Border</param>
-        /// <param name="content">표시할 내용</param>
-        /// <param name="parameter">표시할 파라미터</param>
-        private void SetupPopupBox(Border border, string content, ParameterModel parameter)
-        {
-            if (!(border.Child is Grid))
-            {
-                // 새로운 그리드 생성
-                Grid grid = new Grid();
-                grid.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Auto) }); // 주소 표시 영역
-                grid.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Auto) }); // 값 표시 영역
-                grid.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) }); // 팝업 박스 영역
-
-                // 주소 표시 TextBlock
-                TextBlock addressBlock = new TextBlock();
-                addressBlock.FontWeight = FontWeights.Bold;
-                addressBlock.FontSize = 14;
-                addressBlock.HorizontalAlignment = HorizontalAlignment.Center;
-                addressBlock.Foreground = new SolidColorBrush(Colors.DarkBlue);
-                addressBlock.Margin = new Thickness(0, 5, 0, 0);
-                Grid.SetRow(addressBlock, 0);
-
-                // 값 표시 TextBlock
-                TextBlock valueBlock = new TextBlock();
-                valueBlock.FontSize = 14;
-                valueBlock.HorizontalAlignment = HorizontalAlignment.Center;
-                valueBlock.Foreground = new SolidColorBrush(Colors.DarkGreen);
-                valueBlock.Margin = new Thickness(0, 5, 0, 10);
-                Grid.SetRow(valueBlock, 1);
-
-                // PopupBox 생성
-                PopupBox popupBox = new PopupBox();
-                popupBox.PlacementMode = PopupBoxPlacementMode.BottomAndAlignCentres;
-                popupBox.HorizontalAlignment = HorizontalAlignment.Center;
-
-                // 팝업 박스 아이콘 설정
-                PackIcon popupIcon = new PackIcon();
-                popupIcon.Kind = PackIconKind.Settings;
-                popupIcon.Width = 24;
-                popupIcon.Height = 24;
-                popupBox.ToggleContent = popupIcon;
-
-                // 팝업 내용 설정
-                StackPanel popupContent = new StackPanel();
-                popupContent.Width = 150;
-
-                // 몇 가지 예시 항목 추가
-                for (int i = 0; i < 3; i++)
-                {
-                    Button btn = new Button();
-                    btn.Content = $"설정 옵션 {i + 1}";
-                    btn.Margin = new Thickness(2);
-                    btn.Click += (sender, e) => {
-                        // 버튼 클릭 처리 (추후 구현)
-                    };
-                    popupContent.Children.Add(btn);
-                }
-
-                popupBox.PopupContent = popupContent;
-                Grid.SetRow(popupBox, 2);
-
-                // 그리드에 요소 추가
-                grid.Children.Add(addressBlock);
-                grid.Children.Add(valueBlock);
-                grid.Children.Add(popupBox);
-
-                // 그리드를 Border의 새 자식으로 설정
-                border.Child = grid;
-            }
-
-            // 데이터 업데이트 (추후 구현)
-            // TODO: PopupBox 상태 업데이트
-        }
-
-        /// <summary>
-        /// 커스텀 버튼 생성 함수
-        /// </summary>
-        /// <param name="border">버튼이 추가될 Border</param>
-        /// <param name="content">표시할 내용</param>
-        /// <param name="parameter">표시할 파라미터</param>
-        /// <param name="buttonStyle">버튼 스타일 (추후 확장 가능)</param>
-        private void SetupCustomButton(Border border, string content, ParameterModel parameter, string buttonStyle = "Default")
-        {
-            if (!(border.Child is Grid))
-            {
-                // 새로운 그리드 생성
-                Grid grid = new Grid();
-                grid.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Auto) }); // 주소 표시 영역
-                grid.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Auto) }); // 값 표시 영역
-                grid.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) }); // 버튼 영역
-
-                // 주소 표시 TextBlock
-                TextBlock addressBlock = new TextBlock();
-                addressBlock.FontWeight = FontWeights.Bold;
-                addressBlock.FontSize = 14;
-                addressBlock.HorizontalAlignment = HorizontalAlignment.Center;
-                addressBlock.Foreground = new SolidColorBrush(Colors.DarkBlue);
-                addressBlock.Margin = new Thickness(0, 5, 0, 0);
-                Grid.SetRow(addressBlock, 0);
-
-                // 값 표시 TextBlock
-                TextBlock valueBlock = new TextBlock();
-                valueBlock.FontSize = 14;
-                valueBlock.HorizontalAlignment = HorizontalAlignment.Center;
-                valueBlock.Foreground = new SolidColorBrush(Colors.DarkGreen);
-                valueBlock.Margin = new Thickness(0, 5, 0, 10);
-                Grid.SetRow(valueBlock, 1);
-
-                // 버튼 생성
-                Button customButton = new Button();
-
-                // 버튼 스타일에 따른 설정
-                switch (buttonStyle.ToLower())
-                {
-                    case "raised":
-                        customButton.Style = (Style)Application.Current.Resources["MaterialDesignRaisedButton"];
-                        break;
-                    case "outlined":
-                        customButton.Style = (Style)Application.Current.Resources["MaterialDesignOutlinedButton"];
-                        break;
-                    case "flat":
-                        customButton.Style = (Style)Application.Current.Resources["MaterialDesignFlatButton"];
-                        break;
-                    default: // Default
-                        customButton.Style = (Style)Application.Current.Resources["MaterialDesignRaisedButton"];
-                        break;
-                }
-
-                // 버튼 내용 설정
-                customButton.Content = parameter != null ? $"{parameter.Address}" : "버튼";
-                customButton.Margin = new Thickness(10);
-                customButton.HorizontalAlignment = HorizontalAlignment.Center;
-                customButton.VerticalAlignment = VerticalAlignment.Center;
-
-                // 버튼 클릭 이벤트
-                customButton.Click += (sender, e) => {
-                    // 버튼 클릭 처리 (추후 구현)
-                    MessageBox.Show($"버튼 클릭: {(parameter != null ? parameter.Address.ToString() : "없음")}", "버튼 클릭", MessageBoxButton.OK, MessageBoxImage.Information);
-                };
-
-                Grid.SetRow(customButton, 2);
-
-                // 그리드에 요소 추가
-                grid.Children.Add(addressBlock);
-                grid.Children.Add(valueBlock);
-                grid.Children.Add(customButton);
-
-                // 그리드를 Border의 새 자식으로 설정
-                border.Child = grid;
-            }
-
-            // 데이터 업데이트 (추후 구현)
-            // TODO: 버튼 상태 업데이트
-        }
-
-        /// <summary>
-        /// 원형 진행바(CircularProgressBar) 생성 함수
-        /// </summary>
-        /// <param name="border">원형 진행바가 추가될 Border</param>
-        /// <param name="content">표시할 내용</param>
-        /// <param name="parameter">표시할 파라미터</param>
-        private void SetupCircularProgressBar(Border border, string content, ParameterModel parameter)
-        {
-            if (!(border.Child is Grid))
-            {
-                // 새로운 그리드 생성
-                Grid grid = new Grid();
-                grid.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Auto) }); // 주소 표시 영역
-                grid.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Auto) }); // 값 표시 영역
-                grid.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) }); // 원형 진행바 영역
-
-                // 주소 표시 TextBlock
-                TextBlock addressBlock = new TextBlock();
-                addressBlock.FontWeight = FontWeights.Bold;
-                addressBlock.FontSize = 14;
-                addressBlock.HorizontalAlignment = HorizontalAlignment.Center;
-                addressBlock.Foreground = new SolidColorBrush(Colors.DarkBlue);
-                addressBlock.Margin = new Thickness(0, 5, 0, 0);
-                Grid.SetRow(addressBlock, 0);
-
-                // 값 표시 TextBlock
-                TextBlock valueBlock = new TextBlock();
-                valueBlock.FontSize = 14;
-                valueBlock.HorizontalAlignment = HorizontalAlignment.Center;
-                valueBlock.Foreground = new SolidColorBrush(Colors.DarkGreen);
-                valueBlock.Margin = new Thickness(0, 5, 0, 10);
-                Grid.SetRow(valueBlock, 1);
-
-                // 원형 진행바 생성 (MaterialDesignInXAML의 ProgressBar 사용)
-                ProgressBar circularProgress = new ProgressBar();
-                circularProgress.Style = (Style)Application.Current.Resources["MaterialDesignCircularProgressBar"];
-                circularProgress.Width = 80;
-                circularProgress.Height = 80;
-                circularProgress.Minimum = 0;
-                circularProgress.Maximum = 100;
-                circularProgress.Value = parameter != null ? parameter.DefaultActual : 0;
-                circularProgress.HorizontalAlignment = HorizontalAlignment.Center;
-                circularProgress.VerticalAlignment = VerticalAlignment.Center;
-
-                // 값 텍스트를 원형 진행바 위에 표시
-                Grid progressGrid = new Grid();
-                TextBlock progressValue = new TextBlock();
-                progressValue.Text = parameter != null ? $"{parameter.DefaultActual:F0}%" : "0%";
-                progressValue.HorizontalAlignment = HorizontalAlignment.Center;
-                progressValue.VerticalAlignment = VerticalAlignment.Center;
-                progressValue.FontWeight = FontWeights.Bold;
-
-                progressGrid.Children.Add(circularProgress);
-                progressGrid.Children.Add(progressValue);
-
-                Grid.SetRow(progressGrid, 2);
-
-                // 그리드에 요소 추가
-                grid.Children.Add(addressBlock);
-                grid.Children.Add(valueBlock);
-                grid.Children.Add(progressGrid);
-
-                // 그리드를 Border의 새 자식으로 설정
-                border.Child = grid;
-            }
-
-            // 데이터 업데이트 (추후 구현)
-            // TODO: 원형 진행바 값 업데이트
-        }
-
-        /// <summary>
-        /// 표시 컴포넌트 선택 및 생성 함수
-        /// </summary>
-        /// <param name="border">컴포넌트가 추가될 Border</param>
-        /// <param name="content">표시할 내용</param>
-        /// <param name="parameter">표시할 파라미터</param>
-        /// <param name="componentType">생성할 컴포넌트 타입</param>
-        public void SetupUIComponent(Border border, string content, ParameterModel parameter, UIComponentType componentType)
-        {
-            switch (componentType)
-            {
-                case UIComponentType.HorizontalSlider:
-                    SetupSlider(border, content, parameter, Orientation.Horizontal, true);
-                    break;
-                case UIComponentType.VerticalSlider:
-                    SetupSlider(border, content, parameter, Orientation.Vertical, true);
-                    break;
-                case UIComponentType.HorizontalContinuousSlider:
-                    SetupSlider(border, content, parameter, Orientation.Horizontal, false);
-                    break;
-                case UIComponentType.VerticalContinuousSlider:
-                    SetupSlider(border, content, parameter, Orientation.Vertical, false);
-                    break;
-                case UIComponentType.DefaultRatingBar:
-                    SetupRatingBar(border, content, parameter, RatingBarMode.Default);
-                    break;
-                case UIComponentType.PreviewRatingBar:
-                    SetupRatingBar(border, content, parameter, RatingBarMode.Preview);
-                    break;
-                case UIComponentType.FractionalRatingBar:
-                    SetupRatingBar(border, content, parameter, RatingBarMode.Fractional);
-                    break;
-                case UIComponentType.PopupBox:
-                    SetupPopupBox(border, content, parameter);
-                    break;
-                case UIComponentType.Button:
-                    SetupCustomButton(border, content, parameter);
-                    break;
-                case UIComponentType.CircularProgressBar:
-                    SetupCircularProgressBar(border, content, parameter);
-                    break;
-                default:
-                    // 기본적으로 레이블 표시
-                    if (border.Child is Label label)
-                    {
-                        string status = parameter != null && parameter.IsMonitoring ? "true" : "false";
-                        label.Content = parameter != null
-                            ? $"Address: {parameter.Address}, Value: {parameter.DefaultActual}, Status: {status}"
-                            : content;
-                    }
-                    break;
-            }
-        }
-
-        /// <summary>
-        /// UI 컴포넌트 유형 열거형
-        /// </summary>
-        public enum UIComponentType
-        {
-            HorizontalSlider,
-            VerticalSlider,
-            HorizontalContinuousSlider,
-            VerticalContinuousSlider,
-            DefaultRatingBar,
-            PreviewRatingBar,
-            FractionalRatingBar,
-            PopupBox,
-            Button,
-            CircularProgressBar,
-            Label // 기본 레이블
-        }
-
-        /// <summary>
-        /// Rating Bar 모드 열거형
-        /// </summary>
-        public enum RatingBarMode
-        {
-            Default,
-            Preview,
-            Fractional
-        }
-
-        #endregion
-
+   
 
 
 
@@ -533,10 +31,7 @@ namespace Mvvm.ViewModels
         private CancellationTokenSource _cancellationTokenSource;
         private ModbusConnect _modbusConnect;
 
-
-
-
-        private string _SubTitleName = "프로젝트 제목";
+        private string _SubTitleName = "프로젝트 제목 적을껌";
         private string _SubTitleNote = "이곳은 프로젝트에 대한 설명. 엑셀 파일에서 가져와야 합니다.";
         #endregion
 
@@ -591,7 +86,6 @@ namespace Mvvm.ViewModels
         public ICommand AlertCommand{ get; }
 
 
-
         #endregion
 
 
@@ -620,7 +114,7 @@ namespace Mvvm.ViewModels
 
                 var label = new Label
                 {
-                    Content = $"Add {i + 1}"
+                    Content = $"주소 {i + 1}"
                 };
                 label.Style = (Style)Application.Current.Resources["DefaultBorderLabelStyle"];
 
@@ -630,11 +124,9 @@ namespace Mvvm.ViewModels
         }
 
         private void AlertCommandExecute(){
-
             HasAlert = !HasAlert;
             AlertCount = HasAlert ? AlertCount + 1 : 0;
             IconColor = HasAlert ? "Red" : "Black";
-
         }
 
         private void ModbusConnect_OnConnectionsStatusChanged(bool isConnected)
@@ -730,7 +222,6 @@ namespace Mvvm.ViewModels
             UpdateBorderCollection(Borders5, parameterMap);
 
         }
-
         private void UpdateBorderCollection(ObservableCollection<Border> collection, Dictionary<int, ParameterModel> parameterMap)
         {
             foreach (var border in collection)
@@ -739,7 +230,6 @@ namespace Mvvm.ViewModels
 
                 if (!borderAddress.HasValue)
                 {
-
                     foreach (var param in parameters)
                     {
                         bool isAddressUsed = false;
@@ -767,8 +257,16 @@ namespace Mvvm.ViewModels
                             }
                             else if (border.Child is Label label)
                             {
-                                string status = param.IsMonitoring ? "true" : "false";
-                                label.Content = $"Address: {param.Address}, Value: {param.DefaultActual}, Status: {status}";
+                                // Borders1의 경우 "주소, Val:값" 형태로 표시
+                                if (collection == Borders1)
+                                {
+                                    label.Content = $"{param.Address}, Val:{param.DefaultActual:F0}";
+                                }
+                                else
+                                {
+                                    string status = param.IsMonitoring ? "true" : "false";
+                                    label.Content = $"Address: {param.Address}, Value: {param.DefaultActual}, Status: {status}";
+                                }
                             }
                             UpdateParameterStatus(param, collection);
                             break;
@@ -786,33 +284,46 @@ namespace Mvvm.ViewModels
                     }
                     else if (collection == Borders2)
                     {
-
                         string content = $"Address: {parameter.Address}, Value: {parameter.DefaultActual}, Status: {(parameter.IsMonitoring ? "true" : "false")}";
                         SetupBorders2Content(border, content, parameter);
                     }
                     else if (border.Child is Label label)
                     {
-                        string status = parameter.IsMonitoring ? "true" : "false";
-                        label.Content = $"Address: {parameter.Address}, Value: {parameter.DefaultActual}, Status: {status}";
+                        // Borders1의 경우 "주소, Val:값" 형태로 표시
+                        if (collection == Borders1)
+                        {
+                            label.Content = $"{parameter.Address}, Val:{parameter.DefaultActual:F0}";
+                        }
+                        else
+                        {
+                            string status = parameter.IsMonitoring ? "true" : "false";
+                            label.Content = $"Address: {parameter.Address}, Value: {parameter.DefaultActual}, Status: {status}";
+                        }
                     }
                 }
                 else
                 {
                     if (collection == Borders3)
                     {
-                        // 파라미터가 없는 경우에도 Borders3 형식 유지
                         string content = $"Address: {borderAddress.Value}, Value: N/A, Status: false";
                         SetupBorders3Content(border, content, null);
                     }
                     else if (collection == Borders2)
                     {
-                        // 파라미터가 없는 경우에도 Borders2 형식 유지
                         string content = $"Address: {borderAddress.Value}, Value: N/A, Status: false";
                         SetupBorders2Content(border, content, null);
                     }
                     else if (border.Child is Label label)
                     {
-                        label.Content = $"Address: {borderAddress.Value}, Value: N/A, Status: false";
+                        // Borders1의 경우 "주소, Val:값" 형태로 표시
+                        if (collection == Borders1)
+                        {
+                            label.Content = $"{borderAddress.Value}, Val:N/A";
+                        }
+                        else
+                        {
+                            label.Content = $"Address: {borderAddress.Value}, Value: N/A, Status: false";
+                        }
                     }
                 }
             }
@@ -823,23 +334,17 @@ namespace Mvvm.ViewModels
 
 
 
-
-
-
-        // Borders2용 내용 설정 도우미 메서드
-
         private void SetupBorders2Content(Border border, string content, ParameterModel parameter)
         {
-            // 그리드가 이미 있는지 확인
             if (!(border.Child is Grid))
             {
-                // 새로운 그리드 생성
+            
                 Grid newGrid = new Grid();
                 newGrid.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Auto) }); // 주소 표시 영역
                 newGrid.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Auto) }); // 값 표시 영역
                 newGrid.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) }); // 슬라이더 영역
 
-                // 주소 표시 TextBlock
+    
                 TextBlock addressBlock = new TextBlock();
                 addressBlock.FontWeight = FontWeights.Bold;
                 addressBlock.FontSize = 14;
@@ -848,7 +353,6 @@ namespace Mvvm.ViewModels
                 addressBlock.Margin = new Thickness(0, 5, 0, 0);
                 Grid.SetRow(addressBlock, 0);
 
-                // 값 표시 TextBlock
                 TextBlock valueBlock = new TextBlock();
                 valueBlock.FontSize = 14;
                 valueBlock.HorizontalAlignment = HorizontalAlignment.Center;
@@ -856,7 +360,7 @@ namespace Mvvm.ViewModels
                 valueBlock.Margin = new Thickness(0, 5, 0, 10);
                 Grid.SetRow(valueBlock, 1);
 
-                // MaterialDesign 슬라이더 생성
+    
                 Slider slider = new Slider();
                 slider.Orientation = Orientation.Vertical;
                 slider.Minimum = 0;
@@ -870,34 +374,25 @@ namespace Mvvm.ViewModels
                 slider.TickPlacement = TickPlacement.BottomRight;
 
 
-
-                // Material Design 슬라이더 스타일 설정
                 slider.Style = (Style)Application.Current.Resources["MaterialDesignDiscreteSlider"];
 
+              SliderAssist.SetOnlyShowFocusVisualWhileDragging(slider, true);
 
 
-                // SliderAssist를 사용하기 위해 직접 클래스를 사용
-                MaterialDesignThemes.Wpf.SliderAssist.SetOnlyShowFocusVisualWhileDragging(slider, true);
-
-
-
-                // SetValueTooltipFormatter는 제거 (버전에 없음)
                 Grid.SetRow(slider, 2);
 
-                // 값 변경 이벤트 핸들러
-                slider.ValueChanged += (sender, e) => {
+                slider.ValueChanged += async (sender, e) => {
                     if (valueBlock != null)
                     {
                         valueBlock.Text = $"값: {e.NewValue:F2}";
 
-                        // 실제 파라미터 값 업데이트 로직 (필요 시)
                         if (TryExtractAddressAndValue(content, out int sliderAddress, out _))
                         {
                             var param = parameters.FirstOrDefault(p => p.Address == sliderAddress);
                             if (param != null)
                             {
-                                // 여기에 실제 모드버스 값 업데이트 로직 추가할 수 있음
-                                // _modbusConnect.WriteRegister(sliderAddress, (int)e.NewValue);
+                              
+                                await _modbusConnect.WriteRegister(sliderAddress, (int)e.NewValue);
                             }
                         }
                     }
@@ -971,65 +466,101 @@ namespace Mvvm.ViewModels
 
 
 
-
-        // Borders3용 내용 설정 도우미 메서드
         private void SetupBorders3Content(Border border, string content, ParameterModel parameter)
         {
-            // 그리드가 이미 있는지 확인
             if (!(border.Child is Grid))
             {
-                // 그리드 새로 생성
                 Grid newGrid = new Grid();
-                newGrid.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) }); // 주소와 값 표시 영역
+                newGrid.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) }); // 주소/값 영역
                 newGrid.RowDefinitions.Add(new RowDefinition { Height = new GridLength(2, GridUnitType.Star) }); // 이미지 영역
-                newGrid.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) }); // 버튼 영역
+                newGrid.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Auto) }); // 입력/버튼 영역
 
-                // 주소와 값 표시할 StackPanel
-                StackPanel infoPanel = new StackPanel();
-                infoPanel.Orientation = Orientation.Vertical;
-                infoPanel.Margin = new Thickness(5);
-
-                // 주소 표시 TextBlock
-                TextBlock addressBlock = new TextBlock();
-                addressBlock.FontWeight = FontWeights.Bold;
-                addressBlock.FontSize = 14;
-                addressBlock.HorizontalAlignment = HorizontalAlignment.Center;
-                addressBlock.Foreground = new SolidColorBrush(Colors.DarkBlue);
-
-                // 값 표시 TextBlock
-                TextBlock valueBlock = new TextBlock();
-                valueBlock.FontSize = 14;
-                valueBlock.HorizontalAlignment = HorizontalAlignment.Center;
-                valueBlock.Foreground = new SolidColorBrush(Colors.DarkGreen);
-
-                // StackPanel에 추가
+                StackPanel infoPanel = new StackPanel { Orientation = Orientation.Vertical, Margin = new Thickness(5) };
+                TextBlock addressBlock = new TextBlock
+                {
+                    FontWeight = FontWeights.Bold,
+                    FontSize = 14,
+                    HorizontalAlignment = HorizontalAlignment.Center,
+                    Foreground = new SolidColorBrush(Colors.DarkBlue)
+                };
+                TextBlock valueBlock = new TextBlock
+                {
+                    FontSize = 14,
+                    HorizontalAlignment = HorizontalAlignment.Center,
+                    Foreground = new SolidColorBrush(Colors.DarkGreen)
+                };
                 infoPanel.Children.Add(addressBlock);
                 infoPanel.Children.Add(valueBlock);
                 Grid.SetRow(infoPanel, 0);
 
-                // 이미지 생성
-                Image img = new Image();
-                img.Stretch = Stretch.Uniform;
-                img.Margin = new Thickness(5);
-                img.Source = new BitmapImage(new Uri("/Dictionaries/free-sticker-retro-5928520.png", UriKind.Relative));
+                Image img = new Image
+                {
+                    Stretch = Stretch.Uniform,
+                    Margin = new Thickness(5),
+                    Source = new BitmapImage(new Uri("/Dictionaries/fsticker_retro.png", UriKind.Relative))
+                };
                 Grid.SetRow(img, 1);
 
-                // 버튼 생성
-                Button btn = new Button();
-                btn.Content = "설정";
-                btn.Margin = new Thickness(5);
-                btn.Style = (Style)Application.Current.Resources["Border3ButtonStyle"];
-                Grid.SetRow(btn, 2);
+        
+                StackPanel inputPanel = new StackPanel { Orientation = Orientation.Horizontal, HorizontalAlignment = HorizontalAlignment.Center, Margin = new Thickness(5) };
+                TextBox valueInput = new TextBox
+                {
+                    Width = 60,
+                    Margin = new Thickness(0, 0, 5, 0),
+                    VerticalContentAlignment = VerticalAlignment.Center
+                };
+                valueInput.PreviewTextInput += (s, e) =>
+                {
+                    
+                    e.Handled = !e.Text.All(char.IsDigit);
+                };
+                Button btn = new Button
+                {
+                    Content = "설정",
+                    Margin = new Thickness(5, 0, 0, 0),
+                    Style = (Style)Application.Current.Resources["Border3ButtonStyle"]
+                };
 
-                // 버튼 클릭 이벤트
-                btn.Click += Border3ButtonClick;
+              
+                btn.Click += async (s, e) =>
+                {
+                    int address = 0;
+                    if (parameter != null)
+                        address = parameter.Address;
+                    else if (TryExtractAddressAndValue(content, out int extractedAddress, out _))
+                        address = extractedAddress;
 
-                // 그리드에 요소 추가
+                    if (address == 0)
+                    {
+                        MessageBox.Show("주소를 찾을 수 없습니다.", "오류", MessageBoxButton.OK, MessageBoxImage.Warning);
+                        return;
+                    }
+
+                    if (!int.TryParse(valueInput.Text, out int newValue))
+                    {
+                        MessageBox.Show("숫자 값을 입력하세요.", "입력 오류", MessageBoxButton.OK, MessageBoxImage.Warning);
+                        return;
+                    }
+
+                    try
+                    {
+                        await _modbusConnect.WriteRegister(address, newValue);
+                        MessageBox.Show($"주소 {address}에 값 {newValue}를 전송했습니다.", "성공", MessageBoxButton.OK, MessageBoxImage.Information);
+                    }
+                    catch (Exception ex)
+                    {
+                        MessageBox.Show($"모드버스 전송 오류: {ex.Message}", "오류", MessageBoxButton.OK, MessageBoxImage.Error);
+                    }
+                };
+
+                inputPanel.Children.Add(valueInput);
+                inputPanel.Children.Add(btn);
+                Grid.SetRow(inputPanel, 2);
+
                 newGrid.Children.Add(infoPanel);
                 newGrid.Children.Add(img);
-                newGrid.Children.Add(btn);
+                newGrid.Children.Add(inputPanel);
 
-                // 그리드를 Border의 새 자식으로 설정
                 border.Child = newGrid;
             }
 
@@ -1051,36 +582,12 @@ namespace Mvvm.ViewModels
             {
                 foreach (var child in existingGrid.Children)
                 {
-                    if (child is Button btn)
+                    if (child is StackPanel infoPanel && infoPanel.Children.Count >= 2)
                     {
-                        btn.Tag = content;
-
-                        if (parameter != null)
-                        {
-                            btn.Content = $"{parameter.Address:D3}";
-                        }
-                    }
-                    else if (child is Image img && parameter != null)
-                    {
-                        if (parameter.DefaultActual > 50)
-                        {
-                            img.Source = new BitmapImage(new Uri("/Dictionaries/fsticker_retro.png", UriKind.Relative));
-                        }
-                    }
-                    else if (child is StackPanel infoPanel)
-                    {
-                        if (infoPanel.Children.Count >= 2)
-                        {
-                            if (infoPanel.Children[0] is TextBlock addressBlock)
-                            {
-                                addressBlock.Text = $"주소: {address}";
-                            }
-
-                            if (infoPanel.Children[1] is TextBlock valueBlock)
-                            {
-                                valueBlock.Text = $"값: {value:F2}";
-                            }
-                        }
+                        if (infoPanel.Children[0] is TextBlock addressBlock)
+                            addressBlock.Text = $"주소: {address}";
+                        if (infoPanel.Children[1] is TextBlock valueBlock)
+                            valueBlock.Text = $"값: {value:F2}";
                     }
                 }
             }
@@ -1104,6 +611,19 @@ namespace Mvvm.ViewModels
                 }
             }
         }
+
+
+
+    public void RightMouseButtonDown(IDropInfo dropInfo)
+        {
+
+
+         
+
+
+
+        }
+
 
         public void Drop(IDropInfo dropInfo)
         {
@@ -1147,6 +667,7 @@ namespace Mvvm.ViewModels
                             // 상태 업데이트: Border 컬렉션에 따라 true/false 설정
                             UpdateParameterStatus(parameterToUpdate, targetCollection);
 
+                            // ResizeBorder에서 현재 값을 유지하도록 수정
                             ResizeBorder(sourceItem, targetCollection);
                             targetCollection.Insert(targetIndex, sourceItem);
                         }
@@ -1183,16 +704,16 @@ namespace Mvvm.ViewModels
                     }
                 }
 
-                UpdateBorderContents();
+                // UpdateBorderContents() 호출을 제거하거나 조건부로 호출
+                // UpdateBorderContents(); // 이 줄을 제거하거나 주석 처리
             }
         }
 
-        // 새로운 메서드: 파라미터의 상태를 컬렉션에 따라 업데이트
+
         private void UpdateParameterStatus(ParameterModel parameter, ObservableCollection<Border> targetCollection)
         {
             if (parameter != null)
             {
-                // 각 컬렉션에 따라 다른 상태 설정
                 if (targetCollection == Borders1)
                 {
                     parameter.IsMonitoring = false;
@@ -1218,7 +739,6 @@ namespace Mvvm.ViewModels
             }
         }
 
-        // 새로운 메서드: Border의 라벨 업데이트
         private void UpdateBorderLabel(ParameterModel parameter)
         {
             foreach (var border in Borders1
@@ -1232,20 +752,46 @@ namespace Mvvm.ViewModels
                 {
                     if (border.Child is Label label)
                     {
-                        string status = parameter.IsMonitoring ? "true" : "false";
-                        label.Content = $"Address: {parameter.Address}, Value: {parameter.DefaultActual}, Status: {status}";
+                        // Borders1인지 확인
+                        var collection = GetCollectionContainingItem(border);
+                        if (collection == Borders1)
+                        {
+                            label.Content = $"{parameter.Address}, Val:{parameter.DefaultActual:F0}";
+                        }
+                        else
+                        {
+                            string status = parameter.IsMonitoring ? "true" : "false";
+                            label.Content = $"Address: {parameter.Address}, Value: {parameter.DefaultActual}, Status: {status}";
+                        }
                     }
                 }
             }
         }
 
+
         private int? GetAddressFromBorder(Border border)
         {
-            // Label에서 주소 가져오기
             if (border?.Child is Label label && label.Content != null)
             {
                 string content = label.Content.ToString();
-                if (content.StartsWith("Address: "))
+
+                if (content.Contains(", Val:"))
+                {
+                    string[] parts = content.Split(new string[] { ", Val:" }, StringSplitOptions.None);
+                    if (parts.Length >= 1 && int.TryParse(parts[0], out int address))
+                    {
+                        return address;
+                    }
+                }
+                else if (content.Contains(" : "))
+                {
+                    string[] parts = content.Split(" : ");
+                    if (parts.Length >= 1 && int.TryParse(parts[0], out int address))
+                    {
+                        return address;
+                    }
+                }
+                else if (content.StartsWith("Address: "))
                 {
                     int commaIndex = content.IndexOf(',');
                     if (commaIndex > 0)
@@ -1258,15 +804,12 @@ namespace Mvvm.ViewModels
                     }
                 }
             }
-            // Grid 구조에서 주소 가져오기 (Border2, Border3용)
             else if (border?.Child is Grid grid)
             {
-                // Border3의 StackPanel에서 주소 가져오기
                 foreach (var child in grid.Children)
                 {
                     if (child is StackPanel panel && panel.Children.Count > 0 && panel.Children[0] is TextBlock addressBlock)
                     {
-                        // "주소: 123" 형식에서 숫자 부분만 추출
                         string text = addressBlock.Text;
                         if (text.StartsWith("주소: "))
                         {
@@ -1277,7 +820,6 @@ namespace Mvvm.ViewModels
                             }
                         }
                     }
-                    // Border2의 TextBlock에서 주소 가져오기
                     else if (child is TextBlock textBlock && Grid.GetRow(textBlock) == 0)
                     {
                         string text = textBlock.Text;
@@ -1292,7 +834,6 @@ namespace Mvvm.ViewModels
                     }
                     else if (child is Button btn && btn.Tag != null)
                     {
-                        // 버튼의 Tag에서 주소 정보 추출
                         string content = btn.Tag.ToString();
                         if (TryExtractAddressAndValue(content, out int address, out _))
                         {
@@ -1301,7 +842,6 @@ namespace Mvvm.ViewModels
                     }
                     else if (child is Slider slider && slider.Tag != null)
                     {
-                        // 슬라이더의 Tag에서 주소 정보 추출
                         string content = slider.Tag.ToString();
                         if (TryExtractAddressAndValue(content, out int address, out _))
                         {
@@ -1332,260 +872,303 @@ namespace Mvvm.ViewModels
         }
 
 
+
         private void ResizeBorder(Border border, ObservableCollection<Border> targetCollection, int? insertIndex = null)
         {
+            int? _curAddr = GetAddressFromBorder(border);
+            ParameterModel _curPara = null;
+
+            if (_curAddr.HasValue)
+            {
+                _curPara = parameters.FirstOrDefault(p => p.Address == _curAddr.Value);
+            }
+
             if (targetCollection == Borders1)
             {
-                border.Width = 120;
-                border.Height = 50;
+                border.Width = 110;
+                border.Height = 30;
                 border.Margin = new Thickness(0, 0, 0, 0);
+                border.Style = (Style)Application.Current.Resources["Borders1Style"];
 
-                // 기존 라벨 유지
-                if (border.Child is Label label)
+                var newLabel = new Label();
+                newLabel.Style = (Style)Application.Current.Resources["DefaultBorderLabelStyle"];
+                if (_curPara != null)
                 {
-                    // 라벨 스타일 유지
+                  
+                    newLabel.Content = $"{_curPara.Address}, Val:{_curPara.DefaultActual:F0}";
                 }
+                border.Child = newLabel;
             }
             else if (targetCollection == Borders2)
             {
-                border.Width = 100;
+                border.Width = 80;
                 border.Height = 200;
-
                 int index = insertIndex ?? targetCollection.Count;
                 int row = index / 2;
                 int column = index % 2;
+                border.Margin = new Thickness(column * 5, row * 5, 0, 0);
+                border.Style = (Style)Application.Current.Resources["Borders2Style"];
 
-                border.Margin = new Thickness(
-                    column * 5,
-                    row * 5,
-                    0,
-                    0
-                );
-
-                // 원래 내용 저장
-                string originalContent = "";
-                int address = 0;
-                double value = 0;
-
-                if (border.Child is Label label && label.Content != null)
-                {
-                    originalContent = label.Content.ToString() ?? "";
-                    TryExtractAddressAndValue(originalContent, out address, out value);
-                }
-
-                // 기존 라벨 제거
-                border.Child = null;
-
-                // 새로운 그리드 생성
-                Grid grid = new Grid();
-                grid.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Auto) }); // 주소 표시 영역
-                grid.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Auto) }); // 값 표시 영역
-                grid.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) }); // 슬라이더 영역
-
-                // 주소 표시 TextBlock
-                TextBlock addressBlock = new TextBlock();
-                addressBlock.FontWeight = FontWeights.Bold;
-                addressBlock.FontSize = 14;
-                addressBlock.HorizontalAlignment = HorizontalAlignment.Center;
-                addressBlock.Foreground = new SolidColorBrush(Colors.DarkBlue);
-                addressBlock.Text = $"주소: {address}";
-                addressBlock.Margin = new Thickness(0, 5, 0, 0);
-                Grid.SetRow(addressBlock, 0);
-
-                // 값 표시 TextBlock
-                TextBlock valueBlock = new TextBlock();
-                valueBlock.FontSize = 14;
-                valueBlock.HorizontalAlignment = HorizontalAlignment.Center;
-                valueBlock.Foreground = new SolidColorBrush(Colors.DarkGreen);
-                valueBlock.Text = $"값: {value:F2}";
-                valueBlock.Margin = new Thickness(0, 5, 0, 10);
-                Grid.SetRow(valueBlock, 1);
-
-                // MaterialDesign 슬라이더 생성
-                Slider slider = new Slider();
-                slider.Orientation = Orientation.Vertical;
-                slider.Minimum = 0;
-                slider.Maximum = 100;
-                slider.Value = value;
-                slider.Height = 120;
-                slider.Margin = new Thickness(10);
-                slider.VerticalAlignment = VerticalAlignment.Stretch;
-                slider.HorizontalAlignment = HorizontalAlignment.Center;
-                slider.TickFrequency = 10;
-                slider.IsSnapToTickEnabled = true;
-                slider.TickPlacement = TickPlacement.BottomRight;
-
-                // Material Design 슬라이더 스타일 설정
-                slider.Style = (Style)Application.Current.Resources["MaterialDesignDiscreteSlider"];
-                MaterialDesignThemes.Wpf.SliderAssist.SetOnlyShowFocusVisualWhileDragging(slider, true);
-
-                // 값 변경 이벤트 핸들러
-                slider.ValueChanged += (sender, e) => {
-                    if (valueBlock != null)
-                    {
-                        valueBlock.Text = $"값: {e.NewValue:F2}";
-
-                        // 실제 파라미터 값도 업데이트
-                        if (TryExtractAddressAndValue(originalContent, out int sliderAddress, out _))
-                        {
-                            var parameter = parameters.FirstOrDefault(p => p.Address == sliderAddress);
-                            if (parameter != null)
-                            {
-                                // 값 변경 로직 - 여기서는 UI만 업데이트
-                                // 실제 값을 변경하려면 ModbusConnect를 통해 값 쓰기 필요
-                                // _modbusConnect.WriteRegister(sliderAddress, (int)e.NewValue);
-                            }
-                        }
-                    }
-                };
-
-                Grid.SetRow(slider, 2);
-
-                // 텍스트 정보를 슬라이더의 Tag에 저장
-                slider.Tag = originalContent;
-
-                // 그리드에 요소 추가
-                grid.Children.Add(addressBlock);
-                grid.Children.Add(valueBlock);
-                grid.Children.Add(slider);
-
-                // 그리드를 Border의 새 자식으로 설정
-                border.Child = grid;
+                CreateBorders2Grid(border, _curPara);
             }
             else if (targetCollection == Borders3)
             {
                 border.Width = 150;
-                border.Height = 180; // 약간 높이 증가 (주소와 값을 표시하기 위해)
+                border.Height = 180;
                 border.Style = (Style)Application.Current.Resources["Borders3Style"];
-
                 int index = insertIndex ?? targetCollection.Count;
                 int row = index / 2;
                 int column = index % 2;
+                border.Margin = new Thickness(column * 5, row * 5, 0, 0);
 
-                border.Margin = new Thickness(
-                    column * 5,
-                    row * 5,
-                    0,
-                    0
-                );
-
-                // 원래 내용 저장
-                string originalContent = "";
-                int address = 0;
-                double value = 0;
-
-                if (border.Child is Label label && label.Content != null)
-                {
-                    originalContent = label.Content.ToString() ?? "";
-                    TryExtractAddressAndValue(originalContent, out address, out value);
-                }
-
-                // 기존 라벨 제거
-                border.Child = null;
-
-                // 새로운 그리드 생성
-                Grid grid = new Grid();
-                grid.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) }); // 주소와 값 표시 영역
-                grid.RowDefinitions.Add(new RowDefinition { Height = new GridLength(2, GridUnitType.Star) }); // 이미지 영역
-                grid.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) }); // 버튼 영역
-
-                // 주소와 값을 표시할 StackPanel
-                StackPanel infoPanel = new StackPanel();
-                infoPanel.Orientation = Orientation.Vertical;
-                infoPanel.Margin = new Thickness(5);
-
-                // 주소 표시 TextBlock
-                TextBlock addressBlock = new TextBlock();
-                addressBlock.FontWeight = FontWeights.Bold;
-                addressBlock.FontSize = 14;
-                addressBlock.HorizontalAlignment = HorizontalAlignment.Center;
-                addressBlock.Foreground = new SolidColorBrush(Colors.DarkBlue);
-                addressBlock.Text = $"주소: {address}";
-
-                // 값 표시 TextBlock
-                TextBlock valueBlock = new TextBlock();
-                valueBlock.FontSize = 14;
-                valueBlock.HorizontalAlignment = HorizontalAlignment.Center;
-                valueBlock.Foreground = new SolidColorBrush(Colors.DarkGreen);
-                valueBlock.Text = $"값: {value:F2}";
-
-                // StackPanel에 추가
-                infoPanel.Children.Add(addressBlock);
-                infoPanel.Children.Add(valueBlock);
-                Grid.SetRow(infoPanel, 0);
-
-                // 이미지 생성
-                Image img = new Image();
-                img.Stretch = Stretch.Uniform;
-                img.Margin = new Thickness(5);
-                img.Source = new BitmapImage(new Uri("/Dictionaries/free-sticker-retro-5928520.png", UriKind.Relative));
-                Grid.SetRow(img, 1);
-
-                Button btn = new Button();
-                btn.Content = "설정";
-                btn.Margin = new Thickness(5);
-                btn.Style = (Style)Application.Current.Resources["Border3ButtonStyle"];
-                Grid.SetRow(btn, 2);
-
-                btn.Tag = originalContent;
-
-                btn.Click += (sender, e) => {
-                    Button clickedBtn = sender as Button;
-                    if (clickedBtn != null)
-                    {
-                        string extractedAddress = ExtractAddressFromContent(clickedBtn.Tag.ToString());
-                        if (!string.IsNullOrEmpty(extractedAddress))
-                        {
-                            MessageBox.Show($"버튼 클릭됨: 주소 {extractedAddress}");
-                        }
-                    }
-                };
-
-                grid.Children.Add(infoPanel);
-                grid.Children.Add(img);
-                grid.Children.Add(btn);
-
-                border.Child = grid;
+                CreateBorders3Grid(border, _curPara);
             }
             else if (targetCollection == Borders4)
             {
-                border.Width = 50;
+                border.Width = 150;
                 border.Height = 30;
                 border.Margin = new Thickness(0, 0, 0, 0);
+                border.Style = (Style)Application.Current.Resources["Borders4Style"];
 
-                if (border.Child is Label label)
+                var newLabel = new Label();
+                newLabel.Style = (Style)Application.Current.Resources["DefaultBorderLabelStyle"];
+                if (_curPara != null)
                 {
+                    string status = _curPara.IsMonitoring ? "true" : "false";
+                    newLabel.Content = $"Address: {_curPara.Address}, Value: {_curPara.DefaultActual}, Status: {status}";
                 }
+                border.Child = newLabel;
             }
             else if (targetCollection == Borders5)
             {
                 border.Width = 100;
                 border.Height = 50;
                 border.Margin = new Thickness(0, 0, 0, 0);
+                border.Style = (Style)Application.Current.Resources["Borders5Style"];
 
-                // 기존 라벨 유지
-                if (border.Child is Label label)
+                var newLabel = new Label();
+                newLabel.Style = (Style)Application.Current.Resources["DefaultBorderLabelStyle"];
+                if (_curPara != null)
                 {
-
-
-                    // 라벨 스타일 유지
+                    string status = _curPara.IsMonitoring ? "true" : "false";
+                    newLabel.Content = $"Address: {_curPara.Address}, Value: {_curPara.DefaultActual}, Status: {status}";
                 }
+                border.Child = newLabel;
             }
         }
 
-        // 주소를 추출하는 헬퍼 메서드
-        private string ExtractAddressFromContent(string content)
+
+
+        private void CreateBorders2Grid(Border border, ParameterModel parameter)
         {
-            if (content.StartsWith("Address: "))
+            Grid grid = new Grid();
+            grid.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Auto) });
+            grid.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Auto) });
+            grid.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) });
+
+            // 주소 표시 TextBlock
+            TextBlock addressBlock = new TextBlock();
+            addressBlock.FontWeight = FontWeights.Bold;
+            addressBlock.FontSize = 14;
+            addressBlock.HorizontalAlignment = HorizontalAlignment.Center;
+            addressBlock.Foreground = new SolidColorBrush(Colors.DarkBlue);
+            addressBlock.Text = parameter != null ? $"주소: {parameter.Address}" : "주소: N/A";
+            addressBlock.Margin = new Thickness(0, 5, 0, 0);
+            Grid.SetRow(addressBlock, 0);
+
+            // 값 표시 TextBlock
+            TextBlock valueBlock = new TextBlock();
+            valueBlock.FontSize = 14;
+            valueBlock.HorizontalAlignment = HorizontalAlignment.Center;
+            valueBlock.Foreground = new SolidColorBrush(Colors.DarkGreen);
+            valueBlock.Text = parameter != null ? $"값: {parameter.DefaultActual:F2}" : "값: N/A";
+            valueBlock.Margin = new Thickness(0, 5, 0, 10);
+            Grid.SetRow(valueBlock, 1);
+
+            // MaterialDesign 슬라이더 생성
+            Slider slider = new Slider();
+            slider.Orientation = Orientation.Vertical;
+            slider.Height = 120;
+            slider.Margin = new Thickness(10);
+            slider.VerticalAlignment = VerticalAlignment.Stretch;
+            slider.HorizontalAlignment = HorizontalAlignment.Center;
+            slider.TickFrequency = 10;
+            slider.IsSnapToTickEnabled = true;
+            slider.TickPlacement = TickPlacement.BottomRight;
+            slider.Style = (Style)Application.Current.Resources["MaterialDesignDiscreteSlider"];
+
+            MaterialDesignThemes.Wpf.SliderAssist.SetOnlyShowFocusVisualWhileDragging(slider, true);
+
+            if (parameter != null)
             {
-                int commaIndex = content.IndexOf(',');
-                if (commaIndex > 0)
+                slider.Value = parameter.DefaultActual;
+                double min = Math.Max(0, parameter.DefaultActual * 0.5);
+                double max = parameter.DefaultActual * 1.5;
+                if (max - min < 10)
                 {
-                    return content.Substring(9, commaIndex - 9);
+                    min = Math.Max(0, parameter.DefaultActual - 5);
+                    max = parameter.DefaultActual + 5;
                 }
+                slider.Minimum = min;
+                slider.Maximum = max;
+
+                string content = $"Address: {parameter.Address}, Value: {parameter.DefaultActual}, Status: {(parameter.IsMonitoring ? "true" : "false")}";
+                slider.Tag = content;
             }
-            return "";
+            else
+            {
+                slider.Minimum = 0;
+                slider.Maximum = 100;
+                slider.Value = 0;
+            }
+
+            // 슬라이더 값 변경 시 화면 업데이트 및 모드버스 Write
+            slider.ValueChanged += async (sender, e) => {
+                if (valueBlock != null)
+                {
+                    valueBlock.Text = $"값: {e.NewValue:F2}";
+                }
+
+                // 모드버스에 값 전송
+                if (parameter != null)
+                {
+                    try
+                    {
+                        await _modbusConnect.WriteRegister(parameter.Address, (int)e.NewValue);
+                        // 성공적으로 전송된 경우 파라미터 모델의 값도 업데이트
+                        parameter.DefaultActual = e.NewValue;
+                    }
+                    catch (Exception ex)
+                    {
+                        // 오류 발생 시 메시지 표시 (선택사항)
+                        Debug.WriteLine($"모드버스 전송 오류 (주소: {parameter.Address}): {ex.Message}");
+                        // 필요시 MessageBox로 사용자에게 알릴 수도 있음
+                        // MessageBox.Show($"모드버스 전송 오류: {ex.Message}", "오류", MessageBoxButton.OK, MessageBoxImage.Error);
+                    }
+                }
+            };
+
+            Grid.SetRow(slider, 2);
+
+            grid.Children.Add(addressBlock);
+            grid.Children.Add(valueBlock);
+            grid.Children.Add(slider);
+
+            border.Child = grid;
         }
+
+        /// <summary>
+        /// Borders3용 새 Grid 생성
+        /// </summary>
+        private void CreateBorders3Grid(Border border, ParameterModel parameter)
+        {
+            Grid grid = new Grid();
+            grid.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) });
+            grid.RowDefinitions.Add(new RowDefinition { Height = new GridLength(2, GridUnitType.Star) });
+            grid.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Auto) });
+
+          
+            StackPanel infoPanel = new StackPanel();
+            infoPanel.Orientation = Orientation.Vertical;
+            infoPanel.Margin = new Thickness(5);
+
+            TextBlock addressBlock = new TextBlock
+            {
+                FontWeight = FontWeights.Bold,
+                FontSize = 14,
+                HorizontalAlignment = HorizontalAlignment.Center,
+                Foreground = new SolidColorBrush(Colors.DarkBlue),
+                Text = parameter != null ? $"주소: {parameter.Address}" : "주소: N/A"
+            };
+
+            TextBlock valueBlock = new TextBlock
+            {
+                FontSize = 14,
+                HorizontalAlignment = HorizontalAlignment.Center,
+                Foreground = new SolidColorBrush(Colors.DarkGreen),
+                Text = parameter != null ? $"값: {parameter.DefaultActual:F2}" : "값: N/A"
+            };
+
+            infoPanel.Children.Add(addressBlock);
+            infoPanel.Children.Add(valueBlock);
+            Grid.SetRow(infoPanel, 0);
+
+            // 이미지 생성
+            Image img = new Image
+            {
+                Stretch = Stretch.Uniform,
+                Margin = new Thickness(5),
+                Source = new BitmapImage(new Uri("/Dictionaries/fsticker_retro.png", UriKind.Relative))
+            };
+            Grid.SetRow(img, 1);
+
+            // 입력/버튼 영역
+            StackPanel inputPanel = new StackPanel
+            {
+                Orientation = Orientation.Horizontal,
+                HorizontalAlignment = HorizontalAlignment.Center,
+                Margin = new Thickness(5)
+            };
+
+            TextBox valueInput = new TextBox
+            {
+                Width = 60,
+                Margin = new Thickness(0, 0, 5, 0),
+                VerticalContentAlignment = VerticalAlignment.Center
+            };
+            valueInput.PreviewTextInput += (s, e) =>
+            {
+                // 숫자만 입력 허용
+                e.Handled = !e.Text.All(char.IsDigit);
+            };
+
+            Button btn = new Button
+            {
+                Content = parameter != null ? $"{parameter.Address:D3}" : "설정",
+                Width = 60,
+                Margin = new Thickness(5, 0, 0, 0),
+                Style = (Style)Application.Current.Resources["Border3ButtonStyle"]
+            };
+
+            btn.Click += async (s, e) =>
+            {
+                int address = parameter != null ? parameter.Address : 0;
+                if (address == 0)
+                {
+                    MessageBox.Show("주소를 찾을 수 없습니다.", "오류", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    return;
+                }
+
+                if (!int.TryParse(valueInput.Text, out int newValue))
+                {
+                    MessageBox.Show("숫자 값을 입력하세요.", "입력 오류", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    return;
+                }
+
+                try
+                {
+                    await _modbusConnect.WriteRegister(address, newValue);
+                    MessageBox.Show($"주소 {address}에 값 {newValue}를 전송했습니다.", "성공", MessageBoxButton.OK, MessageBoxImage.Information);
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"모드버스 전송 오류: {ex.Message}", "오류", MessageBoxButton.OK, MessageBoxImage.Error);
+                }
+            };
+
+            inputPanel.Children.Add(valueInput);
+            inputPanel.Children.Add(btn);
+            Grid.SetRow(inputPanel, 2);
+
+            grid.Children.Add(infoPanel);
+            grid.Children.Add(img);
+            grid.Children.Add(inputPanel);
+
+            border.Child = grid;
+        }
+
+
+
 
         // 주소와 값을 추출하는 헬퍼 메서드
         private bool TryExtractAddressAndValue(string content, out int address, out double value)
@@ -1619,7 +1202,10 @@ namespace Mvvm.ViewModels
         }
 
 
-        private void Border3ButtonClick(object sender, RoutedEventArgs e)
+
+
+        //지금 수정하는 부분. 클릭스 값 수정이 되어 야 함. <-------------------------------------------------- 07.23 수정 부분
+        private void Border3ButtonClick(object sender, RoutedEventArgs e)  
         {
             Button btn = sender as Button;
             if (btn != null && btn.Tag != null)

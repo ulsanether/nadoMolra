@@ -11,8 +11,8 @@
 
     <!--  보더1 스타일  -->
     <Style x:Key="DefaultBorderStyle" TargetType="{x:Type Border}">
-        <Setter Property="Width" Value="120" />
-        <Setter Property="Height" Value="30" />
+        <Setter Property="Width" Value="100" />
+        <Setter Property="Height" Value="25" />
         <Setter Property="Margin" Value="0,0,0,0" />
         <Setter Property="Background">
             <Setter.Value>
@@ -40,13 +40,13 @@
 
 
 
-    <!--  보더 1 스타일 왼위의 보더  -->
+    <!--  보더1 가장 오른쪽쪽 기본이 되는 보더  -->
     <Style
         x:Key="Borders1Style"
         BasedOn="{StaticResource DefaultBorderStyle}"
         TargetType="{x:Type Border}">
-        <Setter Property="Width" Value="120" />
-        <Setter Property="Height" Value="50" />
+        <Setter Property="Width" Value="110" />
+        <Setter Property="Height" Value="30" />
     </Style>
 
 
@@ -57,14 +57,13 @@
         x:Key="Borders2Style"
         BasedOn="{StaticResource DefaultBorderStyle}"
         TargetType="{x:Type Border}">
-        <Setter Property="Width" Value="100" />
-        <Setter Property="Height" Value="200" />
+        <Setter Property="Width" Value="80" />
+        <Setter Property="Height" Value="150" />
     </Style>
 
 
 
 
-    <!--  보더 3 스타일 아직 없음  -->
     <!--  보더 3 스타일 수정  -->
     <Style
         x:Key="Borders3Style"
@@ -104,7 +103,7 @@
                     </Border>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsMouseOver" Value="True">
-                            <Setter Property="Background" Value="#3C6EB5" />
+                            <Setter Property="Background" Value="Coral" />
                         </Trigger>
                         <Trigger Property="IsPressed" Value="True">
                             <Setter Property="Background" Value="#2C5594" />

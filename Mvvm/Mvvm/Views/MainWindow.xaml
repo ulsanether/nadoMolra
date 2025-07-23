@@ -240,7 +240,25 @@
                     Text="홈" />
             </StackPanel>
         </Button>
-
+        <Button
+            Grid.Row="0"
+            Width="80"
+            Height="60"
+            Margin="230,0,0,0"
+            HorizontalAlignment="Left"
+            Command="{Binding NavigateToHomePageCommand}"
+            Style="{StaticResource MainHomePageButton}">
+            <StackPanel>
+                <TextBlock
+                    Width="80"
+                    Margin="0,40,0,0"
+                    Padding="28,0,0,0"
+                    HorizontalAlignment="Left"
+                    FontSize="10"
+                    Foreground="White"
+                    Text="가변" />
+            </StackPanel>
+        </Button>
     </Grid>
 
 </Window>

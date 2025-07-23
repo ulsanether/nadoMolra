@@ -19,6 +19,7 @@ using System.Windows.Input;
 using Mvvm.Model;
 using Mvvm.Converters;
 using System.IO;
+using ScottPlot.Plottables;
 
 
 namespace Mvvm.ViewModels
@@ -41,6 +42,7 @@ namespace Mvvm.ViewModels
         private readonly ModbusConnect _modbusConnect;
 
         private readonly Timer _modbusDataVieewDataUpdateTimer;
+        private readonly object _chartLockObject = new();
 
         private CommunicationStatistics _statistics;
 
@@ -176,8 +178,17 @@ namespace Mvvm.ViewModels
         public string SelectedChartType
         {
             get => _selectedChartType;
-            set => SetProperty(ref _selectedChartType, value);
+            set
+            {
+                if (SetProperty(ref _selectedChartType, value))
+                {
+                    UpdateChartDesign();
+                }
+            }
         }
+
+
+
         public CommunicationStatistics Statistics
         {
             get => _statistics;
@@ -224,6 +235,21 @@ namespace Mvvm.ViewModels
 
 
 
+        private int _chartUpdateInterval = 200;
+        public int ChartUpdateInterval
+        {
+            get => _chartUpdateInterval;
+            set
+            {
+                if (SetProperty(ref _chartUpdateInterval, value))
+                {
+                    if (_chartUpdateTimer != null)
+                        _chartUpdateTimer.Interval = value;
+                }
+            }
+        }
+        public ObservableCollection<int> ChartUpdateIntervals { get; } = new ObservableCollection<int> { 100, 200, 500, 1000, 2000 };
+
 
 
 
@@ -264,6 +290,7 @@ namespace Mvvm.ViewModels
 
 
 
+
         #region Constructor
 
         public ParameterWindowViewModel(ModbusConnect modbusConnect)
@@ -289,9 +316,10 @@ namespace Mvvm.ViewModels
 
 
             // 차트 갱신 타이머 설정
-            _chartUpdateTimer = new Timer(200);
+            _chartUpdateTimer = new Timer(_chartUpdateInterval);
             _chartUpdateTimer.Elapsed += async (sender, e) => await UpdateChart();
             _chartUpdateTimer.Start();
+
 
 
         }
@@ -327,7 +355,7 @@ namespace Mvvm.ViewModels
         private async void ExecuteGenerateParameters()
         {
 
-                _modbusConnect.ExecuteGenerateParameters(Parameters);
+                await _modbusConnect.ExecuteGenerateParameters(Parameters);
 
 
 
@@ -761,6 +789,271 @@ namespace Mvvm.ViewModels
         }
 
 
+        private void UpdateChartDesign()
+        {
+            if (_wpfPlot == null) return;
+
+            lock (_chartLockObject)
+            {
+                try
+                {
+                    Application.Current.Dispatcher.Invoke(() =>
+                    {
+                        switch (SelectedChartType)
+                        {
+                            case "Bars":
+                                ApplyBarChartStyle();
+                                break;
+                            case "Scatter":
+                                ApplyScatterChartStyle();
+                                break;
+                            case "Signal":
+                                ApplySignalChartStyle();
+                                break;
+                            case "Coxcomb":
+                                ApplyCoxcombChartStyle();
+                                break;
+                        }
+                    });
+                }
+                catch (Exception ex)
+                {
+                    Logger.Error(ex, "차트 디자인 업데이트 중 오류 발생");
+                }
+            }
+        }
+
+
+
+
+        private void ApplyBarChartStyle()
+        {
+            if (_wpfPlot == null) return;
+
+            try
+            {
+                var plt = _wpfPlot.Plot;
+
+                // 안전한 데이터 복사
+                var trueAddresses = addressDictionary?.Where(entry => entry.Value).Select(entry => entry.Key).ToList() ?? new List<int>();
+                var parametersToPlot = Parameters?.Where(p => trueAddresses.Contains(p.Address)).ToList() ?? new List<ParameterModel>();
+
+                if (!parametersToPlot.Any() && SelectedParameter != null)
+                {
+                    parametersToPlot = new List<ParameterModel> { SelectedParameter };
+                }
+
+                plt.Clear();
+
+                if (parametersToPlot.Any())
+                {
+                    // Bar 객체 리스트 생성
+                    var bars = new List<ScottPlot.Bar>();
+                    string[] labels = new string[parametersToPlot.Count];
+
+                    for (int i = 0; i < parametersToPlot.Count; i++)
+                    {
+                        var parameter = parametersToPlot[i];
+
+                        double value;
+                        lock (_lockObject)
+                        {
+                            if (_valueDataDict.ContainsKey(parameter.Address) && _valueDataDict[parameter.Address].Count > 0)
+                            {
+                                value = _valueDataDict[parameter.Address].LastOrDefault();
+                            }
+                            else
+                            {
+                                value = parameter.DefaultActual;
+                            }
+                        }
+
+                        bars.Add(new ScottPlot.Bar
+                        {
+                            Position = i,
+                            Value = value,
+                            Label = parameter.Description
+                        });
+
+                        labels[i] = parameter.Description;
+                    }
+
+                    foreach (var bar in bars)
+                    {
+                        plt.Add.Bar(bar);
+                    }
+
+                    // X축 레이블 설정
+                    double[] positions = bars.Select(b => b.Position).ToArray();
+                    plt.Axes.Bottom.SetTicks(positions, labels);
+                }
+                else
+                {
+                    // 데이터가 없을 때 샘플 표시
+                    var sampleBars = new[]
+                    {
+                new ScottPlot.Bar { Position = 0, Value = 10, Label = "샘플1" },
+                new ScottPlot.Bar { Position = 1, Value = 20, Label = "샘플2" },
+                new ScottPlot.Bar { Position = 2, Value = 15, Label = "샘플3" },
+                new ScottPlot.Bar { Position = 3, Value = 25, Label = "샘플4" }
+            };
+
+                    foreach (var bar in sampleBars)
+                    {
+                        plt.Add.Bar(bar);
+                    }
+
+                    double[] samplePositions = { 0, 1, 2, 3 };
+                    string[] sampleLabels = { "샘플1", "샘플2", "샘플3", "샘플4" };
+                    plt.Axes.Bottom.SetTicks(samplePositions, sampleLabels);
+                }
+
+                plt.Title("실시간 데이터 (Bar Chart)");
+                plt.XLabel("파라미터");
+                plt.YLabel("값");
+
+                if (AutoScale)
+                    plt.Axes.AutoScale();
+
+                plt.ShowLegend(ScottPlot.Alignment.UpperLeft);
+                _wpfPlot.Refresh();
+            }
+            catch (Exception ex)
+            {
+                Logger.Error(ex, "Bar 차트 스타일 적용 중 오류 발생");
+            }
+        }
+
+        private void ApplyScatterChartStyle()
+        {
+            if (_wpfPlot == null) return;
+
+            try
+            {
+                var plt = _wpfPlot.Plot;
+
+                // 안전한 데이터 복사
+                var trueAddresses = addressDictionary?.Where(entry => entry.Value).Select(entry => entry.Key).ToList() ?? new List<int>();
+                var parametersToPlot = Parameters?.Where(p => trueAddresses.Contains(p.Address)).ToList() ?? new List<ParameterModel>();
+
+                if (!parametersToPlot.Any() && SelectedParameter != null)
+                    parametersToPlot = new List<ParameterModel> { SelectedParameter };
+
+                plt.Clear();
+
+                foreach (var parameter in parametersToPlot)
+                {
+                    lock (_lockObject)
+                    {
+                        if (!_timeDataDict.ContainsKey(parameter.Address)) continue;
+
+                        var times = _timeDataDict[parameter.Address].ToArray();
+                        var values = _valueDataDict[parameter.Address].ToArray();
+
+                        if (times.Length > 0 && values.Length > 0)
+                        {
+                            var scatter = plt.Add.Scatter(times, values);
+                            scatter.Label = parameter.Description;
+                        }
+                    }
+                }
+
+                plt.Title("실시간 데이터 (Scatter)");
+                plt.XLabel("시간");
+                plt.YLabel("값");
+                if (AutoScale) plt.Axes.AutoScale();
+                plt.ShowLegend();
+                _wpfPlot.Refresh();
+            }
+            catch (Exception ex)
+            {
+                Logger.Error(ex, "Scatter 차트 스타일 적용 중 오류 발생");
+            }
+        }
+        private void ApplySignalChartStyle()
+        {
+            if (_wpfPlot == null) return;
+
+            try
+            {
+                var plt = _wpfPlot.Plot;
+
+                // 안전한 데이터 복사
+                var trueAddresses = addressDictionary?.Where(entry => entry.Value).Select(entry => entry.Key).ToList() ?? new List<int>();
+                var parametersToPlot = Parameters?.Where(p => trueAddresses.Contains(p.Address)).ToList() ?? new List<ParameterModel>();
+
+                if (!parametersToPlot.Any() && SelectedParameter != null)
+                    parametersToPlot = new List<ParameterModel> { SelectedParameter };
+
+                plt.Clear();
+
+                foreach (var parameter in parametersToPlot)
+                {
+                    lock (_lockObject)
+                    {
+                        if (!_valueDataDict.ContainsKey(parameter.Address)) continue;
+
+                        var values = _valueDataDict[parameter.Address].ToArray();
+
+                        if (values.Length > 0)
+                        {
+                            var signal = plt.Add.Signal(values);
+                            signal.Label = parameter.Description;
+                        }
+                    }
+                }
+
+                plt.Title("실시간 데이터 (Signal)");
+                plt.XLabel("샘플 인덱스");
+                plt.YLabel("값");
+                if (AutoScale) plt.Axes.AutoScale();
+                plt.ShowLegend();
+                _wpfPlot.Refresh();
+            }
+            catch (Exception ex)
+            {
+                Logger.Error(ex, "Signal 차트 스타일 적용 중 오류 발생");
+            }
+        }
+
+        private void ApplyCoxcombChartStyle()
+        {
+            if (_wpfPlot == null) return;
+
+            try
+            {
+                var plt = _wpfPlot.Plot;
+
+                // 안전한 데이터 복사
+                var trueAddresses = addressDictionary?.Where(entry => entry.Value).Select(entry => entry.Key).ToList() ?? new List<int>();
+                var parametersToPlot = Parameters?.Where(p => trueAddresses.Contains(p.Address)).ToList() ?? new List<ParameterModel>();
+
+                if (!parametersToPlot.Any() && SelectedParameter != null)
+                    parametersToPlot = new List<ParameterModel> { SelectedParameter };
+
+                plt.Clear();
+
+                if (parametersToPlot.Any())
+                {
+                    // Coxcomb(방사형) 차트는 Pie 차트로 대체
+                    double[] values = parametersToPlot.Select(p => p.DefaultActual).ToArray();
+                    string[] labels = parametersToPlot.Select(p => p.Description).ToArray();
+
+                    if (values.Length > 0 && values.Any(v => v > 0))
+                    {
+                        var pie = plt.Add.Pie(values);
+                    }
+                }
+
+                plt.Title("실시간 데이터 (Coxcomb)");
+                _wpfPlot.Refresh();
+            }
+            catch (Exception ex)
+            {
+                Logger.Error(ex, "Coxcomb 차트 스타일 적용 중 오류 발생");
+            }
+        }
+
 
         #endregion
 
@@ -768,30 +1061,40 @@ namespace Mvvm.ViewModels
 
 
 
-
         private void InitializeChart()
         {
             if (_wpfPlot == null) return;
 
-            var plt = _wpfPlot.Plot;
-            plt.Clear();
-            plt.Font.Set("맑은 고딕");
+            lock (_chartLockObject)
+            {
+                try
+                {
+                    var plt = _wpfPlot.Plot;
+                    plt.Clear();
+                    plt.Font.Set("맑은 고딕");
 
-            plt.Title("Real Time ", 16);
-            plt.XLabel("시간 (초)");
-            plt.YLabel("값");
+                    plt.Title("Real Time ", 16);
+                    plt.XLabel("시간 (초)");
+                    plt.YLabel("값");
 
-            double[] initialData = { 0 };
-            double[] initialTimes = { 0 };
-            _dataPlot = plt.Add.ScatterLine(initialTimes, initialData);
+                    double[] initialData = { 0 };
+                    double[] initialTimes = { 0 };
+                    _dataPlot = plt.Add.ScatterLine(initialTimes, initialData);
 
-            plt.Axes.SetLimits(left: -10, right: 0, bottom: -10, top: 10);
-            _wpfPlot.Refresh();
+                    plt.Axes.SetLimits(left: -10, right: 0, bottom: -10, top: 10);
+                    _wpfPlot.Refresh();
+                }
+                catch (Exception ex)
+                {
+                    Logger.Error(ex, "차트 초기화 중 오류 발생");
+                }
+            }
         }
+
 
         private void InitializeChartTypes()
         {
-            ChartTypes = new ObservableCollection<string> { "Line", "Bar", "Scatter" };
+            ChartTypes = new ObservableCollection<string> { "Bars", "Scatter", "Signal", "Coxcomb" };
             SelectedChartType = ChartTypes.First();
         }
 
@@ -913,50 +1216,71 @@ namespace Mvvm.ViewModels
         {
             if (_wpfPlot == null) return;
 
-            var trueAddresses = addressDictionary.Where(entry => entry.Value).Select(entry => entry.Key).ToList();
-            var parametersToPlot = Parameters.Where(p => trueAddresses.Contains(p.Address)).ToList();
-
-            if (_wpfPlot == null) return;
-
-            var plt = _wpfPlot.Plot;
-            plt.Clear();
-
-            foreach (var parameter in parametersToPlot)
+            try
             {
-                if (!_timeDataDict.ContainsKey(parameter.Address))
+                await Application.Current.Dispatcher.InvokeAsync(() =>
                 {
-                    _timeDataDict[parameter.Address] = new Queue<double>();
-                    _valueDataDict[parameter.Address] = new Queue<double>();
-                }
+                    lock (_chartLockObject)
+                    {
+                        try
+                        {
+                            var trueAddresses = addressDictionary.Where(entry => entry.Value).Select(entry => entry.Key).ToList();
+                            var parametersToPlot = Parameters.Where(p => trueAddresses.Contains(p.Address)).ToList();
 
-                var timeData = _timeDataDict[parameter.Address];
-                var valueData = _valueDataDict[parameter.Address];
+                            // 데이터 갱신
+                            lock (_lockObject)
+                            {
+                                foreach (var parameter in parametersToPlot)
+                                {
+                                    if (!_timeDataDict.ContainsKey(parameter.Address))
+                                    {
+                                        _timeDataDict[parameter.Address] = new Queue<double>();
+                                        _valueDataDict[parameter.Address] = new Queue<double>();
+                                    }
 
-                timeData.Enqueue(DateTime.Now.ToOADate());
-                valueData.Enqueue(parameter.DefaultActual);
+                                    var timeData = _timeDataDict[parameter.Address];
+                                    var valueData = _valueDataDict[parameter.Address];
 
-                while (timeData.Count > 10)  //차트 데이터 수량 50개 까지
-                {
-                    timeData.Dequeue();
-                    valueData.Dequeue();
-                }
+                                    timeData.Enqueue(DateTime.Now.ToOADate());
+                                    valueData.Enqueue(parameter.DefaultActual);
 
-                double[] times = timeData.ToArray();
-                double[] values = valueData.ToArray();
+                                    while (timeData.Count > 10)
+                                    {
+                                        timeData.Dequeue();
+                                        valueData.Dequeue();
+                                    }
+                                }
+                            }
 
-                var scatterPlot = plt.Add.Scatter(times, values);
-                scatterPlot.Label = $"{parameter.Description}";
+                            // 차트 타입에 따라 분기
+                            switch (SelectedChartType)
+                            {
+                                case "Bars":
+                                    ApplyBarChartStyle();
+                                    break;
+                                case "Scatter":
+                                    ApplyScatterChartStyle();
+                                    break;
+                                case "Signal":
+                                    ApplySignalChartStyle();
+                                    break;
+                                case "Coxcomb":
+                                    ApplyCoxcombChartStyle();
+                                    break;
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            Logger.Error(ex, "차트 업데이트 중 오류 발생");
+                        }
+                    }
+                }, System.Windows.Threading.DispatcherPriority.Background);
             }
-
-            if (AutoScale)
+            catch (Exception ex)
             {
-                plt.Axes.AutoScale();
+                Logger.Error(ex, "차트 업데이트 디스패처 호출 중 오류 발생");
             }
-
-            plt.ShowLegend();
-            _wpfPlot.Refresh();
         }
-
 
         private async void DataUpdateTimerElapsed(object sender, ElapsedEventArgs e)
         {
@@ -1142,7 +1466,6 @@ namespace Mvvm.ViewModels
 
 
 
-    // ICommand 인터페이스를 직접 구현하는 커맨드 클래스
     public class ParameterWriteCommand : ICommand
     {
         private readonly Action<ParameterModel> _execute;
