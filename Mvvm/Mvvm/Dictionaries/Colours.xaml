@@ -21,8 +21,6 @@
     <SolidColorBrush x:Key="MainButtonPath" Color="#FFF2F2F2" />
 
 
-
-
     <!--  App Accent Color  -->
 
     <SolidColorBrush x:Key="AccentBackground" Color="#FF009BD1" />
